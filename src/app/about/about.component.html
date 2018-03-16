@@ -1,0 +1,180 @@
+<div class="jumbotron">
+    <h1 class="display-4">OAuth Toolkit</h1>
+    <p class="lead">Use this page to test stuff and things.</p>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Okta config</h5>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-2">Base URL</div>
+        <div class="col">
+          <input type="text" class="form-control" name="baseUrl" [(ngModel)]="baseUrl" placeholder="Base URL of Okta Org">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">Response Type</div>
+        <div class="col">
+          <input type="text" class="form-control" name="responseType" [(ngModel)]="selectedResponseType" placeholder="e.g. token id_token">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">Scopes</div>
+        <div class="col">
+          <input type="text" class="form-control" name="scopes" [(ngModel)]="selectedScopes" placeholder="e.g. openid profile">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">Redirect URI</div>
+        <div class="col">
+          <input type="text" class="form-control" name="redrectUri" [(ngModel)]="redirectUri" placeholder="e.g. http://localhost:4200/implicit/callback">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">State</div>
+        <div class="col">
+          <input type="text" class="form-control" name="state" [(ngModel)]="state" placeholder="">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">Nonce</div>
+        <div class="col">
+          <input type="text" class="form-control" name="nonce" [(ngModel)]="nonce" placeholder="">
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Authorization Servers</h5>
+    <form>
+      <div class="form-group row" *ngFor="let authServer of authServers">
+        <div class="col-sm-1">
+          <button class="btn btn-primary" *ngIf="authServer.id" (click)="selectAuthServer(authServer)">Select</button>
+        </div>
+        <div class="col-sm-1">
+          <button class="btn btn-primary" *ngIf="authServer.id" (click)="removeAuthServer(authServer)">Clear</button>
+        </div>
+        <div class="col-sm-5">
+          <input type="text" class="form-control" name="auth{{authServer.index}}" [(ngModel)]="authServer.description" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Auth Server Description">
+        </div>
+        <div class="col-sm">
+          <input type="text" class="form-control" name="desc{{authServer.index}}" [(ngModel)]="authServer.id" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Authorization Server ID">
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">OAuth Clients</h5>
+    <form>
+      <div class="form-group row" *ngFor="let client of oauthClients">
+        <div class="col-sm-1">
+          <button class="btn btn-primary" *ngIf="client.id" (click)="selectOauthClient(client)">Select</button>
+        </div>
+        <div class="col-sm-1">
+          <button class="btn btn-primary" *ngIf="client.id" (click)="removeOauthClient(client)">Clear</button>
+        </div>
+        <div class="col-sm-5">
+          <input type="text" class="form-control" name="auth{{client.index}}" [(ngModel)]="client.description" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="OAuth Client Description">
+        </div>
+        <div class="col-sm-3">
+          <input type="text" class="form-control" name="desc{{client.index}}" [(ngModel)]="client.id" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="OAuth Client ID">
+        </div>
+        <div class="col-sm-2">
+          <input type="password" class="form-control" name="desc{{client.secret}}" [(ngModel)]="client.secret" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="Client Secret">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="saveConfig();">Save Config</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-body">
+    <h5 class="card-title">Authorize Endpoint</h5>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-2">
+          <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
+        </div>
+        <div class="col-sm-10">
+          <div><code>
+            {{authEndpoint}}
+          </code></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" *ngIf="accessToken">
+  <div class="card-body">
+    <h5 class="card-title">Access Token</h5>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="input-group">
+            <textarea class="copy-area">{{ accessToken.trim()}}</textarea>
+            <div class="input-group-prepend">
+              <span class="input-group-text" (click)="copyIdToken();">copy</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{decodedAccessToken | json}}</pre></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="introspectToken(accessToken)" *ngIf="selectedOauthClient.secret">Introspect</button><button class="btn btn-primary" (click)="getUserInfo(accessToken)">Get User Info</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" *ngIf="idToken">
+  <div class="card-body">
+    <h5 class="card-title">ID Token</h5>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><code>
+            {{idToken}}
+          </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{decodedIdToken | json}}</pre></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" *ngIf="userInfo">
+  <div class="card-body">
+    <h5 class="card-title">/userinfo Response</h5>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{userInfo | json}}</pre></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
