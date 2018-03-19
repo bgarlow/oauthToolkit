@@ -1,1 +1,16 @@
 /* You can add global styles to this file, and also import other style files */
+@import "~bootstrap/dist/css/bootstrap.css";
+
+.current-selection {
+  background-color: greenyellow;
+}
+
+.copy-area {
+  min-width: 80%;
+  min-height: 100px;
+  overflow: scroll;
+}
+
+.token-button {
+  width: 100%;
+}

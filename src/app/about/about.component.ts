@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 
 @Component({
@@ -10,30 +10,34 @@ import { ActivatedRoute } from '@angular/router';
 
 export class AboutComponent implements OnInit {
 
-  baseUrl;
-  redirectUri;
-  state;
-  nonce;
+  baseUrl='https://oktalane.okta.com';
+  redirectUri='http://localhost:4200/about';
+  state='mystate';
+  nonce='mynonce';
   selectedAuthServer;
   selectedOauthClient;
-  selectedScopes = '';
-  selectedResponseType: string;
+  selectedScopes = 'openid';
+  selectedResponseType = 'token id_token';
   authEndpoint: string;
+  tokenEndpoint: string;
 
   accessToken;
   idToken;
   decodedAccessToken;
   decodedIdToken;
   userInfo;
+  introspectResponse;
+  revokeResponse;
 
   fragmentArray = [];
   queryParams:any = {};
 
+  // array of authorization servers for testing various scenarios
   authServers = [
     {
       index: 0,
-      description: '',
-      id: ''
+      description: 'Universal Exports [QA]',
+      id: 'aus6d64ifz9vPFAR41t7'
     },
     {
       index: 1,
@@ -57,30 +61,31 @@ export class AboutComponent implements OnInit {
     }
   ];
 
+  // Array of oauthClients for testing various scenarios
   oauthClients = [
     {
       index: 0,
-      description: '',
-      id: '',
+      description: 'asdfasdf Exports - System A proxy',
+      id: '0oa6d73143bQzJjId1t7',
       secret: ''
     },
     {
       index: 1,
-      description: '',
-      id: '',
-      secret: ''
+      description: 'Universal Exports web app (use case 2)',
+      id: '0oa6eogos4vgsBmFt1t7',
+      secret: 'dCvQGEAE8OBxY5K7NRDN2VeVsHak4l6z38ncY7iq'
     },
     {
       index: 2,
-      description: '',
-      id: '',
-      secret: ''
+      description: ' asdfasdf Exports web app (use case 2)',
+      id: '0oa6eogos4vgsBmFt1t7',
+      secret: 'dCvQGEAE8OBxY5K7NRDN2VeVsHak4l6z38ncY7iq'
     },
     {
       index: 3,
-      description: '',
-      id: '',
-      secret: ''
+      description: 'aasdf Exports System A client credential',
+      id: '0oa6enogjciN9fIeB1t7',
+      secret: 'Kfl2HVZXHoGbz_f8qYb2k8VgXm_t3RWvtgB9vPHf'
     },
     {
       index: 4,
@@ -108,16 +113,87 @@ export class AboutComponent implements OnInit {
   }
 
   authenticate(): void {
-    this.buildAuthEndpointString();
+    this.buildEndpointString();
     this.updateConfig();
     // call authorize
     window.location.href = this.authEndpoint;
   }
 
-  introspectToken(token) {
-    let options = {
+  getToken(): void {
+    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
+    const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
+    const body = new HttpParams()
+      .set('client_id', this.selectedOauthClient.id)
+      .set('client_secret', this.selectedOauthClient.secret)
+      .set('grant_type', 'client_credentials')
+      .set('scope', this.selectedScopes);
 
-    };
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .set('Authorization', authHeaderVal);
+
+    this.http.post(endpoint, body.toString(), {headers})
+      .subscribe(data => {
+        console.log(data);
+        this.accessToken = data;
+      });
+  }
+
+  introspectToken(token) {
+    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/introspect';
+    const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
+
+    let body: HttpParams;
+    let headers: HttpHeaders;
+
+    if (!this.selectedOauthClient.secret || this.selectedOauthClient.secret.length < 1) {
+      body = new HttpParams()
+        .set('token', this.accessToken)
+        .set('token_type_hint', 'access_token')
+        .set('client_id', this.selectedOauthClient.id);
+    } else {
+      body = new HttpParams()
+        .set('token', this.accessToken)
+        .set('token_type_hint', 'access_token')
+    }
+
+    if (this.selectedOauthClient.secret && this.selectedOauthClient.secret.length > 0) {
+      headers = new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .set('Authorization', authHeaderVal);
+    } else {
+      headers = new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded');
+    }
+
+    this.http.post(endpoint, body.toString(), {headers})
+      .subscribe(data => {
+        console.log(data);
+        this.introspectResponse = data;
+      });
+  }
+
+  revokeToken(token) {
+    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/revoke';
+    const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
+    const body = new HttpParams()
+      .set('token', this.accessToken)
+      .set('token_type_hint', 'access_token');
+
+    const headers = new HttpHeaders()
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .set('Authorization', authHeaderVal);
+
+    this.http.post(endpoint, body.toString(), {headers})
+      .subscribe(data => {
+        console.log(data);
+        this.revokeResponse = data;
+      });
+  }
+
+  clearLocalTokens() {
+    this.accessToken = '';
+    this.idToken = '';
   }
 
   getUserInfo() {
@@ -132,17 +208,19 @@ export class AboutComponent implements OnInit {
       });
   }
 
-  buildAuthEndpointString() {
+  buildEndpointString() {
     this.authEndpoint =  this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/authorize' + '?client_id='
       + this.selectedOauthClient.id
       + '&response_type=' + this.selectedResponseType + '&scope=' + this.selectedScopes + '&redirect_uri=' + this.redirectUri
       + '&state=' + this.state + '&nonce=' + this.nonce;
+
+    this.tokenEndpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
   }
 
   selectAuthServer(authServer) {
     this.selectedAuthServer = authServer;
     //https://oktalane.okta.com/oauth2/aus6d64ifz9vPFAR41t7/v1/authorize
-    this.buildAuthEndpointString();
+    this.buildEndpointString();
   }
 
   removeAuthServer(authServer) {
@@ -152,6 +230,7 @@ export class AboutComponent implements OnInit {
 
   selectOauthClient(oauthClient) {
     this.selectedOauthClient = oauthClient;
+    this.buildEndpointString();
   }
 
   removeOauthClient(oauthClient) {
@@ -173,21 +252,17 @@ export class AboutComponent implements OnInit {
 
   ngOnInit() {
 
-    this.baseUrl = (window.localStorage['baseUrl']) ? window.localStorage['baseUrl'] : '';
-    this.redirectUri = (window.localStorage['redirectUri']) ? window.localStorage['redirectUri'] : '';
-    this.state = (window.localStorage['state']) ? window.localStorage['state'] : '';
-    this.nonce = (window.localStorage['nonce']) ? window.localStorage['nonce'] : '';
+    this.baseUrl = (window.localStorage['baseUrl']) ? window.localStorage['baseUrl'] : this.baseUrl;
+    this.redirectUri = (window.localStorage['redirectUri']) ? window.localStorage['redirectUri'] : this.redirectUri;
+    this.state = (window.localStorage['state']) ? window.localStorage['state'] : this.state;
+    this.nonce = (window.localStorage['nonce']) ? window.localStorage['nonce'] : this.nonce;
     this.selectedAuthServer = (window.localStorage['selectedAuthServer']) ? JSON.parse(window.localStorage['selectedAuthServer']) : {};
     this.selectedOauthClient = (window.localStorage['selectedOauthClient']) ? JSON.parse(window.localStorage['selectedOauthClient']) : {};
-    this.selectedScopes = (window.localStorage['selectedScopes']) ? window.localStorage['selectedScopes'] : '';
-    this.selectedResponseType = window.localStorage['selectedResponseType'];
-    if (window.localStorage['authServerArray']) {
-      this.authServers = JSON.parse(window.localStorage['authServerArray']);
-    }
-    if (window.localStorage['oauthClientArray']) {
-      this.oauthClients = JSON.parse(window.localStorage['oauthClientArray']);
-    }
-    this.buildAuthEndpointString();
+    this.selectedScopes = (window.localStorage['selectedScopes']) ? window.localStorage['selectedScopes'] : this.selectedScopes;
+    this.selectedResponseType = (window.localStorage['selectedResponseType']) ? window.localStorage['selectedResponseType'] : this.selectedResponseType;
+    this.authServers = (window.localStorage['authServerArray']) ? JSON.parse(window.localStorage['authServerArray']) : this.authServers;
+    this.oauthClients = (window.localStorage['oauthClientArray']) ? JSON.parse(window.localStorage['oauthClientArray']) : this.oauthClients;
+    this.buildEndpointString();
 
     this.route.fragment.subscribe(fragment => {
       if (fragment) {
