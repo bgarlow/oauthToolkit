@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ToolkitService } from '../services/toolkit.service';
 
 @Component({
   selector: 'app-navbar',
@@ -7,9 +8,12 @@ import { Component, OnInit } from '@angular/core';
 })
 export class NavbarComponent implements OnInit {
 
-  constructor() { }
+  menuClaims;
+
+  constructor(private toolkit: ToolkitService) { }
 
   ngOnInit() {
+    this.menuClaims = this.toolkit.menuClaims;
   }
 
 }

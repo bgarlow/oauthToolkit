@@ -4,8 +4,8 @@
 </div>
 
 <div class="card">
+  <h5 class="card-header">Okta config</h5>
   <div class="card-body">
-    <h5 class="card-title">Okta config</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm-2">Base URL</div>
@@ -48,8 +48,8 @@
 </div>
 
 <div class="card">
+  <h5 class="card-header">Authorization Servers</h5>
   <div class="card-body">
-    <h5 class="card-title">Authorization Servers</h5>
     <form>
       <div class="form-group row" *ngFor="let authServer of authServers">
         <div class="col-sm-1">
@@ -70,8 +70,8 @@
 </div>
 
 <div class="card">
+  <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
-    <h5 class="card-title">OAuth Clients</h5>
     <form>
       <div class="form-group row" *ngFor="let client of oauthClients">
         <div class="col-sm-1">
@@ -100,8 +100,8 @@
 </div>
 
 <div class="card">
+  <h5 class="card-header">Authorize Endpoint</h5>
   <div class="card-body">
-    <h5 class="card-title">Authorize Endpoint</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm-2">
@@ -118,8 +118,8 @@
 </div>
 
 <div class="card">
+  <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
-    <h5 class="card-title">Token Endpoint</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm-2">
@@ -136,8 +136,8 @@
 </div>
 
 <div class="card" *ngIf="accessToken">
+  <h5 class="card-header">Access Token</h5>
   <div class="card-body">
-    <h5 class="card-title">Access Token</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm">
@@ -191,8 +191,8 @@
 </div>
 
 <div class="card" *ngIf="idToken">
+  <h5 class="card-header">ID Token</h5>
   <div class="card-body">
-    <h5 class="card-title">ID Token</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm">
@@ -211,8 +211,8 @@
 </div>
 
 <div class="card" *ngIf="userInfo">
+  <h5 class="card-title">/userinfo Response</h5>
   <div class="card-body">
-    <h5 class="card-title">/userinfo Response</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm">
@@ -224,8 +224,8 @@
 </div>
 
 <div class="card" *ngIf="introspectResponse">
+  <h5 class="card-title">/introspect Response</h5>
   <div class="card-body">
-    <h5 class="card-title">/introspect Response</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm">
@@ -237,12 +237,75 @@
 </div>
 
 <div class="card" *ngIf="revokeResponse">
+  <h5 class="card-title">/revoke Response</h5>
   <div class="card-body">
-    <h5 class="card-title">/revoke Response</h5>
     <form>
       <div class="form-group row">
         <div class="col-sm">
           <div><pre>{{revokeResponse | json}}</pre></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card" *ngIf="menuClaims">
+  <h5 class="card-header">Menu-related Claims</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{menuClaims | json}}</pre></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+<div class="card" *ngIf="menuClaims">
+  <h5 class="card-header">Dynamic Navbar - based on claims</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+
+<nav class="navbar navbar-expand-lg navbar-light bg-info" *ngIf="menuClaims">
+  <a class="navbar-brand" routerLink="/home">Universal Exports</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+
+    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+      <li class="nav-item active">
+        <a class="nav-link" routerLink="/home">Home <span class="sr-only">(current)</span></a>
+      </li>
+      <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group A')">
+        <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Menu Group A
+        </a>
+        <div class="dropdown-menu" aria-labelledby="menuGroupA">
+          <a class="dropdown-item" href="#">Group A option 1</a>
+          <a class="dropdown-item" href="#">Group A option 2</a>
+          <a class="dropdown-item" href="#">Group A option 3</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group B')">
+        <a class="nav-link dropdown-toggle" href="#" id="menuGroupB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Menu Group B
+        </a>
+        <div class="dropdown-menu" aria-labelledby="menuGroupB">
+          <a class="dropdown-item" href="#">Group B option 1</a>
+          <a class="dropdown-item" href="#">Group B option 2</a>
+          <a class="dropdown-item" href="#">Group B option 3</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
+
         </div>
       </div>
     </form>

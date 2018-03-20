@@ -9,6 +9,16 @@ export class ToolkitService {
   private _selectedScopes;
   private _selectedResponseType;
 
+  private _menuClaims;
+
+  set menuClaims(value: any) {
+    this._menuClaims = value;
+  }
+
+  get menuClaims() {
+    return this._menuClaims
+  }
+
   set baseUrl(value: string) {
     this._baseUrl = value;
   }

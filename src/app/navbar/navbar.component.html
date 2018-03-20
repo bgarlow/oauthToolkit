@@ -15,6 +15,26 @@
       <li class="nav-item">
         <a class="nav-link" routerLink="/Profile">Profile</a>
       </li>
+      <li class="nav-item dropdown" *ngIf="menuClaims">
+        <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Menu Group A
+        </a>
+        <div class="dropdown-menu" aria-labelledby="menuGroupA">
+          <a class="dropdown-item" href="#">Group A option 1</a>
+          <a class="dropdown-item" href="#">Group A option 2</a>
+          <a class="dropdown-item" href="#">Group A option 3</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown" *ngIf="menuClaims">
+        <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Menu Group A
+        </a>
+        <div class="dropdown-menu" aria-labelledby="menuGroupA">
+          <a class="dropdown-item" href="#">Group B option 1</a>
+          <a class="dropdown-item" href="#">Group B option 2</a>
+          <a class="dropdown-item" href="#">Group B option 3</a>
+        </div>
+      </li>
     </ul>
   </div>
 </nav>

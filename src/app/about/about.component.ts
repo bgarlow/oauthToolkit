@@ -29,6 +29,8 @@ export class AboutComponent implements OnInit {
   introspectResponse;
   revokeResponse;
 
+  menuClaims;
+
   fragmentArray = [];
   queryParams:any = {};
 
@@ -280,6 +282,9 @@ export class AboutComponent implements OnInit {
         if (this.queryParams['id_token']) {
           this.idToken = this.queryParams['id_token'];
           this.decodedIdToken = this.parseJwt(this.idToken);
+          if (this.decodedIdToken.ue_spa_app_menu_groups) {
+            this.menuClaims = this.decodedIdToken.ue_spa_app_menu_groups;
+          }
         }
       }
     });
