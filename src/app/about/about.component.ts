@@ -65,8 +65,8 @@ export class AboutComponent implements OnInit {
   oauthClients = [
     {
       index: 0,
-      description: 'asdfasdf Exports - System A proxy',
-      id: '0oa6d73143bQzJjId1t7',
+      description: 'Universal Exports (use case 1) Single Page App',
+      id: '0oa6d67ir4VRt3Ff01t7',
       secret: ''
     },
     {
@@ -77,15 +77,15 @@ export class AboutComponent implements OnInit {
     },
     {
       index: 2,
-      description: ' asdfasdf Exports web app (use case 2)',
-      id: '0oa6eogos4vgsBmFt1t7',
-      secret: 'dCvQGEAE8OBxY5K7NRDN2VeVsHak4l6z38ncY7iq'
+      description: 'Universal Exports (use case 3a) service-to-service',
+      id: '0oa6epn1x6uuiMc4g1t7',
+      secret: '9iIz4jS3l7ZUctH9VkveyLF8LjWilcRPI1sdPcEI'
     },
     {
       index: 3,
-      description: 'aasdf Exports System A client credential',
-      id: '0oa6enogjciN9fIeB1t7',
-      secret: 'Kfl2HVZXHoGbz_f8qYb2k8VgXm_t3RWvtgB9vPHf'
+      description: 'l',
+      id: '',
+      secret: ''
     },
     {
       index: 4,
@@ -123,8 +123,8 @@ export class AboutComponent implements OnInit {
     const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
     const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
     const body = new HttpParams()
-      .set('client_id', this.selectedOauthClient.id)
-      .set('client_secret', this.selectedOauthClient.secret)
+      // .set('client_id', this.selectedOauthClient.id)
+      // .set('client_secret', this.selectedOauthClient.secret)
       .set('grant_type', 'client_credentials')
       .set('scope', this.selectedScopes);
 
