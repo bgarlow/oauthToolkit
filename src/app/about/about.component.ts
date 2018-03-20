@@ -28,6 +28,8 @@ export class AboutComponent implements OnInit {
   userInfo;
   introspectResponse;
   revokeResponse;
+  metadataResponse;
+  errorMessage;
 
   menuClaims;
 
@@ -121,23 +123,42 @@ export class AboutComponent implements OnInit {
     window.location.href = this.authEndpoint;
   }
 
+  /*
+   * Call the /token endpoint for client credentials flow. Have to use the Node backend for this one
+   */
   getToken(): void {
     const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
-    const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
-    const body = new HttpParams()
-      // .set('client_id', this.selectedOauthClient.id)
-      // .set('client_secret', this.selectedOauthClient.secret)
-      .set('grant_type', 'client_credentials')
-      .set('scope', this.selectedScopes);
 
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/x-www-form-urlencoded')
-      .set('Authorization', authHeaderVal);
+    this.clearLocalTokens();
 
-    this.http.post(endpoint, body.toString(), {headers})
-      .subscribe(data => {
-        console.log(data);
-        this.accessToken = data;
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    };
+
+    let payload = {
+      endpoint: endpoint,
+      clientId: this.selectedOauthClient.id,
+      clientSecret: this.selectedOauthClient.secret,
+      scope: this.selectedScopes
+    };
+
+    this.http.post('/demo/token', payload, httpOptions)
+      .subscribe(
+        data => {
+          if (data['statusCode'] === 200) {
+            let token = JSON.parse(data['body']);
+            this.accessToken = token.access_token;
+            this.decodedAccessToken = this.parseJwt(this.accessToken);
+          } else {
+            console.error(`/token ${data}`);
+            this.errorMessage = data;
+          }
+        },
+        err => {
+          console.error(`/token ${err}`);
+          this.errorMessage = err;
       });
   }
 
@@ -178,18 +199,43 @@ export class AboutComponent implements OnInit {
   revokeToken(token) {
     const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/revoke';
     const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
-    const body = new HttpParams()
-      .set('token', this.accessToken)
-      .set('token_type_hint', 'access_token');
 
-    const headers = new HttpHeaders()
-      .set('Content-Type', 'application/x-www-form-urlencoded')
-      .set('Authorization', authHeaderVal);
+    let body: HttpParams;
+    let headers: HttpHeaders;
+
+    if (!this.selectedOauthClient.secret || this.selectedOauthClient.secret.length < 1) {
+      body = new HttpParams()
+        .set('token', this.accessToken)
+        .set('token_type_hint', 'access_token')
+        .set('client_id', this.selectedOauthClient.id);
+    } else {
+      body = new HttpParams()
+        .set('token', this.accessToken)
+        .set('token_type_hint', 'access_token')
+    }
+
+    if (this.selectedOauthClient.secret && this.selectedOauthClient.secret.length > 0) {
+      headers = new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded')
+        .set('Authorization', authHeaderVal);
+    } else {
+      headers = new HttpHeaders()
+        .set('Content-Type', 'application/x-www-form-urlencoded');
+    }
 
     this.http.post(endpoint, body.toString(), {headers})
       .subscribe(data => {
-        console.log(data);
-        this.revokeResponse = data;
+          this.clearLocalTokens();
+      });
+  }
+
+  showMetadata(authServer) {
+    let endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+
+    this.http.get(endpoint)
+      .subscribe(data => {
+        this.metadataResponse = data;
+        console.log(this.metadataResponse);
       });
   }
 
@@ -198,16 +244,25 @@ export class AboutComponent implements OnInit {
     this.idToken = '';
   }
 
+  clearErrorMessage() {
+    this.errorMessage = undefined;
+  }
+
+  clearMetadataResponse() {
+    this.metadataResponse = undefined;
+  }
+
   getUserInfo() {
     ///oauth2/aus6d64ifz9vPFAR41t7/v1/userinfo
     let endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/userinfo';
     let headers = new Headers();
 
     this.http.get(endpoint, { headers: new HttpHeaders().set('Authorization', 'Bearer ' + this.accessToken)})
-      .subscribe(data => {
-        console.log(data);
-        this.userInfo = data;
-      });
+      .subscribe(
+        data => {
+          this.userInfo = data;
+        }
+      );
   }
 
   buildEndpointString() {

@@ -1,16 +1,24 @@
 /* You can add global styles to this file, and also import other style files */
 @import "~bootstrap/dist/css/bootstrap.css";
 
+.card {
+  margin-bottom: 10px;
+}
+
+code {
+  color: black!important;
+}
+
 .current-selection {
   background-color: greenyellow;
 }
-
 .copy-area {
-  min-width: 80%;
+  min-width: 100%;
   min-height: 100px;
   overflow: scroll;
 }
 
 .token-button {
   width: 100%;
+  margin-bottom: 2px;
 }

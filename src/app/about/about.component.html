@@ -3,7 +3,7 @@
     <p class="lead">Use this page to test stuff and things.</p>
 </div>
 
-<div class="card">
+<div class="card text-light bg-dark">
   <h5 class="card-header">Okta config</h5>
   <div class="card-body">
     <form>
@@ -47,7 +47,7 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card text-light bg-dark">
   <h5 class="card-header">Authorization Servers</h5>
   <div class="card-body">
     <form>
@@ -62,14 +62,19 @@
           <input type="text" class="form-control" name="auth{{authServer.index}}" [(ngModel)]="authServer.description" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Auth Server Description">
         </div>
         <div class="col-sm">
-          <input type="text" class="form-control" name="desc{{authServer.index}}" [(ngModel)]="authServer.id" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Authorization Server ID">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" name="desc{{authServer.index}}" [(ngModel)]="authServer.id" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Authorization Server ID">
+            <div class="input-group-append" *ngIf="authServer.id">
+              <span class="input-group-text" id="addon{{authServer.index}}" (click)="showMetadata(authServer)">Metadata</span>
+            </div>
+          </div>
         </div>
       </div>
     </form>
   </div>
 </div>
 
-<div class="card">
+<div class="card text-light bg-dark">
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
     <form>
@@ -99,43 +104,47 @@
   </div>
 </div>
 
-<div class="card">
+<div class="card text-light bg-info">
   <h5 class="card-header">Authorize Endpoint</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
-        <div class="col-sm-2">
-          <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
-        </div>
-        <div class="col-sm-10">
+        <div class="col-sm">
           <div><code>
             {{authEndpoint}}
           </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
         </div>
       </div>
     </form>
   </div>
 </div>
 
-<div class="card">
+<div class="card text-light bg-info">
   <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
-        <div class="col-sm-2">
-          <button class="btn btn-primary" (click)="getToken();">Get Token</button>
-        </div>
         <div class="col-sm-10">
           <div><code>
             {{tokenEndpoint}}
           </code></div>
         </div>
       </div>
+      <div class="form-group row">
+        <div class="col-sm-2">
+          <button class="btn btn-primary" (click)="getToken();">Get Token</button>
+        </div>
+      </div>
     </form>
   </div>
 </div>
 
-<div class="card" *ngIf="accessToken">
+<div class="card bg-light" *ngIf="accessToken">
   <h5 class="card-header">Access Token</h5>
   <div class="card-body">
     <form>
@@ -148,7 +157,7 @@
       </div>
       <div class="form-group row">
         <div class="col-sm">
-          <div><pre>{{decodedAccessToken | json}}</pre></div>
+          <div><pre text-light>{{decodedAccessToken | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">
@@ -190,7 +199,7 @@
   </div>
 </div>
 
-<div class="card" *ngIf="idToken">
+<div class="card bg-light" *ngIf="idToken">
   <h5 class="card-header">ID Token</h5>
   <div class="card-body">
     <form>
@@ -210,21 +219,26 @@
   </div>
 </div>
 
-<div class="card" *ngIf="userInfo">
-  <h5 class="card-title">/userinfo Response</h5>
+<div class="card text-light bg-info" *ngIf="metadataResponse">
+  <h5 class="card-header">/.well-known/oauth-authorization-server Response</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
-          <div><pre>{{userInfo | json}}</pre></div>
+          <div><pre>{{metadataResponse | json}}</pre></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="clearMetadataResponse();">Clear</button>
         </div>
       </div>
     </form>
   </div>
 </div>
 
-<div class="card" *ngIf="introspectResponse">
-  <h5 class="card-title">/introspect Response</h5>
+<div class="card text-light bg-info" *ngIf="introspectResponse">
+  <h5 class="card-header">/introspect Response</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -236,8 +250,21 @@
   </div>
 </div>
 
-<div class="card" *ngIf="revokeResponse">
-  <h5 class="card-title">/revoke Response</h5>
+<div class="card text-light bg-info" *ngIf="userInfo">
+  <h5 class="card-header">/userinfo Response</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{userInfo | json}}</pre></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card text-light bg-info" *ngIf="revokeResponse">
+  <h5 class="card-header">/revoke Response</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -249,7 +276,7 @@
   </div>
 </div>
 
-<div class="card" *ngIf="menuClaims">
+<div class="card bg-light" *ngIf="menuClaims">
   <h5 class="card-header">Menu-related Claims</h5>
   <div class="card-body">
     <form>
@@ -262,7 +289,16 @@
   </div>
 </div>
 
-
+<div class="form-group row" *ngIf="errorMessage">
+  <div class="col-sm">
+    <div class="alert alert-danger">
+      <div><pre>{{errorMessage | json}}</pre></div>
+    </div>
+    <div>
+      <button class="btn btn-primary" (click)="clearErrorMessage();">Clear</button>
+    </div>
+  </div>
+</div>
 
 <div class="card" *ngIf="menuClaims">
   <h5 class="card-header">Dynamic Navbar - based on claims</h5>
@@ -271,40 +307,40 @@
       <div class="form-group row">
         <div class="col-sm">
 
-<nav class="navbar navbar-expand-lg navbar-light bg-info" *ngIf="menuClaims">
-  <a class="navbar-brand" routerLink="/home">Universal Exports</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
+          <nav class="navbar navbar-expand-lg navbar-dark bg-primary" *ngIf="menuClaims">
+            <a class="navbar-brand" routerLink="#">Universal Exports</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarTogglerDemo02">
 
-    <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
-      <li class="nav-item active">
-        <a class="nav-link" routerLink="/home">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group A')">
-        <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Menu Group A
-        </a>
-        <div class="dropdown-menu" aria-labelledby="menuGroupA">
-          <a class="dropdown-item" href="#">Group A option 1</a>
-          <a class="dropdown-item" href="#">Group A option 2</a>
-          <a class="dropdown-item" href="#">Group A option 3</a>
-        </div>
-      </li>
-      <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group B')">
-        <a class="nav-link dropdown-toggle" href="#" id="menuGroupB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          Menu Group B
-        </a>
-        <div class="dropdown-menu" aria-labelledby="menuGroupB">
-          <a class="dropdown-item" href="#">Group B option 1</a>
-          <a class="dropdown-item" href="#">Group B option 2</a>
-          <a class="dropdown-item" href="#">Group B option 3</a>
-        </div>
-      </li>
-    </ul>
-  </div>
-</nav>
+              <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
+                <li class="nav-item active">
+                  <a class="nav-link" routerLink="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group A')">
+                  <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Menu Group A
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="menuGroupA">
+                    <a class="dropdown-item" href="#">Group A option 1</a>
+                    <a class="dropdown-item" href="#">Group A option 2</a>
+                    <a class="dropdown-item" href="#">Group A option 3</a>
+                  </div>
+                </li>
+                <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group B')">
+                  <a class="nav-link dropdown-toggle" href="#" id="menuGroupB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Menu Group B
+                  </a>
+                  <div class="dropdown-menu" aria-labelledby="menuGroupB">
+                    <a class="dropdown-item" href="#">Group B option 1</a>
+                    <a class="dropdown-item" href="#">Group B option 2</a>
+                    <a class="dropdown-item" href="#">Group B option 3</a>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </nav>
 
         </div>
       </div>
