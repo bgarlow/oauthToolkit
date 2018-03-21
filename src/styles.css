@@ -5,6 +5,12 @@
   margin-bottom: 10px;
 }
 
+.badge {
+  font-size: 100%;
+  font-weight: 400;
+  margin: 3px;
+}
+
 code {
   color: black!important;
 }

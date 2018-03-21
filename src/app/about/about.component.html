@@ -47,6 +47,22 @@
   </div>
 </div>
 
+<div class="card text-light bg-dark" *ngIf="supportedScopes">
+  <h5 class="card-header">Supported Scopes</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col">
+          <span *ngFor="let scope of supportedScopes">
+            <span class="badge badge-pill badge-primary">{{scope}}</span>
+          </span>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 <div class="card text-light bg-dark">
   <h5 class="card-header">Authorization Servers</h5>
   <div class="card-body">
@@ -104,6 +120,28 @@
   </div>
 </div>
 
+<!--
+<div class="card text-light bg-dark">
+  <h5 class="card-header">User</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-2">Username</div>
+        <div class="col">
+          <input type="text" class="form-control" name="username" [(ngModel)]="username" placeholder="Okta username">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">Username</div>
+        <div class="col">
+          <input type="password" class="form-control" name="password" [(ngModel)]="password" placeholder="Okta password">
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+-->
+
 <div class="card text-light bg-info">
   <h5 class="card-header">Authorize Endpoint</h5>
   <div class="card-body">
@@ -116,9 +154,14 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm">
+        <div class="col-sm-2">
           <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
         </div>
+        <!--
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="logout();">Logout</button>
+        </div>
+        -->
       </div>
     </form>
   </div>
@@ -139,6 +182,11 @@
         <div class="col-sm-2">
           <button class="btn btn-primary" (click)="getToken();">Get Token</button>
         </div>
+        <!--
+        <div class="col-sm-2">
+          <button class="btn btn-primary" (click)="getToken();">???</button>
+        </div>
+        -->
       </div>
     </form>
   </div>
@@ -300,14 +348,14 @@
   </div>
 </div>
 
-<div class="card" *ngIf="menuClaims">
+<div class="card">
   <h5 class="card-header">Dynamic Navbar - based on claims</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
 
-          <nav class="navbar navbar-expand-lg navbar-dark bg-primary" *ngIf="menuClaims">
+          <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
             <a class="navbar-brand" routerLink="#">Universal Exports</a>
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo02" aria-controls="navbarTogglerDemo02" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
@@ -318,7 +366,7 @@
                 <li class="nav-item active">
                   <a class="nav-link" routerLink="#">Home <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group A')">
+                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('Universal Exports Menu Group A')">
                   <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Menu Group A
                   </a>
@@ -328,7 +376,7 @@
                     <a class="dropdown-item" href="#">Group A option 3</a>
                   </div>
                 </li>
-                <li class="nav-item dropdown" *ngIf="menuClaims.includes('Universal Exports Menu Group B')">
+                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('Universal Exports Menu Group B')">
                   <a class="nav-link dropdown-toggle" href="#" id="menuGroupB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Menu Group B
                   </a>
@@ -346,4 +394,8 @@
       </div>
     </form>
   </div>
+</div>
+
+<div style="height:300px">
+
 </div>

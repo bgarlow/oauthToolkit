@@ -3,6 +3,8 @@ const router = express.Router();
 const request = require('request');
 const querystring = require('querystring');
 
+const apiKey = '00Ke1kv3EbZfEW03MQ3G-9fbcYnduE0tShwBxnI02J';
+
 /* GET api listing. */
 router.get('/', (req, res) => {
   res.send('DEMO API. Need to update this with endpoint listing.');
@@ -55,7 +57,15 @@ router.post('/token', (req, res) => {
       }
     }
   })
+});
+
+/**
+ * Call the /logout endpoint of the selected auth server
+ */
+router.post('/logout', (req, res) => {
 
 });
+
+
 
 module.exports = router;
