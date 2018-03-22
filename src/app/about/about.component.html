@@ -13,6 +13,14 @@
           <input type="text" class="form-control" name="baseUrl" [(ngModel)]="baseUrl" placeholder="Base URL of Okta Org">
         </div>
       </div>
+    </form>
+  </div>
+</div>
+
+<div class="card text-light bg-dark">
+  <h5 class="card-header">Request config</h5>
+  <div class="card-body">
+    <form>
       <div class="form-group row">
         <div class="col-sm-2">Response Type</div>
         <div class="col">
@@ -46,7 +54,7 @@
     </form>
   </div>
 </div>
-
+<div>{{userScopes}}</div>
 <div class="card text-light bg-dark" *ngIf="supportedScopes">
   <h5 class="card-header">Supported Scopes</h5>
   <div class="card-body">
@@ -54,7 +62,7 @@
       <div class="form-group row">
         <div class="col">
           <span *ngFor="let scope of supportedScopes">
-            <span class="badge badge-pill badge-primary">{{scope}}</span>
+            <span class="badge badge-pill badge-primary" [ngClass]="{'badge-warning': userScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</span>
           </span>
         </div>
       </div>
@@ -69,19 +77,19 @@
     <form>
       <div class="form-group row" *ngFor="let authServer of authServers">
         <div class="col-sm-1">
-          <button class="btn btn-primary" *ngIf="authServer.id" (click)="selectAuthServer(authServer)">Select</button>
+          <button class="btn btn-primary" *ngIf="authServer.description" (click)="selectAuthServer(authServer)">Select</button>
         </div>
         <div class="col-sm-1">
           <button class="btn btn-primary" *ngIf="authServer.id" (click)="removeAuthServer(authServer)">Clear</button>
         </div>
         <div class="col-sm-5">
-          <input type="text" class="form-control" name="auth{{authServer.index}}" [(ngModel)]="authServer.description" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Auth Server Description">
+          <input type="text" class="form-control" [ngClass]="{'current-selection': authServer.selected}" name="auth{{authServer.index}}" [(ngModel)]="authServer.description" placeholder="Auth Server Description">
         </div>
         <div class="col-sm">
           <div class="input-group mb-3">
-            <input type="text" class="form-control" name="desc{{authServer.index}}" [(ngModel)]="authServer.id" [ngClass]="{'current-selection': authServer === selectedAuthServer}" placeholder="Authorization Server ID">
-            <div class="input-group-append" *ngIf="authServer.id">
-              <span class="input-group-text" id="addon{{authServer.index}}" (click)="showMetadata(authServer)">Metadata</span>
+            <input type="text" class="form-control" [ngClass]="{'current-selection': authServer.selected}"  name="desc{{authServer.index}}" [(ngModel)]="authServer.id"  placeholder="Authorization Server ID">
+            <div class="input-group-append" *ngIf="authServer.description">
+              <span class="input-group-text" id="addon{{authServer.index}}" (click)="getMetadata(authServer)">Metadata</span>
             </div>
           </div>
         </div>
@@ -102,13 +110,13 @@
           <button class="btn btn-primary" *ngIf="client.id" (click)="removeOauthClient(client)">Clear</button>
         </div>
         <div class="col-sm-5">
-          <input type="text" class="form-control" name="auth{{client.index}}" [(ngModel)]="client.description" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="OAuth Client Description">
+          <input type="text" class="form-control" name="desc{{client.description}}" [ngClass]="{'current-selection': client.selected}" [ngModel]="client.description"  placeholder="OAuth Client Description">
         </div>
         <div class="col-sm-3">
-          <input type="text" class="form-control" name="desc{{client.index}}" [(ngModel)]="client.id" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="OAuth Client ID">
+          <input type="text" class="form-control" name="id{{client.id}}" [ngClass]="{'current-selection': client.selected}" [ngModel]="client.id" placeholder="OAuth Client ID">
         </div>
         <div class="col-sm-2">
-          <input type="text" class="form-control" name="desc{{client.secret}}" [(ngModel)]="client.secret" [ngClass]="{'current-selection': client === selectedOauthClient}" placeholder="Client Secret">
+          <input type="text" class="form-control" name="secret{{client.secret}}" [ngClass]="{'current-selection': client.selected}" [ngModel]="client.secret" placeholder="Client Secret">
         </div>
       </div>
       <div class="form-group row">
@@ -212,10 +220,10 @@
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-2">
-              <button class="btn btn-primary token-button" (click)="introspectToken(accessToken)">Introspect</button>
+              <button class="btn btn-primary token-button" (click)="introspectToken(accessToken, 'access_token')">Introspect</button>
             </div>
             <div class="col">
-              {{'POST ' + this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/introspect'}}
+              {{'POST ' + this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/introspect'}}
             </div>
           </div>
           <div class="row">
@@ -223,15 +231,15 @@
               <button class="btn btn-primary token-button" (click)="getUserInfo(accessToken)">Get User Info</button>
             </div>
             <div class="col">
-              {{'GET ' + this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/userinfo'}}
+              {{'GET ' + this.baseUrl + '/oauth2/' + this.authServerUri+ 'v1/userinfo'}}
             </div>
           </div>
           <div class="row">
             <div class="col-sm-2">
-              <button class="btn btn-primary token-button" (click)="revokeToken(accessToken)">Revoke Token</button>
+              <button class="btn btn-primary token-button" (click)="revokeToken(accessToken, 'access_token')">Revoke Token</button>
             </div>
             <div class="col">
-              {{'GET ' + this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/revoke'}}
+              {{'GET ' + this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/revoke'}}
             </div>
           </div>
             <div class="row">
@@ -261,6 +269,33 @@
       <div class="form-group row">
         <div class="col-sm">
           <div><pre>{{decodedIdToken | json}}</pre></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="row">
+            <div class="col-sm-2">
+              <button class="btn btn-primary token-button" (click)="introspectToken(idToken, 'id_token')">Introspect</button>
+            </div>
+            <div class="col">
+              {{'POST ' + this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/introspect'}}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2">
+              <button class="btn btn-primary token-button" (click)="revokeToken(idToken, 'id_token')">Revoke Token</button>
+            </div>
+            <div class="col">
+              {{'GET ' + this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/revoke'}}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2">
+              <button class="btn btn-primary token-button" (click)="clearLocalTokens()">Clear Tokens</button>
+            </div>
+            <div class="col">
+            </div>
+          </div>
         </div>
       </div>
     </form>

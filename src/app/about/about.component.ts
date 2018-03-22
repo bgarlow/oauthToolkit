@@ -20,7 +20,9 @@ export class AboutComponent implements OnInit {
   selectedResponseType = 'token id_token';
   authEndpoint: string;
   tokenEndpoint: string;
+  authServerUri;
   supportedScopes;
+  userScopes;
 
   username;
   password;
@@ -39,34 +41,39 @@ export class AboutComponent implements OnInit {
   menuClaims;
 
   fragmentArray = [];
-  queryParams:any = {};
+  queryParams: any = {};
 
   // array of authorization servers for testing various scenarios
   authServers = [
     {
       index: 0,
       description: 'Universal Exports [QA]',
-      id: 'aus6d64ifz9vPFAR41t7'
+      id: 'aus6d64ifz9vPFAR41t7',
+      selected: false
     },
     {
       index: 1,
       description: 'Universal Exports [Production]',
-      id: 'aus6f3tat4dXRW8A71t7'
+      id: 'aus6f3tat4dXRW8A71t7',
+      selected: false
     },
     {
       index: 2,
       description: '',
-      id: ''
+      id: '',
+      selected: false
     },
     {
       index: 3,
       description: '',
-      id: ''
+      id: '',
+      selected: false
     },
     {
       index: 4,
-      description: '',
-      id: ''
+      description: 'default',
+      id: '',
+      selected: false
     }
   ];
 
@@ -76,31 +83,36 @@ export class AboutComponent implements OnInit {
       index: 0,
       description: 'Universal Exports (use case 1 - User Impersonation)',
       id: '0oa6d67ir4VRt3Ff01t7',
-      secret: ''
+      secret: '',
+      selected: false
     },
     {
       index: 1,
       description: 'Universal Exports (use case 2) Dynamic Menu',
       id: '0oa6epnxuqg0wPPnq1t7',
-      secret: ''
+      secret: '',
+      selected: false
     },
     {
       index: 2,
       description: 'Universal Exports (user case 3a) end user access',
       id: '0oa6fh7oybJ41BFWb1t7',
-      secret: ''
+      secret: '',
+      selected: false
     },
     {
       index: 3,
       description: 'Universal Exports (use case 3b) external client credentials',
       id: '0oa6epn1x6uuiMc4g1t7',
-      secret: '9iIz4jS3l7ZUctH9VkveyLF8LjWilcRPI1sdPcEI'
+      secret: '9iIz4jS3l7ZUctH9VkveyLF8LjWilcRPI1sdPcEI',
+      selected: false
     },
     {
       index: 4,
       description: 'testme',
       id: '0oa6finukjNISDeWA1t7',
-      secret: '8iNH-t97ecLDaMYavc5lJx1m9zfW_lFdiqnyxFcd'
+      secret: '8iNH-t97ecLDaMYavc5lJx1m9zfW_lFdiqnyxFcd',
+      selected: false
     }
   ];
 
@@ -137,7 +149,8 @@ export class AboutComponent implements OnInit {
    * Call the /token endpoint for client credentials flow. Have to use the Node backend for this one
    */
   getToken(): void {
-    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
+    this.authServerUri = this.getAuthServerUri();
+    const endpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/token';
 
     this.clearLocalTokens();
 
@@ -166,14 +179,13 @@ export class AboutComponent implements OnInit {
             this.errorMessage = data;
           }
         },
-        err => {
-          console.error(`/token ${err}`);
-          this.errorMessage = err;
+        error => {
+          this.errorMessage = error;
       });
   }
 
-  introspectToken(token) {
-    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/introspect';
+  introspectToken(token, tokenType) {
+    const endpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/introspect';
     const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
 
     let body: HttpParams;
@@ -181,13 +193,13 @@ export class AboutComponent implements OnInit {
 
     if (!this.selectedOauthClient.secret || this.selectedOauthClient.secret.length < 1) {
       body = new HttpParams()
-        .set('token', this.accessToken)
-        .set('token_type_hint', 'access_token')
+        .set('token', token)
+        .set('token_type_hint', tokenType)
         .set('client_id', this.selectedOauthClient.id);
     } else {
       body = new HttpParams()
-        .set('token', this.accessToken)
-        .set('token_type_hint', 'access_token')
+        .set('token', token)
+        .set('token_type_hint', tokenType);
     }
 
     if (this.selectedOauthClient.secret && this.selectedOauthClient.secret.length > 0) {
@@ -200,14 +212,17 @@ export class AboutComponent implements OnInit {
     }
 
     this.http.post(endpoint, body.toString(), {headers})
-      .subscribe(data => {
-        console.log(data);
-        this.introspectResponse = data;
-      });
+      .subscribe(
+        data => {
+          this.introspectResponse = data;
+        },
+        error => {
+          this.errorMessage = error;
+        });
   }
 
-  revokeToken(token) {
-    const endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/revoke';
+  revokeToken(token, tokenType) {
+    const endpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/revoke';
     const authHeaderVal = 'Basic ' + btoa(this.selectedOauthClient.id + ':' + this.selectedOauthClient.secret);
 
     let body: HttpParams;
@@ -215,13 +230,13 @@ export class AboutComponent implements OnInit {
 
     if (!this.selectedOauthClient.secret || this.selectedOauthClient.secret.length < 1) {
       body = new HttpParams()
-        .set('token', this.accessToken)
-        .set('token_type_hint', 'access_token')
+        .set('token', token)
+        .set('token_type_hint', tokenType)
         .set('client_id', this.selectedOauthClient.id);
     } else {
       body = new HttpParams()
-        .set('token', this.accessToken)
-        .set('token_type_hint', 'access_token')
+        .set('token', token)
+        .set('token_type_hint', tokenType);
     }
 
     if (this.selectedOauthClient.secret && this.selectedOauthClient.secret.length > 0) {
@@ -234,28 +249,62 @@ export class AboutComponent implements OnInit {
     }
 
     this.http.post(endpoint, body.toString(), {headers})
-      .subscribe(data => {
+      .subscribe(
+        data => {
           this.clearLocalTokens();
-      });
+        },
+        error => {
+          this.errorMessage = error;
+        });
+  }
+
+  selectScope(scope) {
+    let scopeArray = this.selectedScopes.split(' ');
+    if (!scopeArray.includes(scope)) {
+      scopeArray.push(scope);
+    } else {
+      scopeArray.pop(scope);
+    }
+    this.selectedScopes = scopeArray.join(' ');
   }
 
   getSupportedScopes(authServer) {
-    let endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+    let endpoint;
 
+    if (authServer === undefined || authServer.description === 'default') {
+      endpoint = this.baseUrl + '/.well-known/openid-configuration';
+    } else {
+      endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+    }
     this.http.get(endpoint)
-      .subscribe(data => {
+      .subscribe(
+        data => {
         this.supportedScopes = data['scopes_supported'];
-      });
+      },
+        error => {
+          this.errorMessage = error;
+        }
+      );
   }
 
-  showMetadata(authServer) {
-    let endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+  getMetadata(authServer) {
+    let endpoint;
+
+    if (authServer === undefined || authServer.description === 'default') {
+      endpoint = this.baseUrl + '/.well-known/openid-configuration';
+    } else {
+      endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+    }
 
     this.http.get(endpoint)
-      .subscribe(data => {
-        this.metadataResponse = data;
-        this.supportedScopes = data['scopes_supported'];
-      });
+      .subscribe(
+        data => {
+          this.metadataResponse = data;
+          this.supportedScopes = data['scopes_supported'];
+        },
+        error => {
+          this.errorMessage = error;
+        });
   }
 
   /**
@@ -277,6 +326,7 @@ export class AboutComponent implements OnInit {
     this.idToken = '';
     this.introspectResponse = undefined;
     this.userInfo = undefined;
+    this.userScopes = undefined;
   }
 
   clearErrorMessage() {
@@ -288,30 +338,45 @@ export class AboutComponent implements OnInit {
   }
 
   getUserInfo() {
-    ///oauth2/aus6d64ifz9vPFAR41t7/v1/userinfo
-    let endpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/userinfo';
-    let headers = new Headers();
+    const endpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/userinfo';
+    const headers = new Headers();
 
     this.http.get(endpoint, { headers: new HttpHeaders().set('Authorization', 'Bearer ' + this.accessToken)})
       .subscribe(
         data => {
           this.userInfo = data;
-        }
-      );
+        },
+        error => {
+          this.errorMessage = error;
+        });
+  }
+
+  getAuthServerUri() {
+    this.authServerUri = (this.selectedAuthServer.id) ? this.selectedAuthServer.id + '/' : '';
+    return this.authServerUri;
   }
 
   buildEndpointString() {
-    this.authEndpoint =  this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/authorize' + '?client_id='
+    this.authServerUri = this.getAuthServerUri();
+    this.authEndpoint =  this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/authorize' + '?client_id='
       + this.selectedOauthClient.id
       + '&response_type=' + this.selectedResponseType + '&scope=' + this.selectedScopes + '&redirect_uri=' + this.redirectUri
       + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
 
-    this.tokenEndpoint = this.baseUrl + '/oauth2/' + this.selectedAuthServer.id + '/v1/token';
+    this.tokenEndpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/token';
+
+  }
+
+  hackClearSelectedAuthServer() {
+    for (let server of this.authServers) {
+      server.selected = false;
+    }
   }
 
   selectAuthServer(authServer) {
+    this.hackClearSelectedAuthServer();
     this.selectedAuthServer = authServer;
-    //https://oktalane.okta.com/oauth2/aus6d64ifz9vPFAR41t7/v1/authorize
+    authServer.selected = true;
     this.getSupportedScopes(authServer);
     this.buildEndpointString();
   }
@@ -319,16 +384,27 @@ export class AboutComponent implements OnInit {
   removeAuthServer(authServer) {
     this.authServers[authServer.index].id = '';
     this.authServers[authServer.index].description = '';
+    this.authServers[authServer.index].selected = false;
+  }
+
+  hackClearSelectedClient() {
+    for (let client of this.oauthClients) {
+      client.selected = false;
+    }
   }
 
   selectOauthClient(oauthClient) {
+    this.hackClearSelectedClient();
     this.selectedOauthClient = oauthClient;
+    oauthClient.selected = true;
     this.buildEndpointString();
   }
 
   removeOauthClient(oauthClient) {
     this.oauthClients[oauthClient.index].id = '';
     this.oauthClients[oauthClient.index].description = '';
+    this.oauthClients[oauthClient.index].secret = '';
+    this.oauthClients[oauthClient.index].selected = false;
   }
 
   parseJwt (token) {
@@ -359,10 +435,13 @@ export class AboutComponent implements OnInit {
     this.oauthClients = (window.localStorage['oauthClientArray']) ? JSON.parse(window.localStorage['oauthClientArray']) : this.oauthClients;
     this.username = (window.localStorage['username']) ? (window.localStorage['username']) : '';
     this.password = (window.localStorage['password']) ? (window.localStorage['password']) : '';
-    this.buildEndpointString();
     this.errorMessage = undefined;
 
-    this.route.fragment.subscribe(fragment => {
+    this.getSupportedScopes(this.selectedAuthServer);
+    this.buildEndpointString();
+
+    this.route.fragment.subscribe(
+      fragment => {
       if (fragment) {
         this.fragmentArray = fragment.split('&');
         for (let item of this.fragmentArray) {
@@ -382,12 +461,16 @@ export class AboutComponent implements OnInit {
         if (this.queryParams['id_token']) {
           this.idToken = this.queryParams['id_token'];
           this.decodedIdToken = this.parseJwt(this.idToken);
+          this.userScopes = (this.decodedIdToken['user_scopes']) ? this.decodedIdToken['user_scopes'] : undefined;
           if (this.decodedIdToken.ue_spa_app_menu_groups) {
             this.menuClaims = this.decodedIdToken.ue_spa_app_menu_groups;
           }
         }
       }
-    });
+    },
+        error => {
+        this.errorMessage = error;
+      });
   }
 
 }
