@@ -63,9 +63,39 @@ router.post('/token', (req, res) => {
  * Call the /logout endpoint of the selected auth server
  */
 router.post('/logout', (req, res) => {
-
 });
 
+/**
+ * Get app by ID
+ */
+router.post('/getApp', (req, res) => {
 
+  const endpoint = req.body.endpoint;
+  const appId = req.body.appId;
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.send(response);
+      }
+    }
+  });
+});
 
 module.exports = router;

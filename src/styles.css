@@ -6,9 +6,18 @@
 }
 
 .badge {
-  font-size: 100%;
+  font-size: .85rem;
   font-weight: 400;
   margin: 3px;
+}
+
+.form-control {
+  font-size: .85rem;
+  line-height: 1;
+}
+
+.btn {
+  line-height: 1;
 }
 
 code {
@@ -18,9 +27,16 @@ code {
 .current-selection {
   background-color: greenyellow;
 }
+
 .copy-area {
   min-width: 100%;
   min-height: 100px;
+  overflow: scroll;
+}
+
+.edit-area {
+  min-width: 100%;
+  min-height: 300px;
   overflow: scroll;
 }
 

@@ -23,6 +23,8 @@ export class AboutComponent implements OnInit {
   authServerUri;
   supportedScopes;
   userScopes;
+  userScopesClaim;
+  maxScopeSet = [];
 
   username;
   password;
@@ -84,6 +86,8 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 1 - User Impersonation)',
       id: '0oa6d67ir4VRt3Ff01t7',
       secret: '',
+      profile: {},
+      showProfile: false,
       selected: false
     },
     {
@@ -91,6 +95,8 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 2) Dynamic Menu',
       id: '0oa6epnxuqg0wPPnq1t7',
       secret: '',
+      profile: {},
+      showProfile: false,
       selected: false
     },
     {
@@ -98,6 +104,8 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (user case 3a) end user access',
       id: '0oa6fh7oybJ41BFWb1t7',
       secret: '',
+      profile: {},
+      showProfile: false,
       selected: false
     },
     {
@@ -105,13 +113,18 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 3b) external client credentials',
       id: '0oa6epn1x6uuiMc4g1t7',
       secret: '9iIz4jS3l7ZUctH9VkveyLF8LjWilcRPI1sdPcEI',
+      profile: {},
+      showProfile: false,
       selected: false
     },
     {
+    {
       index: 4,
-      description: 'testme',
-      id: '0oa6finukjNISDeWA1t7',
-      secret: '8iNH-t97ecLDaMYavc5lJx1m9zfW_lFdiqnyxFcd',
+      description: '',
+      id: '',
+      secret: '',
+      profile: {},
+      showProfile: false,
       selected: false
     }
   ];
@@ -127,8 +140,15 @@ export class AboutComponent implements OnInit {
     window.localStorage['selectedResponseType'] = this.selectedResponseType;
     window.localStorage['authServerArray'] = JSON.stringify(this.authServers);
     window.localStorage['oauthClientArray'] = JSON.stringify(this.oauthClients);
+    window.localStorage['userScopesClaim'] = this.userScopesClaim;
     window.localStorage['username'] = this.username;
     window.localStorage['password'] = this.password;
+    if (this.idToken) {
+      window.localStorage['id_token'] = this.idToken;
+    }
+    if (this.accessToken) {
+      window.localStorage['access_token'] = this.accessToken;
+    }
   }
 
   saveConfig() {
@@ -251,6 +271,12 @@ export class AboutComponent implements OnInit {
     this.http.post(endpoint, body.toString(), {headers})
       .subscribe(
         data => {
+          window.localStorage.removeItem(tokenType);
+          if (tokenType === 'access_token') {
+            this.accessToken = undefined;
+          } else {
+            this.idToken = undefined;
+          }
           this.clearLocalTokens();
         },
         error => {
@@ -263,7 +289,10 @@ export class AboutComponent implements OnInit {
     if (!scopeArray.includes(scope)) {
       scopeArray.push(scope);
     } else {
-      scopeArray.pop(scope);
+      let index = scopeArray.indexOf(scope);
+        if (index > -1) {
+          scopeArray.splice(index, 1);
+        }
     }
     this.selectedScopes = scopeArray.join(' ');
   }
@@ -280,11 +309,29 @@ export class AboutComponent implements OnInit {
       .subscribe(
         data => {
         this.supportedScopes = data['scopes_supported'];
+        if (this.userScopes) {
+          this.getMaxScopeSet();
+        }
       },
         error => {
           this.errorMessage = error;
         }
       );
+  }
+
+  getUserScopedAccessToken() {
+    this.selectedScopes = this.maxScopeSet.join(' ');
+    this.selectedResponseType = 'token';
+    this.authenticate();
+  }
+
+  getMaxScopeSet() {
+    for (let scope of this.supportedScopes) {
+      if (this.userScopes.includes(scope)) {
+        this.maxScopeSet.push(scope);
+      }
+    }
+    console.log(this.maxScopeSet);
   }
 
   getMetadata(authServer) {
@@ -322,8 +369,6 @@ export class AboutComponent implements OnInit {
   }
 
   clearLocalTokens() {
-    this.accessToken = '';
-    this.idToken = '';
     this.introspectResponse = undefined;
     this.userInfo = undefined;
     this.userScopes = undefined;
@@ -416,6 +461,40 @@ export class AboutComponent implements OnInit {
   copyIdToken() {
   }
 
+
+  editAppProfile(app) {
+
+    app.showProfile = !app.showProfile;
+
+    if (!app.showProfile) {
+      return;
+    }
+
+    const endpoint = this.baseUrl + '/api/v1/apps/' + app.id;
+
+    const payload = {
+      appId: app.id,
+      endpoint: endpoint
+    };
+
+    this.selectOauthClient(app);
+    this.selectedOauthClient = app;
+
+    this.http.post('/demo/getApp', payload)
+      .subscribe(
+        data => {
+          let body = JSON.parse(data.body);
+
+          if (body['profile']) {
+            app.profile = body.profile;
+          }
+        },
+        error => {
+          this.errorMessage = error;
+        });
+  }
+
+
   constructor(private route: ActivatedRoute, private http: HttpClient) {
   }
 
@@ -435,11 +514,30 @@ export class AboutComponent implements OnInit {
     this.oauthClients = (window.localStorage['oauthClientArray']) ? JSON.parse(window.localStorage['oauthClientArray']) : this.oauthClients;
     this.username = (window.localStorage['username']) ? (window.localStorage['username']) : '';
     this.password = (window.localStorage['password']) ? (window.localStorage['password']) : '';
+    this.userScopesClaim = (window.localStorage['userScopesClaim']) ? window.localStorage['userScopesClaim'] : '';
     this.errorMessage = undefined;
 
-    this.getSupportedScopes(this.selectedAuthServer);
-    this.buildEndpointString();
+    if (this.selectedAuthServer.description) {
+      this.getSupportedScopes(this.selectedAuthServer);
+      this.buildEndpointString();
+    }
 
+    // we already have an access token in local storage
+    if (window.localStorage['access_token']) {
+      this.accessToken = window.localStorage['access_token'];
+      this.decodedAccessToken = this.parseJwt(this.accessToken);
+    }
+
+    // we already have an id token in local storage
+    if (window.localStorage['id_token']) {
+      this.idToken = window.localStorage['id_token'];
+      this.decodedIdToken = this.parseJwt(this.idToken);
+      if (this.supportedScopes) {
+        this.getMaxScopeSet();
+      }
+    }
+
+    // check to see if we have tokens on the URL fragment
     this.route.fragment.subscribe(
       fragment => {
       if (fragment) {
@@ -456,12 +554,17 @@ export class AboutComponent implements OnInit {
         if (this.queryParams['access_token']) {
           this.accessToken = this.queryParams['access_token'];
           this.decodedAccessToken = this.parseJwt(this.accessToken);
+          window.localStorage['access_token'] = this.accessToken;
         }
 
         if (this.queryParams['id_token']) {
           this.idToken = this.queryParams['id_token'];
           this.decodedIdToken = this.parseJwt(this.idToken);
-          this.userScopes = (this.decodedIdToken['user_scopes']) ? this.decodedIdToken['user_scopes'] : undefined;
+          window.localStorage['id_token'] = this.idToken;
+          this.userScopes = (this.decodedIdToken[this.userScopesClaim]) ? this.decodedIdToken[this.userScopesClaim] : undefined;
+          if (this.supportedScopes) {
+            this.getMaxScopeSet();
+          }
           if (this.decodedIdToken.ue_spa_app_menu_groups) {
             this.menuClaims = this.decodedIdToken.ue_spa_app_menu_groups;
           }
