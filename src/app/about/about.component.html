@@ -1,6 +1,7 @@
 <div class="jumbotron">
-    <h1 class="display-4">OAuth Toolkit</h1>
+    <h1 class="display-4">OAuth 2.0/OpenID Connect Toolkit</h1>
     <p class="lead">Use this page to test stuff and things.</p>
+  {{maxScopeSet}}{{userScopes}}
 </div>
 
 <div class="card text-light bg-dark">
@@ -126,8 +127,13 @@
           <div class="row" *ngIf="client.profile && client.showProfile">
             <div class="col-sm-3"></div>
             <div class="col-sm">
-              <textarea class="edit-area">{{client.profile | json}}</textarea>
+              {{client.profile}}
+              <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="client.profile"></textarea>
+              <div>
+                <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
+              </div>
             </div>
+
           </div>
         </div>
       </div>
@@ -287,13 +293,6 @@
             </div>
             <div class="col">
               {{'GET ' + this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/revoke'}}
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-sm-2">
-              <button class="btn btn-primary token-button" (click)="clearLocalTokens()">Clear Tokens</button>
-            </div>
-            <div class="col">
             </div>
           </div>
         </div>

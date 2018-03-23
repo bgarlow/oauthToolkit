@@ -25,6 +25,7 @@ export class AboutComponent implements OnInit {
   userScopes;
   userScopesClaim;
   maxScopeSet = [];
+  selectedAppObject;
 
   username;
   password;
@@ -86,7 +87,7 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 1 - User Impersonation)',
       id: '0oa6d67ir4VRt3Ff01t7',
       secret: '',
-      profile: {},
+      profile: '',
       showProfile: false,
       selected: false
     },
@@ -95,7 +96,7 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 2) Dynamic Menu',
       id: '0oa6epnxuqg0wPPnq1t7',
       secret: '',
-      profile: {},
+      profile: '',
       showProfile: false,
       selected: false
     },
@@ -104,7 +105,7 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (user case 3a) end user access',
       id: '0oa6fh7oybJ41BFWb1t7',
       secret: '',
-      profile: {},
+      profile: '',
       showProfile: false,
       selected: false
     },
@@ -113,17 +114,16 @@ export class AboutComponent implements OnInit {
       description: 'Universal Exports (use case 3b) external client credentials',
       id: '0oa6epn1x6uuiMc4g1t7',
       secret: '9iIz4jS3l7ZUctH9VkveyLF8LjWilcRPI1sdPcEI',
-      profile: {},
+      profile: '',
       showProfile: false,
       selected: false
     },
-    {
     {
       index: 4,
       description: '',
       id: '',
       secret: '',
-      profile: {},
+      profile: '',
       showProfile: false,
       selected: false
     }
@@ -435,6 +435,7 @@ export class AboutComponent implements OnInit {
   hackClearSelectedClient() {
     for (let client of this.oauthClients) {
       client.selected = false;
+      client.showProfile = false;
     }
   }
 
@@ -461,7 +462,19 @@ export class AboutComponent implements OnInit {
   copyIdToken() {
   }
 
+  /**
+   *  update the App in Okta, adding or modifying the profile attribute
+   * @param app
+   */
+  updateAppProfile(app) {
+    this.selectedAppObject.profile = JSON.parse(app.profile);
+    console.log(this.selectedAppObject);
+  }
 
+  /**
+   *  Get the app from Okta and display the editor
+   * @param app
+   */
   editAppProfile(app) {
 
     app.showProfile = !app.showProfile;
@@ -478,22 +491,25 @@ export class AboutComponent implements OnInit {
     };
 
     this.selectOauthClient(app);
+    app.showProfile = true;
     this.selectedOauthClient = app;
 
     this.http.post('/demo/getApp', payload)
       .subscribe(
         data => {
-          let body = JSON.parse(data.body);
+          let body = JSON.parse(data['body']);
 
-          if (body['profile']) {
-            app.profile = body.profile;
+          this.selectedAppObject = body;
+          if (body.profile) {
+            app.profile = JSON.stringify(body.profile, undefined, 2);
+          } else {
+            app.profile = '{}';
           }
         },
         error => {
           this.errorMessage = error;
         });
   }
-
 
   constructor(private route: ActivatedRoute, private http: HttpClient) {
   }
