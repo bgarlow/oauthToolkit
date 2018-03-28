@@ -3,7 +3,7 @@ const router = express.Router();
 const request = require('request');
 const querystring = require('querystring');
 
-const apiKey = '00Ke1kv3EbZfEW03MQ3G-9fbcYnduE0tShwBxnI02J';
+const apiKey = '0084-m5qg88tdJln8L4b6L94pXmLQmwFSAzWWTg_fu';
 
 /* GET api listing. */
 router.get('/', (req, res) => {
@@ -63,6 +63,40 @@ router.post('/token', (req, res) => {
  * Call the /logout endpoint of the selected auth server
  */
 router.post('/logout', (req, res) => {
+});
+
+/**
+ * Update app
+ */
+router.post('/updateApp', (req, res) => {
+
+  const endpoint = req.body.endpoint;
+  const appJson = req.body.appJson;
+  const options = {
+    uri: endpoint,
+    method: 'PUT',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    },
+    json: appJson
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.send(response);
+      }
+    }
+  });
 });
 
 /**

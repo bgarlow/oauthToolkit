@@ -67,14 +67,20 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-2">User Scopes Claim</div>
+        <div class="col-sm-2">Scopes Claim</div>
         <div class="col-sm-2">
-          <input type="text" class="form-control" name="userScopesClaim" [(ngModel)]="userScopesClaim" placeholder="user scopes claim">
+          <input type="text" class="form-control" name="userScopesClaim" [(ngModel)]="userScopesClaim" placeholder="scopes claim">
         </div>
         <div class="col-sm">
-          <button class="btn btn-primary" (click)="getUserScopedAccessToken()" *ngIf="maxScopeSet.length > 0">Get User-Scoped Access Token</button>
+          <button class="btn btn-primary" (click)="getUserScopedAccessToken()" *ngIf="maxScopeSet.length > 0">Get Right-Scoped Access Token</button>
         </div>
       </div>
+        <div class="form-group row">
+          <div class="col-sm-2">Menu Groups Claim</div>
+          <div class="col-sm-2">
+            <input type="text" class="form-control" name="menuGroupsClaim" [(ngModel)]="menuGroupsClaim" placeholder="menu groups claim">
+          </div>
+        </div>
     </form>
   </div>
 </div>
@@ -127,7 +133,6 @@
           <div class="row" *ngIf="client.profile && client.showProfile">
             <div class="col-sm-3"></div>
             <div class="col-sm">
-              {{client.profile}}
               <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="client.profile"></textarea>
               <div>
                 <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
@@ -135,6 +140,22 @@
             </div>
 
           </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card bg-light" *ngIf="updateAppResponse">
+  <h5 class="card-header">Updated Client App Response</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{updateAppResponse | json}}</pre></div>
+        </div>
+        <div>
+          <button class="btn btn-primary" (click)="updateAppResponse = undefined">Clear</button>
         </div>
       </div>
     </form>
@@ -400,7 +421,7 @@
                 <li class="nav-item active">
                   <a class="nav-link" routerLink="#">Home <span class="sr-only">(current)</span></a>
                 </li>
-                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('Universal Exports Menu Group A')">
+                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('menu_group_b')">
                   <a class="nav-link dropdown-toggle" href="#" id="menuGroupA" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Menu Group A
                   </a>
@@ -410,7 +431,7 @@
                     <a class="dropdown-item" href="#">Group A option 3</a>
                   </div>
                 </li>
-                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('Universal Exports Menu Group B')">
+                <li class="nav-item dropdown" *ngIf="menuClaims && menuClaims.includes('menu_group_a')">
                   <a class="nav-link dropdown-toggle" href="#" id="menuGroupB" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Menu Group B
                   </a>
