@@ -197,6 +197,9 @@ export class AboutComponent implements OnInit {
             this.accessToken = token.access_token;
             this.decodedAccessToken = this.parseJwt(this.accessToken);
             this.userScopes = (this.decodedAccessToken[this.userScopesClaim]) ? this.decodedAccessToken[this.userScopesClaim] : undefined;
+            if (this.supportedScopes) {
+              this.getMaxScopeSet();
+            }
           } else {
             console.error(`/token ${data}`);
             this.errorMessage = data;
@@ -279,6 +282,7 @@ export class AboutComponent implements OnInit {
             this.accessToken = undefined;
           } else {
             this.idToken = undefined;
+            this.menuClaims = undefined;
           }
           this.clearLocalTokens();
         },
@@ -564,12 +568,16 @@ export class AboutComponent implements OnInit {
     if (window.localStorage['access_token']) {
       this.accessToken = window.localStorage['access_token'];
       this.decodedAccessToken = this.parseJwt(this.accessToken);
+      if (this.supportedScopes) {
+        this.getMaxScopeSet();
+      }
     }
 
     // we already have an id token in local storage
     if (window.localStorage['id_token']) {
       this.idToken = window.localStorage['id_token'];
       this.decodedIdToken = this.parseJwt(this.idToken);
+      this.menuClaims = (this.decodedIdToken[this.menuGroupsClaim]) ? this.decodedIdToken[this.menuGroupsClaim] : undefined;
       if (this.supportedScopes) {
         this.getMaxScopeSet();
       }
