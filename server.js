@@ -1,3 +1,4 @@
+const dotenv = require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
@@ -13,6 +14,10 @@ app.use(cookieParser());
 // Get our API routes
 const api = require('./server/routes/api');
 const demoApi = require('./server/routes/demo-api');
+
+let  config = {};
+
+console.log(`Okta tenant:  ${process.env.OKTA_TENANT}`);
 
 app.use('/api', api);
 app.use('/demo', demoApi);

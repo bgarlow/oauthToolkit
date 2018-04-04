@@ -2,8 +2,10 @@ const express = require('express');
 const router = express.Router();
 const request = require('request');
 const querystring = require('querystring');
+const config = require('../config.js');
 
-const apiKey = '0084-m5qg88tdJln8L4b6L94pXmLQmwFSAzWWTg_fu';
+
+const apiKey = config.oktaSecret.oktaApiKey;
 
 /* GET api listing. */
 router.get('/', (req, res) => {
@@ -15,8 +17,18 @@ router.post('/config', (req, res) => {
   res.cookie('demo-config', demoConfig, { httpOnly : true }).send('Configuration saved to cookie.');
 });
 
-router.get('/config', (req, res) => {
-  res.json(req.cookies);
+/**
+ * return demo configuration info
+ * Note: this may return different (unsafe) values than the /api/config endpoint
+ */
+router.get('/oktaConfig', (req, res) => {
+  let demoConfig = {
+    oktaConfig: config.oktaConfig,
+    authServers: config.authServers,
+    oAuthClients: config.oAuthClients
+  };
+
+  res.json(demoConfig);
 });
 
 /**
@@ -132,4 +144,107 @@ router.post('/getApp', (req, res) => {
   });
 });
 
+/**
+ * Get a list of authorization servers
+ */
+router.get('/authorizationServers', (req, res) => {
+
+  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/api/v1/authorizationServers`;
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response.body);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+
+});
+
+/**
+ * Get a list of authorization servers
+ */
+router.get('/apps', (req, res) => {
+
+  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/api/v1/apps`;
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response.body);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+
+});
+
+/**
+ * store the current state of the app in our cookie
+ */
+router.put('/state', (req, res) => {
+  if (!req.body.state) {
+    res.state(500).send('State variable not found in request body.')
+  }
+  res.cookie('state', req.body.state);
+  res.json({ok:true});
+});
+
+/**
+ * return state
+ */
+router.get('/state', (req, res) => {
+  if (!req.cookies) {
+    res.status(400).send(`Unable to retrieve cookie.`);
+    return;
+  }
+
+  if (req.cookies.state) {
+    res.json(req.cookies.state)
+  } else {
+    res.status(400).send('Unable to find state cookie.');
+  }
+});
+
+/**
+ * Return a list of cookies
+ */
+router.get('/cookies', (req, res) => {
+  res.json(req.cookies);
+});
+
+/**
+ * Expose the API routes
+ */
 module.exports = router;

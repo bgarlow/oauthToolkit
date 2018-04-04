@@ -1,0 +1,85 @@
+
+<div class="card text-light bg-dark">
+  <h5 class="card-header">Authorization Servers</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row" *ngFor="let authServer of authorizationServers">
+        <div class="col-sm-1">
+          <button class="btn btn-primary" (click)="selectAuthServer(authServer.id)">Select</button>
+        </div>
+        <div class="col-sm-3">
+          <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
+        </div>
+        <div class="col-sm-4">
+          <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
+        </div>
+        <div class="col-sm">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
+            <div class="input-group-append">
+              <span class="input-group-text" id="basic-addon2" (click)="getMetadata(authServer)">metadata</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card text-light bg-dark">
+  <h5 class="card-header">OAuth Clients</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row" *ngFor="let client of oAuthClients">
+        <div class="col-sm">
+          <div class="row">
+            <div class="col-sm-1">
+              <button class="btn btn-primary" (click)="selectOAuthClient(client.id)">Select</button>
+            </div>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.id === selectedOAuthClientId}" name="name{{client.id}}" [(ngModel)]="client.name">
+            </div>
+            <div class="col-sm-4">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.id === selectedOAuthClientId}" name="label{{client.id}}" [(ngModel)]="client.label">
+            </div>
+            <div class="col-sm">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.id === selectedOAuthClientId}"  name="id{{client.id}}" [(ngModel)]="client.id">
+                <div class="input-group-append">
+                  <span class="input-group-text" id="basic-addon2" (click)="updateAppProfile(client)">Edit Profile</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-3">
+              {{client.settings.oauthClient.response_types}}
+            </div>
+            <div class="col-sm-4">
+              <div class="row" *ngFor="let grant of client.settings.oauthClient.grant_types">
+                <div class="col-sm">
+                  <span *ngIf="client.id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectGrantType(grant)" [ngClass]="{'badge-warning': selectedGrantType && grant === selectedGrantType}">{{client.settings.oauthClient.grant_types}}</span>
+                  {{grant}}
+                </div>
+              </div>
+            </div>
+            <div class="col">
+              <div class="row" *ngFor="let uri of client.settings.oauthClient.redirect_uris">
+                <div class="col-sm">
+                  <span class="badge badge-pill badge-primary" (click)="selectRedirectUri(uri)" [ngClass]="{'badge-warning': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<button class="btn btn-primary" (click)="saveState()">Save</button><button class="btn btn-primary" (click)="loadState()">Load</button>
+
+<pre>
+{{oAuthClients | json}}
+</pre>

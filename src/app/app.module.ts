@@ -10,6 +10,7 @@ import { AboutComponent } from './about/about.component';
 import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ToolkitService } from './services/toolkit.service';
+import { ToolkitComponent } from './toolkit/toolkit.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +19,8 @@ import { ToolkitService } from './services/toolkit.service';
     HomeComponent,
     AboutComponent,
     LoginComponent,
-    ProfileComponent
+    ProfileComponent,
+    ToolkitComponent
   ],
   imports: [
     BrowserModule,

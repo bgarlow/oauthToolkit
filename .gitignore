@@ -8,6 +8,10 @@
 # dependencies
 /node_modules
 
+# configuration and environment variables
+.env
+package-lock.json
+
 # IDEs and editors
 /.idea
 .project

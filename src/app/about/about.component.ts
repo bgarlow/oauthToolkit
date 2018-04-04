@@ -10,7 +10,7 @@ import { ActivatedRoute } from '@angular/router';
 
 export class AboutComponent implements OnInit {
 
-  baseUrl = 'https://btgapi.okta.com';
+  baseUrl = 'https://flexapipoc.okta.com';
   redirectUri = 'http://localhost:4200/about';
   state = 'mystate';
   nonce = 'mynonce';
@@ -52,8 +52,8 @@ export class AboutComponent implements OnInit {
   authServers = [
     {
       index: 0,
-      description: 'Universal Exports (QA)',
-      id: 'ausw16c56xd3wA63o2p6',
+      description: 'poc-okta-1',
+      id: 'ausx62z2r3b6wfEde2p6',
       selected: false
     },
     {
@@ -86,18 +86,18 @@ export class AboutComponent implements OnInit {
   oauthClients = [
     {
       index: 0,
-      description: 'Web App X (use case 3a)',
-      id: '0oaw0rjicByINMWQ92p6',
-      secret: '',
+      description: 'Test-Okta-App',
+      id: '0oax6akbatF2GecXt2p6',
+      secret: 'O8_jYEgH5thG8kUadYHY4ct8q5PqLPHBvm4exBbl',
       profile: '',
       showProfile: false,
       selected: false
     },
     {
       index: 1,
-      description: 'Client App 1 (use case 3b)',
-      id: '0oaw1ha4idychA35B2p6',
-      secret: '1ssYEmCd3VyWzU307wBPPvvEWGwE7rESo9KD5Mj1',
+      description: '',
+      id: '',
+      secret: '',
       profile: '',
       showProfile: false,
       selected: false
@@ -344,7 +344,7 @@ export class AboutComponent implements OnInit {
   getMetadata(authServer) {
     let endpoint;
 
-    if (authServer === undefined || authServer.description === 'default') {
+    if (authServer.description === undefined || authServer.description === 'default') {
       endpoint = this.baseUrl + '/.well-known/openid-configuration';
     } else {
       endpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
