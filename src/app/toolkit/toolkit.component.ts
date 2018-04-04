@@ -11,14 +11,23 @@ import {ActivatedRoute} from '@angular/router';
 export class ToolkitComponent implements OnInit {
 
   oktaConfig;
+  oktaTenant;
+  oktaDomain;
+  baseUrl;
+  state;
+  nonce;
   authorizationServers;
   oAuthClients;
+  authorizeUrl;
+  tokenUrl;
 
   selectedAuthServerId;
   selectedOAuthClientId;
+  selectedOAuthClient;
   selectedGrantType;
   selectedResponseType = [];
   selectedRedirectUri;
+  selectedScopes = [];
 
   errorMessage;
   responseMessage;
@@ -31,6 +40,9 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           this.oktaConfig = data['oktaConfig'];
+          this.oktaTenant = this.oktaConfig.oktaTenant;
+          this.oktaDomain = this.oktaConfig.oktaDomain;
+          this.baseUrl = 'https://' + this.oktaTenant + '.' + this.oktaDomain;
         },
         error => {
           console.log(error);
@@ -69,40 +81,91 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  /**
+   * Selected auth server
+   */
   selectAuthServer(authServer) {
     this.selectedAuthServerId = authServer;
+    this.updateAuthorizeUrl();
   }
 
+  /**
+   * @param oauthClient
+   */
   selectOAuthClient(oauthClient) {
     this.selectedOAuthClientId = oauthClient.client_id;
+    this.selectedOAuthClient = oauthClient;
+
     if (oauthClient.grant_types.length < 2) {
       this.selectedGrantType = oauthClient.grant_types[0];
     }
-    if (this.selectedResponseType.length > oauthClient.response_types.length) {
-      this.selectedResponseType = oauthClient.response_types;
+
+    if (oauthClient.redirect_uris.length < 2) {
+      this.selectedRedirectUri = oauthClient.redirect_uris[0];
     }
+
+    this.selectedResponseType = [];
+    for (let type of oauthClient.response_types) {
+      this.selectedResponseType.push({
+        type: type,
+        selected: true
+      });
+    }
+
+    this.updateAuthorizeUrl();
   }
 
-  selectResponseType(responseType) {
+  getResponseTypeIdentifiers() {
+    let responseTypes = [];
 
-    let type = responseType.toString();
-
-    if (this.selectedResponseType && this.selectedResponseType.includes(type)) {
-      const index = this.selectedResponseType.indexOf(type, 0);
-      if (index > -1) {
-        this.selectedResponseType.splice(index, 1);
+    const keys = Object.keys(this.selectedResponseType);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      if (this.selectedResponseType[key].selected) {
+        responseTypes.push(this.selectedResponseType[key].type);
       }
-    } else {
-      this.selectedResponseType.push(type);
     }
+    return responseTypes;
+  }
+
+  /**
+   * Check to see if the current response_type is one of the selected types
+   * @param type
+   * @returns {any}
+   */
+  isSelectedType(type) {
+    const keys = Object.keys(this.selectedResponseType);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      if (this.selectedResponseType[key].type === type) {
+        return this.selectedResponseType[key].selected;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Handle selecting and or deselecting UI options
+   */
+  selectResponseType(type) {
+    const keys = Object.keys(this.selectedResponseType);
+    for (let i = 0; i < keys.length; i++) {
+      let key = keys[i];
+      if (this.selectedResponseType[key].type === type) {
+        this.selectedResponseType[key].selected = !this.selectedResponseType[key].selected;
+      }
+    }
+    this.updateAuthorizeUrl();
   }
 
   selectGrantType(grantType) {
     this.selectedGrantType = grantType;
+    this.updateAuthorizeUrl();
   }
 
   selectRedirectUri(redirectUri) {
     this.selectedRedirectUri = redirectUri;
+    this.updateAuthorizeUrl();
   }
 
   /**
@@ -143,11 +206,34 @@ export class ToolkitComponent implements OnInit {
           this.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined;
           this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined;
           this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined;
+
+          this.updateAuthorizeUrl();
         },
         error => {
           console.log(error);
         }
       );
+  }
+
+  // Utility functions
+
+  updateAuthorizeUrl() {
+    this.authorizeUrl = '';
+    this.tokenUrl = '';
+
+    this.state = 'mystate';
+    this.nonce = 'mynonce';
+
+    let scopes = this.selectedScopes.join(' ');
+    let responseTypes = this.getResponseTypeIdentifiers().join(' ');
+
+    this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
+      + this.selectedOAuthClientId
+      + '&response_type=' + responseTypes + '&scope=' + scopes + '&redirect_uri=' + this.selectedRedirectUri
+      + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
+
+    this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
+
   }
 
   clearResponseMessage() {
@@ -158,8 +244,16 @@ export class ToolkitComponent implements OnInit {
     this.errorMessage = undefined;
   }
 
+  /*
+   * Constructor
+   * @param {ActivatedRoute} route
+   * @param {HttpClient} http
+   */
   constructor(private route: ActivatedRoute, private http: HttpClient) { }
 
+  /*
+   * ngOnInit
+   */
   ngOnInit() {
     this.loadOktaConfig();
     this.getAuthorizationServers();

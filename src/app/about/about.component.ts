@@ -10,7 +10,7 @@ import { ActivatedRoute } from '@angular/router';
 
 export class AboutComponent implements OnInit {
 
-  baseUrl = 'https://flexapipoc.okta.com';
+  baseUrl = 'https://btgapi.okta.com';
   redirectUri = 'http://localhost:4200/about';
   state = 'mystate';
   nonce = 'mynonce';
@@ -41,6 +41,7 @@ export class AboutComponent implements OnInit {
   revokeResponse;
   metadataResponse;
   updateAppResponse;
+  sessionResponse;
   errorMessage;
 
   menuClaims;
@@ -58,8 +59,8 @@ export class AboutComponent implements OnInit {
     },
     {
       index: 1,
-      description: '',
-      id: '',
+      description: 'default on btgapi',
+      id: 'default',
       selected: false
     },
     {
@@ -95,8 +96,8 @@ export class AboutComponent implements OnInit {
     },
     {
       index: 1,
-      description: '',
-      id: '',
+      description: 'My SPA',
+      id: '0oaw29qw8hmY2VF2T2p6',
       secret: '',
       profile: '',
       showProfile: false,
@@ -365,7 +366,17 @@ export class AboutComponent implements OnInit {
    * Check to see if there's an existing session
    */
   getSession() {
+    const endpoint = this.baseUrl + '/api/v1/sessions/me';
 
+    this.http.get(endpoint)
+      .subscribe(
+        data => {
+          this.sessionResponse = data;
+        },
+        error => {
+          this.errorMessage = error;
+        }
+      )
   }
 
   /**
@@ -540,8 +551,6 @@ export class AboutComponent implements OnInit {
   }
 
   ngOnInit() {
-
-    this.getSession();
 
     this.baseUrl = (window.localStorage['baseUrl']) ? window.localStorage['baseUrl'] : this.baseUrl;
     this.redirectUri = (window.localStorage['redirectUri']) ? window.localStorage['redirectUri'] : this.redirectUri;

@@ -107,7 +107,6 @@
     </form>
   </div>
 </div>
-
 <div class="card text-light bg-dark">
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
@@ -241,7 +240,7 @@
       <div class="form-group row">
         <div class="col-sm">
           <div class="input-group">
-            <textarea class="copy-area">{{ accessToken.trim()}}</textarea>
+            <textarea class="copy-area">{{accessToken.trim()}}</textarea>
           </div>
         </div>
       </div>
@@ -319,6 +318,12 @@
         </div>
       </div>
     </form>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-sm">
+    <a href="{{baseUrl}}/api/v1/sessions/me" target="_blank">sessions/me</a>
   </div>
 </div>
 

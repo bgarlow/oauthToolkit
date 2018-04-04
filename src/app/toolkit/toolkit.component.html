@@ -1,3 +1,17 @@
+<div class="jumbotron">
+  <h1 class="display-4">OAuth 2.0/OpenID Connect Toolkit</h1>
+  <p class="lead">Okta...</p>
+</div>
+
+<div class="card text-light bg-dark">
+  <h5 class="card-header">Okta Configuration</h5>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-sm-1">Okta Org:</div>
+      <div class="col-sm">{{oktaTenant}}{{oktaDomain}}</div>
+    </div>
+  </div>
+</div>
 
 <div class="card text-light bg-dark">
   <h5 class="card-header">Authorization Servers</h5>
@@ -56,14 +70,9 @@
             <div class="col-sm-3">
               <div class="row">
                 <div class="col-sm">
-                  {{selectedResponseType.length}}{{selectedResponseType}}
-                  <button class="btn btn-primary" (click)="selectResponseType('id_token')">id</button> <button class="btn btn-primary" (click)="selectResponseType('token')">token</button>
                   <span  *ngFor="let responseType of client.response_types">
-                    <!--
-                  <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectResponseType(responseType)" [ngClass]="{'badge-warning': selectedResponseType && selectedResponseType.includes(responseType)}">{{responseType}}</span>
-                  <span *ngIf="client.client_id != selectedOAuthClientId">{{responseType}}</span>
-                  -->
-                   ( {{responseType}} )
+                    <span class="badge badge-pill badge-primary" *ngIf="client.client_id === selectedOAuthClientId" [ngClass]="{'badge-warning': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</span>
+                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{responseType}}</span>
                   </span>
                 </div>
               </div>
@@ -72,7 +81,7 @@
               <div class="row" *ngFor="let grant of client.grant_types">
                 <div class="col-sm">
                   <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectGrantType(grant)" [ngClass]="{'badge-warning': selectedGrantType && grant === selectedGrantType}">{{grant}}</span>
-                  <span *ngIf="client.client_id != selectedOAuthClientId">{{grant}}</span>
+                  <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{grant}}</span>
                 </div>
               </div>
             </div>
@@ -80,7 +89,7 @@
               <div class="row" *ngFor="let uri of client.redirect_uris">
                 <div class="col-sm">
                   <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectRedirectUri(uri)" [ngClass]="{'badge-warning': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</span>
-                  <span *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
+                  <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
                 </div>
               </div>
             </div>
@@ -92,7 +101,31 @@
 </div>
 
 <button class="btn btn-primary" (click)="saveState()">Save</button><button class="btn btn-primary" (click)="loadState()">Load</button>
-{{selectedResponseType}}
+
+<div class="card bg-light">
+  <h5 class="card-header">Authorize Endpoint</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><code>
+            {{authorizeUrl}}
+          </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-2">
+          <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
+        </div>
+        <!--
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="logout();">Logout</button>
+        </div>
+        -->
+      </div>
+    </form>
+  </div>
+</div>
 
 <div class="form-group row" *ngIf="responseMessage">
   <div class="col-sm">
