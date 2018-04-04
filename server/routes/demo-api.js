@@ -180,9 +180,9 @@ router.get('/authorizationServers', (req, res) => {
 /**
  * Get a list of authorization servers
  */
-router.get('/apps', (req, res) => {
+router.get('/clients', (req, res) => {
 
-  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/api/v1/apps`;
+  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/oauth2/v1/clients`;
   const options = {
     uri: endpoint,
     method: 'GET',

@@ -17,8 +17,11 @@ export class ToolkitComponent implements OnInit {
   selectedAuthServerId;
   selectedOAuthClientId;
   selectedGrantType;
-  selectedResponseType;
+  selectedResponseType = [];
   selectedRedirectUri;
+
+  errorMessage;
+  responseMessage;
 
   /**
    * load Okta Config info
@@ -52,10 +55,10 @@ export class ToolkitComponent implements OnInit {
   }
 
 /**
- * Get a list of apps
+ * Get a list of OAuth clients
  */
-  getApps() {
-    this.http.get('/demo/apps')
+  getClients() {
+    this.http.get('/demo/clients')
       .subscribe(
         data => {
           this.oAuthClients = JSON.parse(data.toString());
@@ -71,11 +74,27 @@ export class ToolkitComponent implements OnInit {
   }
 
   selectOAuthClient(oauthClient) {
-    this.selectedOAuthClientId = oauthClient;
+    this.selectedOAuthClientId = oauthClient.client_id;
+    if (oauthClient.grant_types.length < 2) {
+      this.selectedGrantType = oauthClient.grant_types[0];
+    }
+    if (this.selectedResponseType.length > oauthClient.response_types.length) {
+      this.selectedResponseType = oauthClient.response_types;
+    }
   }
 
   selectResponseType(responseType) {
-    this.selectedResponseType = responseType;
+
+    let type = responseType.toString();
+
+    if (this.selectedResponseType && this.selectedResponseType.includes(type)) {
+      const index = this.selectedResponseType.indexOf(type, 0);
+      if (index > -1) {
+        this.selectedResponseType.splice(index, 1);
+      }
+    } else {
+      this.selectedResponseType.push(type);
+    }
   }
 
   selectGrantType(grantType) {
@@ -131,12 +150,20 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  clearResponseMessage() {
+    this.responseMessage = undefined;
+  }
+
+  clearErrorMessage() {
+    this.errorMessage = undefined;
+  }
+
   constructor(private route: ActivatedRoute, private http: HttpClient) { }
 
   ngOnInit() {
     this.loadOktaConfig();
     this.getAuthorizationServers();
-    this.getApps();
+    this.getClients();
     this.loadState();
   }
 
