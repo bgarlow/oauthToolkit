@@ -28,9 +28,32 @@ export class ToolkitComponent implements OnInit {
   selectedResponseType = [];
   selectedRedirectUri;
   selectedScopes = [];
+  supportedScopes;
 
   errorMessage;
+  metadataEndpoint;
+  metadataResponse;
   responseMessage;
+
+  getMetadata(authServer) {
+
+    //if (authServer.description === undefined || authServer.description === 'default') {
+      //this.metadataEndpoint = this.baseUrl + '/.well-known/openid-configuration';
+    //} else {
+      this.metadataEndpoint = this.baseUrl + '/oauth2/' + authServer + '/.well-known/oauth-authorization-server';
+    //}
+
+    this.http.get(this.metadataEndpoint)
+      .subscribe(
+        data => {
+          //this.metadataResponse = data;
+          this.supportedScopes = data['scopes_supported'];
+        },
+        error => {
+          this.errorMessage = error;
+        });
+  }
+
 
   /**
    * load Okta Config info
@@ -86,6 +109,7 @@ export class ToolkitComponent implements OnInit {
    */
   selectAuthServer(authServer) {
     this.selectedAuthServerId = authServer;
+    this.getMetadata(authServer);
     this.updateAuthorizeUrl();
   }
 
@@ -208,6 +232,7 @@ export class ToolkitComponent implements OnInit {
           this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined;
 
           this.updateAuthorizeUrl();
+          this.getMetadata(this.selectedAuthServerId);
         },
         error => {
           console.log(error);
@@ -242,6 +267,13 @@ export class ToolkitComponent implements OnInit {
 
   clearErrorMessage() {
     this.errorMessage = undefined;
+  }
+
+  reload() {
+    this.loadOktaConfig();
+    this.getAuthorizationServers();
+    this.getClients();
+    this.loadState();
   }
 
   /*

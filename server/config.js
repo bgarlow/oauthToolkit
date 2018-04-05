@@ -13,14 +13,6 @@ module.exports = {
   oktaConfig: {
     oktaTenant: oktaTenant,
     oktaDomain: oktaDomain
-  },
-
-  authServers: {
-
-  },
-
-  oAuthClients: {
-
   }
 
 };

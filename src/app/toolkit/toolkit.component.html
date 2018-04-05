@@ -4,12 +4,48 @@
 </div>
 
 <div class="card text-light bg-dark">
-  <h5 class="card-header">Okta Configuration</h5>
+  <h5 class="card-header">Okta config</h5>
   <div class="card-body">
-    <div class="row">
-      <div class="col-sm-1">Okta Org:</div>
-      <div class="col-sm">{{oktaTenant}}{{oktaDomain}}</div>
-    </div>
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-2">Base URL</div>
+        <div class="col-sm">
+          <span>{{baseUrl}}</span>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card text-light bg-dark" *ngIf="supportedScopes">
+  <h5 class="card-header">Supported Scopes for {{selectedAuthServerId}}</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col">
+          <span *ngFor="let scope of supportedScopes">
+            <span class="badge badge-pill badge-primary" [ngClass]="{'badge-warning': userScopes && userScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</span>
+          </span>
+        </div>
+      </div>
+      <!--
+      <div class="form-group row">
+        <div class="col-sm-4">Scopes Claim</div>
+        <div class="col-sm-3">
+          <input type="text" class="form-control" name="userScopesClaim" [(ngModel)]="userScopesClaim" placeholder="scopes claim">
+        </div>
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="getUserScopedAccessToken()" *ngIf="maxScopeSet.length > 0">Get Right-Scoped Access Token</button>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-4">Menu Groups Claim</div>
+        <div class="col-sm-3">
+          <input type="text" class="form-control" name="menuGroupsClaim" [(ngModel)]="menuGroupsClaim" placeholder="menu groups claim">
+        </div>
+      </div>
+      -->
+    </form>
   </div>
 </div>
 
@@ -18,22 +54,52 @@
   <div class="card-body">
     <form>
       <div class="form-group row" *ngFor="let authServer of authorizationServers">
-        <div class="col-sm-1">
-          <button class="btn btn-primary" (click)="selectAuthServer(authServer.id)">Select</button>
-        </div>
-        <div class="col-sm-3">
-          <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
-        </div>
-        <div class="col-sm-4">
-          <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
-        </div>
         <div class="col-sm">
-          <div class="input-group mb-3">
-            <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
-            <div class="input-group-append">
-              <span class="input-group-text" id="basic-addon2" (click)="getMetadata(authServer)">metadata</span>
+          <div class="row">
+            <div class="col-sm-1">
+              <button class="btn btn-primary" (click)="selectAuthServer(authServer.id)">Select</button>
+            </div>
+            <div class="col-sm-3">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
+            </div>
+            <div class="col-sm-4">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
+            </div>
+            <div class="col-sm">
+              <div class="input-group mb-3">
+                <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
+                <div class="input-group-append">
+                  <span class="input-group-text" id="basic-addon2" (click)="getMetadata(authServer)">metadata</span>
+                </div>
+              </div>
             </div>
           </div>
+          <div class="row" *ngIf="selectedAuthServerId && (authServer.id === selectedAuthServerId)">
+            <div class="col-sm-1"></div>
+            <div class="col-sm">
+              <span *ngFor="let scope of supportedScopes">
+                <span class="badge badge-pill badge-primary" [ngClass]="{'badge-warning': userScopes && userScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card bg-light" *ngIf="metadataResponse">
+  <h5 class="card-header">Metadata Response</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{metadataResponse | json}}</pre></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <button class="btn btn-primary" (click)="this.metadataResponse = undefined">Clear</button>
         </div>
       </div>
     </form>

@@ -11,6 +11,7 @@ import { LoginComponent } from './login/login.component';
 import { ProfileComponent } from './profile/profile.component';
 import { ToolkitService } from './services/toolkit.service';
 import { ToolkitComponent } from './toolkit/toolkit.component';
+import { ConfigService } from './config.service';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,7 @@ import { ToolkitComponent } from './toolkit/toolkit.component';
     AppRoutingModule,
     HttpClientModule
   ],
-  providers: [ToolkitService],
+  providers: [ToolkitService, ConfigService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
