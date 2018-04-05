@@ -8,43 +8,16 @@
   <div class="card-body">
     <form>
       <div class="form-group row">
-        <div class="col-sm-2">Base URL</div>
-        <div class="col-sm">
-          <span>{{baseUrl}}</span>
+        <div class="col-sm-1">Base URL</div>
+        <div class="col-sm-2">
+          <input type="text" class="form-control" name="baseUrl" [(ngModel)]="baseUrl" placeholder="Base URL of Okta Org">
         </div>
+        <div class="col-sm-1">API Key</div>
+        <div class="col-sm-3"><input class="form-control" type="password" name="apiKey" [(ngModel)]="unsafeApiKey" placeholder="Okta API key"></div>
+        <div class="col-sm-1"><button class="btn btn-primary" (click)="reload();">Load</button></div>
+        <div class="col-sm-1">SCP claim</div>
+        <div class="col-sm"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="scopesClaim" placeholder="Name of claim identifying scopes"></div>
       </div>
-    </form>
-  </div>
-</div>
-
-<div class="card text-light bg-dark" *ngIf="supportedScopes">
-  <h5 class="card-header">Supported Scopes for {{selectedAuthServerId}}</h5>
-  <div class="card-body">
-    <form>
-      <div class="form-group row">
-        <div class="col">
-          <span *ngFor="let scope of supportedScopes">
-            <span class="badge badge-pill badge-primary" [ngClass]="{'badge-warning': userScopes && userScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</span>
-          </span>
-        </div>
-      </div>
-      <!--
-      <div class="form-group row">
-        <div class="col-sm-4">Scopes Claim</div>
-        <div class="col-sm-3">
-          <input type="text" class="form-control" name="userScopesClaim" [(ngModel)]="userScopesClaim" placeholder="scopes claim">
-        </div>
-        <div class="col-sm">
-          <button class="btn btn-primary" (click)="getUserScopedAccessToken()" *ngIf="maxScopeSet.length > 0">Get Right-Scoped Access Token</button>
-        </div>
-      </div>
-      <div class="form-group row">
-        <div class="col-sm-4">Menu Groups Claim</div>
-        <div class="col-sm-3">
-          <input type="text" class="form-control" name="menuGroupsClaim" [(ngModel)]="menuGroupsClaim" placeholder="menu groups claim">
-        </div>
-      </div>
-      -->
     </form>
   </div>
 </div>
@@ -57,7 +30,7 @@
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectAuthServer(authServer.id)">Select</button>
+              <button class="btn btn-primary" (click)="selectAuthServer(authServer)">Select</button>
             </div>
             <div class="col-sm-3">
               <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
@@ -69,7 +42,7 @@
               <div class="input-group mb-3">
                 <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
                 <div class="input-group-append">
-                  <span class="input-group-text" id="basic-addon2" (click)="getMetadata(authServer)">metadata</span>
+                  <span class="input-group-text" id="basic-addon2" (click)="metadataResponse ? metadataResponse = undefined : getMetadata(authServer, true)">metadata</span>
                 </div>
               </div>
             </div>
@@ -125,8 +98,8 @@
             <div class="col-sm">
               <div class="input-group mb-3">
                 <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.client_id === selectedOAuthClientId}"  name="id{{client.client_id}}" [(ngModel)]="client.client_id">
-                <div class="input-group-append">
-                  <span class="input-group-text" id="basic-addon2" (click)="updateAppProfile(client)">Edit Profile</span>
+                <div class="input-group-append" *ngIf="client.client_id === selectedOAuthClientId">
+                  <span class="input-group-text" id="basic-addon2" (click)="getAppProfile(client)">Edit Profile</span>
                 </div>
               </div>
             </div>
@@ -157,6 +130,15 @@
                   <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectRedirectUri(uri)" [ngClass]="{'badge-warning': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</span>
                   <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
                 </div>
+              </div>
+            </div>
+          </div>
+          <div class="row" *ngIf="showAppProfile && client.client_id === selectedOAuthClientId">
+            <div class="col-sm-1"></div>
+            <div class="col-sm">
+              <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="selectedAppProfile"></textarea>
+              <div>
+                <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
               </div>
             </div>
           </div>
@@ -192,6 +174,18 @@
     </form>
   </div>
 </div>
+
+<div class="form-group row" *ngIf="successMessage">
+  <div class="col-sm">
+    <div class="alert alert-success">
+      <div><pre>{{successMessage | json}}</pre></div>
+    </div>
+    <div>
+      <button class="btn btn-primary" (click)="successMessage = undefined">Clear</button>
+    </div>
+  </div>
+</div>
+
 
 <div class="form-group row" *ngIf="responseMessage">
   <div class="col-sm">

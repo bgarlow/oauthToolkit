@@ -1,5 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
+import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/observable/of';
 import {ActivatedRoute} from '@angular/router';
 
 @Component({
@@ -10,10 +12,8 @@ import {ActivatedRoute} from '@angular/router';
 
 export class ToolkitComponent implements OnInit {
 
-  oktaConfig;
-  oktaTenant;
-  oktaDomain;
   baseUrl;
+  unsafeApiKey;
   state;
   nonce;
   authorizationServers;
@@ -24,29 +24,37 @@ export class ToolkitComponent implements OnInit {
   selectedAuthServerId;
   selectedOAuthClientId;
   selectedOAuthClient;
+  selectedApp;
+  selectedAppProfile;
   selectedGrantType;
   selectedResponseType = [];
   selectedRedirectUri;
   selectedScopes = [];
   supportedScopes;
+  scopesClaim;
+
+  showAppProfile = false;
 
   errorMessage;
+  successMessage;
   metadataEndpoint;
   metadataResponse;
   responseMessage;
 
-  getMetadata(authServer) {
+  getMetadata(authServer, display) {
 
-    //if (authServer.description === undefined || authServer.description === 'default') {
-      //this.metadataEndpoint = this.baseUrl + '/.well-known/openid-configuration';
-    //} else {
+    if (typeof authServer === 'string') {
       this.metadataEndpoint = this.baseUrl + '/oauth2/' + authServer + '/.well-known/oauth-authorization-server';
-    //}
+    } else {
+      this.metadataEndpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
+    }
 
     this.http.get(this.metadataEndpoint)
       .subscribe(
         data => {
-          //this.metadataResponse = data;
+          if (display) {
+            this.metadataResponse = data;
+          }
           this.supportedScopes = data['scopes_supported'];
         },
         error => {
@@ -54,62 +62,26 @@ export class ToolkitComponent implements OnInit {
         });
   }
 
-
-  /**
-   * load Okta Config info
-   */
-  loadOktaConfig() {
-    this.http.get('/demo/oktaConfig')
-      .subscribe(
-        data => {
-          this.oktaConfig = data['oktaConfig'];
-          this.oktaTenant = this.oktaConfig.oktaTenant;
-          this.oktaDomain = this.oktaConfig.oktaDomain;
-          this.baseUrl = 'https://' + this.oktaTenant + '.' + this.oktaDomain;
-        },
-        error => {
-          console.log(error);
-        }
-      );
-  }
-
   /**
    * Get a list of the authorization servers configured in this Okta instance
    */
-  getAuthorizationServers() {
-
-    this.http.get('/demo/authorizationServers')
-      .subscribe(
-        data => {
-          this.authorizationServers = JSON.parse(data.toString());
-        },
-        error => {
-          console.log(error);
-        }
-      );
+  getAuthorizationServers(): Observable<any> {
+    return this.http.get('/demo/authorizationServers');
   }
 
 /**
  * Get a list of OAuth clients
  */
-  getClients() {
-    this.http.get('/demo/clients')
-      .subscribe(
-        data => {
-          this.oAuthClients = JSON.parse(data.toString());
-        },
-        error => {
-          console.log(error);
-        }
-      );
+  getClients(): Observable<any> {
+    return this.http.get('/demo/clients');
   }
 
   /**
    * Selected auth server
    */
   selectAuthServer(authServer) {
-    this.selectedAuthServerId = authServer;
-    this.getMetadata(authServer);
+    this.selectedAuthServerId = authServer.id;
+    this.getMetadata(authServer, false);
     this.updateAuthorizeUrl();
   }
 
@@ -119,6 +91,8 @@ export class ToolkitComponent implements OnInit {
   selectOAuthClient(oauthClient) {
     this.selectedOAuthClientId = oauthClient.client_id;
     this.selectedOAuthClient = oauthClient;
+    this.selectedApp = undefined;
+    this.selectedAppProfile = undefined;
 
     if (oauthClient.grant_types.length < 2) {
       this.selectedGrantType = oauthClient.grant_types[0];
@@ -193,12 +167,59 @@ export class ToolkitComponent implements OnInit {
   }
 
   /**
+   * update the OAuth client app
+   * @param app
+   */
+  updateAppProfile(oauthClient) {
+
+    const profile = JSON.parse(this.selectedAppProfile);
+    this.selectedApp.profile = profile;
+
+    this.http.post('/demo/apps/' + oauthClient.client_id, this.selectedApp)
+      .subscribe(
+        data => {
+          if (data.statusCode === 200) {
+            this.successMessage = data.body;
+          }
+        },
+        error => {
+          this.errorMessage = error;
+        }
+      );
+  }
+
+  /**
+   * Get the selected app's profile attribute
+   * @param app
+   */
+  getAppProfile(app) {
+    this.showAppProfile = !this.showAppProfile;
+
+    if (this.showAppProfile === false ) {
+      return;
+    }
+
+    this.http.get('/demo/apps/' + app.client_id)
+      .subscribe(
+        data => {
+          this.selectedApp = JSON.parse(data.body.toString());
+          this.selectedAppProfile = this.selectedApp.profile ? JSON.stringify(this.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
+        },
+        error => {
+          this.errorMessage = error;
+        }
+      );
+  }
+
+  /**
    * post our current state variables to node back end, stuff them in a cookie
    */
   saveState() {
 
     const payload = {
       state: {
+        baseUrl: this.baseUrl;
+        unsafeApiKey: this.unsafeApiKey;
         selectedAuthServerId: this.selectedAuthServerId,
         selectedOauthClientId: this.selectedOAuthClientId,
         selectedResponseType: this.selectedResponseType,
@@ -225,14 +246,16 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/state')
       .subscribe(
         data => {
-          this.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : undefined;
-          this.selectedOAuthClientId = (data['selectedOauthClientId']) ? data['selectedOauthClientId'] : undefined;
-          this.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined;
-          this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined;
-          this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined;
+          this.baseUrl = (data['baseUrl']) ? data['baseUrl'] : undefined;
+          this.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
+          this.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : this.authorizationServers[0];
+          this.selectedOAuthClientId = (data['selectedOauthClientId']) ? data['selectedOauthClientId'] : this.oAuthClients[0];
+          this.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : this.oAuthClients[0].grant_types[0];
+          this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : this.oAuthClients[0].response_types[0]
+          this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : this.oAuthClients[0].redirect_uris[0];
 
           this.updateAuthorizeUrl();
-          this.getMetadata(this.selectedAuthServerId);
+          this.getMetadata(this.selectedAuthServerId, false);
         },
         error => {
           console.log(error);
@@ -269,8 +292,19 @@ export class ToolkitComponent implements OnInit {
     this.errorMessage = undefined;
   }
 
+  clearCurrentOrgConfig() {
+    this.selectedAuthServerId = undefined;
+    this.selectedOAuthClientId = undefined;
+    this.selectedGrantType = undefined;
+    this.selectedResponseType = undefined;
+    this.selectedScopes = undefined;
+    this.selectedRedirectUri = undefined;
+  }
+
   reload() {
-    this.loadOktaConfig();
+    // clear current org values
+    this.clearCurrentOrgConfig();
+    this.saveState();
     this.getAuthorizationServers();
     this.getClients();
     this.loadState();
@@ -287,10 +321,19 @@ export class ToolkitComponent implements OnInit {
    * ngOnInit
    */
   ngOnInit() {
-    this.loadOktaConfig();
-    this.getAuthorizationServers();
-    this.getClients();
-    this.loadState();
-  }
+    this.getAuthorizationServers()
+      .subscribe(
+        data => {
+          this.authorizationServers = JSON.parse(data.toString());
+          this.getClients()
+            .subscribe(
+              data => {
+                this.oAuthClients = JSON.parse(data.toString());
+                this.loadState();
+              }
+            );
+        }
+      );
+    }
 
 }

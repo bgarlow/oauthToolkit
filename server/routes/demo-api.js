@@ -4,9 +4,6 @@ const request = require('request');
 const querystring = require('querystring');
 const config = require('../config.js');
 
-
-const apiKey = config.oktaSecret.oktaApiKey;
-
 /* GET api listing. */
 router.get('/', (req, res) => {
   res.send('DEMO API. Need to update this with endpoint listing.');
@@ -80,10 +77,12 @@ router.post('/logout', (req, res) => {
 /**
  * Update app
  */
-router.post('/updateApp', (req, res) => {
+router.post('/apps/:appId', (req, res) => {
+  const appId = req.params.appId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/apps/${appId}`;
 
-  const endpoint = req.body.endpoint;
-  const appJson = req.body.appJson;
   const options = {
     uri: endpoint,
     method: 'PUT',
@@ -93,7 +92,42 @@ router.post('/updateApp', (req, res) => {
       'Cache-Control': 'no-cache',
       'Authorization': 'SSWS ' + apiKey
     },
-    json: appJson
+    json: req.body
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
+ * *** OLD ABOUT VRERSION
+ * Get app Client by ID
+ */
+router.get('/apps/:appId', (req, res) => {
+  const appId = req.params.appId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+
+  const options = {
+    uri: `${baseUrl}/api/v1/apps/${appId}`,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
   };
 
   request(options, function(error, response, body) {
@@ -109,13 +143,15 @@ router.post('/updateApp', (req, res) => {
       }
     }
   });
+
 });
 
 /**
+ * *** OLD ABOUT VERSION
  * Get app by ID
  */
 router.post('/getApp', (req, res) => {
-
+  const apiKey = req.cookies.state.unsafeApiKey;
   const endpoint = req.body.endpoint;
   const appId = req.body.appId;
   const options = {
@@ -148,8 +184,9 @@ router.post('/getApp', (req, res) => {
  * Get a list of authorization servers
  */
 router.get('/authorizationServers', (req, res) => {
-
-  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/api/v1/authorizationServers`;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/authorizationServers`;
   const options = {
     uri: endpoint,
     method: 'GET',
@@ -181,8 +218,9 @@ router.get('/authorizationServers', (req, res) => {
  * Get a list of authorization servers
  */
 router.get('/clients', (req, res) => {
-
-  const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/oauth2/v1/clients`;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/oauth2/v1/clients`;
   const options = {
     uri: endpoint,
     method: 'GET',
