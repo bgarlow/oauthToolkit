@@ -50,9 +50,14 @@
           <div class="row" *ngIf="selectedAuthServerId && (authServer.id === selectedAuthServerId)">
             <div class="col-sm-1"></div>
             <div class="col-sm">
-              <span *ngFor="let scope of supportedScopes">
-                <span class="badge badge-pill badge-primary" [ngClass]="{'badge-warning': userScopes && userScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</span>
-              </span>
+              <div class="btn-toolbar" role="group">
+                <span *ngFor="let scope of supportedScopes">
+
+                  <button class="btn btn-sm btn-outline-info" *ngIf="scope === 'email'" [ngClass]="{'active': selectedScopes && selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+                  <button class="btn btn-sm btn-outline-secondary" *ngIf="scope != 'email'" [ngClass]="{'active': selectedScopes && selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -109,26 +114,32 @@
             <div class="col-sm-3">
               <div class="row">
                 <div class="col-sm">
-                  <span  *ngFor="let responseType of client.response_types">
-                    <span class="badge badge-pill badge-primary" *ngIf="client.client_id === selectedOAuthClientId" [ngClass]="{'badge-warning': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</span>
-                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{responseType}}</span>
-                  </span>
+                  <div class="btn-toolbar" role="group">
+                    <span  *ngFor="let responseType of client.response_types">
+                      <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
+                      <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{responseType}}</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col-sm-4">
-              <div class="row" *ngFor="let grant of client.grant_types">
-                <div class="col-sm">
-                  <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectGrantType(grant)" [ngClass]="{'badge-warning': selectedGrantType && grant === selectedGrantType}">{{grant}}</span>
-                  <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{grant}}</span>
+              <div class="btn-toolbar" role="group">
+                <div class="row" *ngFor="let grant of client.grant_types">
+                  <div class="col-sm">
+                    <button *ngIf="client.client_id === selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': selectedGrantType && grant === selectedGrantType}">{{grant}}</button>
+                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{grant}}</span>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="col">
-              <div class="row" *ngFor="let uri of client.redirect_uris">
-                <div class="col-sm">
-                  <span *ngIf="client.client_id === selectedOAuthClientId" class="badge badge-pill badge-primary" (click)="selectRedirectUri(uri)" [ngClass]="{'badge-warning': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</span>
-                  <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
+              <div class="btn-toolbar" role="group">
+                <div class="row" *ngFor="let uri of client.redirect_uris">
+                  <div class="col-sm">
+                    <button *ngIf="client.client_id === selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</button>
+                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -148,7 +159,14 @@
   </div>
 </div>
 
-<button class="btn btn-primary" (click)="saveState()">Save</button><button class="btn btn-primary" (click)="loadState()">Load</button>
+<div class="card text-light bg-dark">
+  <h5 class="card-header">Save to (or load from) cookie</h5>
+  <div class="card-body">
+    <form>
+      <button class="btn btn-primary" (click)="saveState()">Save</button><button class="btn btn-primary" (click)="loadState()">Load</button>
+    </form>
+  </div>
+</div>
 
 <div class="card bg-light">
   <h5 class="card-header">Authorize Endpoint</h5>
@@ -163,7 +181,7 @@
       </div>
       <div class="form-group row">
         <div class="col-sm-2">
-          <button class="btn btn-primary" (click)="authenticate();">Authenticate</button>
+          <button class="btn btn-primary" (click)="authenticate();" [ngClass]="{'btn-danger': !authUrlValid}">Authenticate</button>
         </div>
         <!--
         <div class="col-sm">

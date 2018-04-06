@@ -44,3 +44,12 @@ code {
   width: 100%;
   margin-bottom: 2px;
 }
+
+.input-group-text {
+  padding: 0px 12px 0px 12px;
+}
+
+.jumbotron {
+  padding: 10px 20px 10px 20px;
+  margin-bottom: 10px;
+}

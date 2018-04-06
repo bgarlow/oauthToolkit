@@ -29,7 +29,7 @@ export class ToolkitComponent implements OnInit {
   selectedGrantType;
   selectedResponseType = [];
   selectedRedirectUri;
-  selectedScopes = [];
+  selectedScopes;
   supportedScopes;
   scopesClaim;
 
@@ -40,6 +40,9 @@ export class ToolkitComponent implements OnInit {
   metadataEndpoint;
   metadataResponse;
   responseMessage;
+
+  authUrlValid;
+  tokenUrlValid;
 
   getMetadata(authServer, display) {
 
@@ -166,6 +169,20 @@ export class ToolkitComponent implements OnInit {
     this.updateAuthorizeUrl();
   }
 
+  selectScope(scope) {
+    const scopeArray = (this.selectedScopes) ? this.selectedScopes : [];
+    if (!scopeArray.includes(scope)) {
+      scopeArray.push(scope);
+    } else {
+      const index = scopeArray.indexOf(scope);
+      if (index > -1) {
+        scopeArray.splice(index, 1);
+      }
+    }
+    this.selectedScopes = scopeArray;
+    this.updateAuthorizeUrl();
+  }
+
   /**
    * update the OAuth client app
    * @param app
@@ -178,8 +195,8 @@ export class ToolkitComponent implements OnInit {
     this.http.post('/demo/apps/' + oauthClient.client_id, this.selectedApp)
       .subscribe(
         data => {
-          if (data.statusCode === 200) {
-            this.successMessage = data.body;
+          if (data['statusCode'] === 200) {
+            this.successMessage = data['body'];
           }
         },
         error => {
@@ -202,7 +219,7 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/apps/' + app.client_id)
       .subscribe(
         data => {
-          this.selectedApp = JSON.parse(data.body.toString());
+          this.selectedApp = JSON.parse(data['body'].toString());
           this.selectedAppProfile = this.selectedApp.profile ? JSON.stringify(this.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
         },
         error => {
@@ -218,10 +235,11 @@ export class ToolkitComponent implements OnInit {
 
     const payload = {
       state: {
-        baseUrl: this.baseUrl;
-        unsafeApiKey: this.unsafeApiKey;
+        baseUrl: this.baseUrl,
+        unsafeApiKey: this.unsafeApiKey,
         selectedAuthServerId: this.selectedAuthServerId,
         selectedOauthClientId: this.selectedOAuthClientId,
+        selectedScopes: this.selectedScopes,
         selectedResponseType: this.selectedResponseType,
         selectedGrantType: this.selectedGrantType,
         selectedRedirectUri: this.selectedRedirectUri
@@ -250,8 +268,9 @@ export class ToolkitComponent implements OnInit {
           this.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
           this.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : this.authorizationServers[0];
           this.selectedOAuthClientId = (data['selectedOauthClientId']) ? data['selectedOauthClientId'] : this.oAuthClients[0];
+          this.selectedScopes = (data['selectedScopes']) ? data['selectedScopes'] : this.selectedScopes;
           this.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : this.oAuthClients[0].grant_types[0];
-          this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : this.oAuthClients[0].response_types[0]
+          this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : this.oAuthClients[0].response_types[0];
           this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : this.oAuthClients[0].redirect_uris[0];
 
           this.updateAuthorizeUrl();
@@ -266,14 +285,17 @@ export class ToolkitComponent implements OnInit {
   // Utility functions
 
   updateAuthorizeUrl() {
+    this.authUrlValid = false;
     this.authorizeUrl = '';
     this.tokenUrl = '';
 
     this.state = 'mystate';
     this.nonce = 'mynonce';
 
-    let scopes = this.selectedScopes.join(' ');
+    let scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     let responseTypes = this.getResponseTypeIdentifiers().join(' ');
+
+    this.authUrlValid = this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce;
 
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId
@@ -281,7 +303,6 @@ export class ToolkitComponent implements OnInit {
       + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
 
     this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
-
   }
 
   clearResponseMessage() {
