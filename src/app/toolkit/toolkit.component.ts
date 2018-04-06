@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import {ActivatedRoute} from '@angular/router';
+import {ToolkitService} from '../services/toolkit.service';
 
 @Component({
   selector: 'app-toolkit',
@@ -12,121 +13,84 @@ import {ActivatedRoute} from '@angular/router';
 
 export class ToolkitComponent implements OnInit {
 
-  baseUrl;
-  unsafeApiKey;
-  state;
-  nonce;
-  authorizationServers;
-  oAuthClients;
-  authorizeUrl;
-  tokenUrl;
-
-  selectedAuthServerId;
-  selectedOAuthClientId;
-  selectedOAuthClient;
-  selectedApp;
-  selectedAppProfile;
-  selectedGrantType;
-  selectedResponseType = [];
-  selectedRedirectUri;
-  selectedScopes;
-  supportedScopes;
-  scopesClaim;
-
+  toolkit: ToolkitService;
   showAppProfile = false;
-
   errorMessage;
   successMessage;
-  metadataEndpoint;
   metadataResponse;
   responseMessage;
 
-  authUrlValid;
-  tokenUrlValid;
-
-  getMetadata(authServer, display) {
-
-    if (typeof authServer === 'string') {
-      this.metadataEndpoint = this.baseUrl + '/oauth2/' + authServer + '/.well-known/oauth-authorization-server';
-    } else {
-      this.metadataEndpoint = this.baseUrl + '/oauth2/' + authServer.id + '/.well-known/oauth-authorization-server';
-    }
-
-    this.http.get(this.metadataEndpoint)
+  /**
+   * Get token from token endpoing
+   */
+  getToken() {
+    //this.clearLocalTokens();
+    this.toolkit.getToken()
       .subscribe(
         data => {
+          if (data['statusCode'] === 200) {
+            let token = JSON.parse(data['body']);
+            this.toolkit.accessToken = token.access_token;
+            this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
+            this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+            if (this.toolkit.supportedScopes) {
+              this.toolkit.getMaxScopeSet();
+            }
+          } else {
+            console.error(`/token ${data}`);
+            this.errorMessage = data;
+          }
+        }
+      );
+  }
+
+  getAuthServerMetadata(authServer, display) {
+    this.toolkit.getMetadata(authServer)
+      .subscribe(
+        data => {
+          this.toolkit.supportedScopes = data['scopes_supported'];
           if (display) {
             this.metadataResponse = data;
           }
-          this.supportedScopes = data['scopes_supported'];
-        },
-        error => {
-          this.errorMessage = error;
-        });
-  }
-
-  /**
-   * Get a list of the authorization servers configured in this Okta instance
-   */
-  getAuthorizationServers(): Observable<any> {
-    return this.http.get('/demo/authorizationServers');
-  }
-
-/**
- * Get a list of OAuth clients
- */
-  getClients(): Observable<any> {
-    return this.http.get('/demo/clients');
+        }
+      );
   }
 
   /**
    * Selected auth server
    */
   selectAuthServer(authServer) {
-    this.selectedAuthServerId = authServer.id;
-    this.getMetadata(authServer, false);
-    this.updateAuthorizeUrl();
+    this.toolkit.selectedAuthServerId = authServer.id;
+    this.getAuthServerMetadata(authServer, false);
+    this.toolkit.updateAuthorizeUrl();
   }
 
   /**
    * @param oauthClient
    */
   selectOAuthClient(oauthClient) {
-    this.selectedOAuthClientId = oauthClient.client_id;
-    this.selectedOAuthClient = oauthClient;
-    this.selectedApp = undefined;
-    this.selectedAppProfile = undefined;
+    this.toolkit.selectedOAuthClientId = oauthClient.client_id;
+    this.toolkit.selectedOAuthClient = oauthClient;
+    this.toolkit.selectedApp = undefined;
+    this.toolkit.selectedAppProfile = undefined;
 
     if (oauthClient.grant_types.length < 2) {
-      this.selectedGrantType = oauthClient.grant_types[0];
+      this.toolkit.selectedGrantType = oauthClient.grant_types[0];
     }
 
     if (oauthClient.redirect_uris.length < 2) {
-      this.selectedRedirectUri = oauthClient.redirect_uris[0];
+      this.toolkit.selectedRedirectUri = oauthClient.redirect_uris[0];
     }
 
-    this.selectedResponseType = [];
+    this.toolkit.selectedResponseType = [];
     for (let type of oauthClient.response_types) {
-      this.selectedResponseType.push({
+      this.toolkit.selectedResponseType.push({
         type: type,
         selected: true
       });
     }
 
-    this.updateAuthorizeUrl();
-  }
-
-  getResponseTypeIdentifiers() {
-    let responseTypes = [];
-
-    const keys = Object.keys(this.selectedResponseType);
-    for (let i = 0; i < keys.length; i++) {
-      let key = keys[i];
-      if (this.selectedResponseType[key].selected) {
-        responseTypes.push(this.selectedResponseType[key].type);
-      }
-    }
-    return responseTypes;
+    this.toolkit.updateAuthorizeUrl();
   }
 
   /**
@@ -135,11 +99,11 @@ export class ToolkitComponent implements OnInit {
    * @returns {any}
    */
   isSelectedType(type) {
-    const keys = Object.keys(this.selectedResponseType);
+    const keys = Object.keys(this.toolkit.selectedResponseType);
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
-      if (this.selectedResponseType[key].type === type) {
-        return this.selectedResponseType[key].selected;
+      if (this.toolkit.selectedResponseType[key].type === type) {
+        return this.toolkit.selectedResponseType[key].selected;
       }
     }
     return false;
@@ -149,28 +113,28 @@ export class ToolkitComponent implements OnInit {
    * Handle selecting and or deselecting UI options
    */
   selectResponseType(type) {
-    const keys = Object.keys(this.selectedResponseType);
+    const keys = Object.keys(this.toolkit.selectedResponseType);
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
-      if (this.selectedResponseType[key].type === type) {
-        this.selectedResponseType[key].selected = !this.selectedResponseType[key].selected;
+      if (this.toolkit.selectedResponseType[key].type === type) {
+        this.toolkit.selectedResponseType[key].selected = !this.toolkit.selectedResponseType[key].selected;
       }
     }
-    this.updateAuthorizeUrl();
+    this.toolkit.updateAuthorizeUrl();
   }
 
   selectGrantType(grantType) {
-    this.selectedGrantType = grantType;
-    this.updateAuthorizeUrl();
+    this.toolkit.selectedGrantType = grantType;
+    this.toolkit.updateAuthorizeUrl();
   }
 
   selectRedirectUri(redirectUri) {
-    this.selectedRedirectUri = redirectUri;
-    this.updateAuthorizeUrl();
+    this.toolkit.selectedRedirectUri = redirectUri;
+    this.toolkit.updateAuthorizeUrl();
   }
 
   selectScope(scope) {
-    const scopeArray = (this.selectedScopes) ? this.selectedScopes : [];
+    const scopeArray = (this.toolkit.selectedScopes) ? this.toolkit.selectedScopes : [];
     if (!scopeArray.includes(scope)) {
       scopeArray.push(scope);
     } else {
@@ -179,8 +143,8 @@ export class ToolkitComponent implements OnInit {
         scopeArray.splice(index, 1);
       }
     }
-    this.selectedScopes = scopeArray;
-    this.updateAuthorizeUrl();
+    this.toolkit.selectedScopes = scopeArray;
+    this.toolkit.updateAuthorizeUrl();
   }
 
   /**
@@ -189,10 +153,10 @@ export class ToolkitComponent implements OnInit {
    */
   updateAppProfile(oauthClient) {
 
-    const profile = JSON.parse(this.selectedAppProfile);
-    this.selectedApp.profile = profile;
+    const profile = JSON.parse(this.toolkit.selectedAppProfile);
+    this.toolkit.selectedApp.profile = profile;
 
-    this.http.post('/demo/apps/' + oauthClient.client_id, this.selectedApp)
+    this.http.post('/demo/apps/' + oauthClient.client_id, this.toolkit.selectedApp)
       .subscribe(
         data => {
           if (data['statusCode'] === 200) {
@@ -219,8 +183,8 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/apps/' + app.client_id)
       .subscribe(
         data => {
-          this.selectedApp = JSON.parse(data['body'].toString());
-          this.selectedAppProfile = this.selectedApp.profile ? JSON.stringify(this.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
+          this.toolkit.selectedApp = JSON.parse(data['body'].toString());
+          this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
         },
         error => {
           this.errorMessage = error;
@@ -235,14 +199,14 @@ export class ToolkitComponent implements OnInit {
 
     const payload = {
       state: {
-        baseUrl: this.baseUrl,
-        unsafeApiKey: this.unsafeApiKey,
-        selectedAuthServerId: this.selectedAuthServerId,
-        selectedOauthClientId: this.selectedOAuthClientId,
-        selectedScopes: this.selectedScopes,
-        selectedResponseType: this.selectedResponseType,
-        selectedGrantType: this.selectedGrantType,
-        selectedRedirectUri: this.selectedRedirectUri
+        baseUrl: this.toolkit.baseUrl,
+        unsafeApiKey: this.toolkit.unsafeApiKey,
+        selectedAuthServerId: this.toolkit.selectedAuthServerId,
+        selectedOauthClientId: this.toolkit.selectedOAuthClientId,
+        selectedScopes: this.toolkit.selectedScopes,
+        selectedResponseType: this.toolkit.selectedResponseType,
+        selectedGrantType: this.toolkit.selectedGrantType,
+        selectedRedirectUri: this.toolkit.selectedRedirectUri
       }
     };
 
@@ -264,17 +228,17 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/state')
       .subscribe(
         data => {
-          this.baseUrl = (data['baseUrl']) ? data['baseUrl'] : undefined;
-          this.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
-          this.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : this.authorizationServers[0];
-          this.selectedOAuthClientId = (data['selectedOauthClientId']) ? data['selectedOauthClientId'] : this.oAuthClients[0];
-          this.selectedScopes = (data['selectedScopes']) ? data['selectedScopes'] : this.selectedScopes;
-          this.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : this.oAuthClients[0].grant_types[0];
-          this.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : this.oAuthClients[0].response_types[0];
-          this.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : this.oAuthClients[0].redirect_uris[0];
+          this.toolkit.baseUrl = (data['baseUrl']) ? data['baseUrl'] : undefined;
+          this.toolkit.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
+          this.toolkit.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : this.toolkit.authorizationServers[0];
+          this.toolkit.selectedOAuthClientId = (data['selectedOauthClientId']) ? data['selectedOauthClientId'] : this.toolkit.oAuthClients[0];
+          this.toolkit.selectedScopes = (data['selectedScopes']) ? data['selectedScopes'] : this.toolkit.selectedScopes;
+          this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : this.toolkit.oAuthClients[0].grant_types[0];
+          this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : this.toolkit.oAuthClients[0].response_types[0];
+          this.toolkit.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : this.toolkit.oAuthClients[0].redirect_uris[0];
 
-          this.updateAuthorizeUrl();
-          this.getMetadata(this.selectedAuthServerId, false);
+          this.toolkit.updateAuthorizeUrl();
+          this.getAuthServerMetadata(this.toolkit.selectedAuthServerId, false);
         },
         error => {
           console.log(error);
@@ -284,50 +248,23 @@ export class ToolkitComponent implements OnInit {
 
   // Utility functions
 
-  updateAuthorizeUrl() {
-    this.authUrlValid = false;
-    this.authorizeUrl = '';
-    this.tokenUrl = '';
 
-    this.state = 'mystate';
-    this.nonce = 'mynonce';
-
-    let scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
-    let responseTypes = this.getResponseTypeIdentifiers().join(' ');
-
-    this.authUrlValid = this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce;
-
-    this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
-      + this.selectedOAuthClientId
-      + '&response_type=' + responseTypes + '&scope=' + scopes + '&redirect_uri=' + this.selectedRedirectUri
-      + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
-
-    this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
-  }
-
-  clearResponseMessage() {
-    this.responseMessage = undefined;
-  }
-
-  clearErrorMessage() {
-    this.errorMessage = undefined;
-  }
 
   clearCurrentOrgConfig() {
-    this.selectedAuthServerId = undefined;
-    this.selectedOAuthClientId = undefined;
-    this.selectedGrantType = undefined;
-    this.selectedResponseType = undefined;
-    this.selectedScopes = undefined;
-    this.selectedRedirectUri = undefined;
+    this.toolkit.selectedAuthServerId = undefined;
+    this.toolkit.selectedOAuthClientId = undefined;
+    this.toolkit.selectedGrantType = undefined;
+    this.toolkit.selectedResponseType = undefined;
+    this.toolkit.selectedScopes = undefined;
+    this.toolkit.selectedRedirectUri = undefined;
   }
 
   reload() {
     // clear current org values
     this.clearCurrentOrgConfig();
     this.saveState();
-    this.getAuthorizationServers();
-    this.getClients();
+    this.toolkit.getAuthorizationServers();
+    this.toolkit.getClients();
     this.loadState();
   }
 
@@ -336,20 +273,22 @@ export class ToolkitComponent implements OnInit {
    * @param {ActivatedRoute} route
    * @param {HttpClient} http
    */
-  constructor(private route: ActivatedRoute, private http: HttpClient) { }
+  constructor(private route: ActivatedRoute, private http: HttpClient, private _toolkit: ToolkitService) {
+    this.toolkit = _toolkit;
+  }
 
   /*
    * ngOnInit
    */
   ngOnInit() {
-    this.getAuthorizationServers()
+    this.toolkit.getAuthorizationServers()
       .subscribe(
         data => {
-          this.authorizationServers = JSON.parse(data.toString());
-          this.getClients()
+          this.toolkit.authorizationServers = JSON.parse(data.toString());
+          this.toolkit.getClients()
             .subscribe(
               data => {
-                this.oAuthClients = JSON.parse(data.toString());
+                this.toolkit.oAuthClients = JSON.parse(data.toString());
                 this.loadState();
               }
             );

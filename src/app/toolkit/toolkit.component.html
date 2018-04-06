@@ -10,13 +10,19 @@
       <div class="form-group row">
         <div class="col-sm-1">Base URL</div>
         <div class="col-sm-2">
-          <input type="text" class="form-control" name="baseUrl" [(ngModel)]="baseUrl" placeholder="Base URL of Okta Org">
+          <input type="text" class="form-control" name="baseUrl" [(ngModel)]="toolkit.baseUrl" placeholder="Base URL of Okta Org">
         </div>
         <div class="col-sm-1">API Key</div>
-        <div class="col-sm-3"><input class="form-control" type="password" name="apiKey" [(ngModel)]="unsafeApiKey" placeholder="Okta API key"></div>
+        <div class="col-sm-2"><input class="form-control" type="password" name="apiKey" [(ngModel)]="toolkit.unsafeApiKey" placeholder="Okta API key"></div>
         <div class="col-sm-1"><button class="btn btn-primary" (click)="reload();">Load</button></div>
+      </div>
+      <div class="form-group row">
         <div class="col-sm-1">SCP claim</div>
-        <div class="col-sm"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="scopesClaim" placeholder="Name of claim identifying scopes"></div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="toolkit.scopesClaim" placeholder="Name of claim identifying scopes"></div>
+        <div class="col-sm-1">State</div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="toolkit.state" placeholder="state"></div>
+        <div class="col-sm-1">Nonce</div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="toolkit.nonce" placeholder="nonce"></div>
       </div>
     </form>
   </div>
@@ -26,35 +32,35 @@
   <h5 class="card-header">Authorization Servers</h5>
   <div class="card-body">
     <form>
-      <div class="form-group row" *ngFor="let authServer of authorizationServers">
+      <div class="form-group row" *ngFor="let authServer of toolkit.authorizationServers">
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectAuthServer(authServer)">Select</button>
             </div>
             <div class="col-sm-3">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
             </div>
             <div class="col-sm-4">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
             </div>
             <div class="col-sm">
               <div class="input-group mb-3">
-                <input type="text" class="form-control" [ngClass]="{'current-selection': selectedAuthServerId && authServer.id === selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
+                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
                 <div class="input-group-append">
-                  <span class="input-group-text" id="basic-addon2" (click)="metadataResponse ? metadataResponse = undefined : getMetadata(authServer, true)">metadata</span>
+                  <span class="input-group-text" id="basic-addon2" (click)="metadataResponse ? metadataResponse = undefined : getAuthServerMetadata(authServer, true)">metadata</span>
                 </div>
               </div>
             </div>
           </div>
-          <div class="row" *ngIf="selectedAuthServerId && (authServer.id === selectedAuthServerId)">
+          <div class="row" *ngIf="toolkit.selectedAuthServerId && (authServer.id === toolkit.selectedAuthServerId)">
             <div class="col-sm-1"></div>
             <div class="col-sm">
               <div class="btn-toolbar" role="group">
-                <span *ngFor="let scope of supportedScopes">
+                <span *ngFor="let scope of toolkit.supportedScopes">
 
-                  <button class="btn btn-sm btn-outline-info" *ngIf="scope === 'email'" [ngClass]="{'active': selectedScopes && selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
-                  <button class="btn btn-sm btn-outline-secondary" *ngIf="scope != 'email'" [ngClass]="{'active': selectedScopes && selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+                  <button class="btn btn-sm btn-outline-info" *ngIf="scope === 'email'" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+                  <button class="btn btn-sm btn-outline-secondary" *ngIf="scope != 'email'" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
 
                 </span>
               </div>
@@ -88,22 +94,22 @@
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
     <form>
-      <div class="form-group row" *ngFor="let client of oAuthClients">
+      <div class="form-group row" *ngFor="let client of toolkit.oAuthClients">
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectOAuthClient(client)">Select</button>
             </div>
             <div class="col-sm-3">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.client_id === selectedOAuthClientId}" name="name{{client.client_id}}" [(ngModel)]="client.client_name">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="name{{client.client_id}}" [(ngModel)]="client.client_name">
             </div>
             <div class="col-sm-4">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.client_id === selectedOAuthClientId}" name="label{{client.client_id}}" [(ngModel)]="client.application_type">
+              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="label{{client.client_id}}" [(ngModel)]="client.application_type">
             </div>
             <div class="col-sm">
               <div class="input-group mb-3">
-                <input type="text" class="form-control" [ngClass]="{'current-selection': selectedOAuthClientId && client.client_id === selectedOAuthClientId}"  name="id{{client.client_id}}" [(ngModel)]="client.client_id">
-                <div class="input-group-append" *ngIf="client.client_id === selectedOAuthClientId">
+                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  name="id{{client.client_id}}" [(ngModel)]="client.client_id">
+                <div class="input-group-append" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
                   <span class="input-group-text" id="basic-addon2" (click)="getAppProfile(client)">Edit Profile</span>
                 </div>
               </div>
@@ -116,8 +122,8 @@
                 <div class="col-sm">
                   <div class="btn-toolbar" role="group">
                     <span  *ngFor="let responseType of client.response_types">
-                      <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
-                      <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{responseType}}</span>
+                      <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === toolkit.selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
+                      <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{responseType}}</span>
                     </span>
                   </div>
                 </div>
@@ -127,8 +133,8 @@
               <div class="btn-toolbar" role="group">
                 <div class="row" *ngFor="let grant of client.grant_types">
                   <div class="col-sm">
-                    <button *ngIf="client.client_id === selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': selectedGrantType && grant === selectedGrantType}">{{grant}}</button>
-                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{grant}}</span>
+                    <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': toolkit.selectedGrantType && grant === toolkit.selectedGrantType}">{{grant}}</button>
+                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{grant}}</span>
                   </div>
                 </div>
               </div>
@@ -137,17 +143,17 @@
               <div class="btn-toolbar" role="group">
                 <div class="row" *ngFor="let uri of client.redirect_uris">
                   <div class="col-sm">
-                    <button *ngIf="client.client_id === selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': selectedRedirectUri && uri === selectedRedirectUri}">{{uri}}</button>
-                    <span class="small" *ngIf="client.client_id != selectedOAuthClientId">{{uri}}</span>
+                    <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
+                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{uri}}</span>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div class="row" *ngIf="showAppProfile && client.client_id === selectedOAuthClientId">
+          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm">
-              <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="selectedAppProfile"></textarea>
+              <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea>
               <div>
                 <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
               </div>
@@ -168,30 +174,53 @@
   </div>
 </div>
 
-<div class="card bg-light">
+<!-- auth endpoint -->
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('implicit' || 'code' || 'refresh')">
   <h5 class="card-header">Authorize Endpoint</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
           <div><code>
-            {{authorizeUrl}}
+            {{toolkit.authorizeUrl}}
           </code></div>
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm-2">
-          <button class="btn btn-primary" (click)="authenticate();" [ngClass]="{'btn-danger': !authUrlValid}">Authenticate</button>
-        </div>
-        <!--
         <div class="col-sm">
-          <button class="btn btn-primary" (click)="logout();">Logout</button>
+          <div class="btn-group" role="group">
+            <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" (click)="authenticate();" [ngClass]="{'btn-danger': !toolkit.authUrlValid}">Authenticate</button>
+            <button class="btn btn-primary" (click)="logout();">Logout</button>
+          </div>
         </div>
-        -->
       </div>
     </form>
   </div>
 </div>
+<!-- token endpoint -->
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('client_credentials')">
+  <h5 class="card-header">Token Endpoint</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><code>
+            {{toolkit.tokenUrl}}
+          </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="btn-group" role="group">
+            <button class="btn btn-primary" [disabled]="!toolkit.tokenUrlValid" (click)="getToken();" [ngClass]="{'btn-danger': !toolkit.tokenUrlValid}">Authenticate</button>
+            <button class="btn btn-primary" (click)="logout();">Logout</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 <div class="form-group row" *ngIf="successMessage">
   <div class="col-sm">
@@ -211,7 +240,7 @@
       <div><pre>{{responseMessage | json}}</pre></div>
     </div>
     <div>
-      <button class="btn btn-primary" (click)="clearResponseMessage();">Clear</button>
+      <button class="btn btn-primary" (click)="responseMessage = undefined">Clear</button>
     </div>
   </div>
 </div>
@@ -222,7 +251,7 @@
       <div><pre>{{errorMessage | json}}</pre></div>
     </div>
     <div>
-      <button class="btn btn-primary" (click)="clearErrorMessage();">Clear</button>
+      <button class="btn btn-primary" (click)="errorMessage = undefined;">Clear</button>
     </div>
   </div>
 </div>
