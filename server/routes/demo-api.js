@@ -28,13 +28,57 @@ router.get('/oktaConfig', (req, res) => {
   res.json(demoConfig);
 });
 
-/**
- * call Okta /token endpoint with configuration info from demo toolkit (not the app itself)
- */
+
+
 router.post('/token', (req, res) => {
-  console.log(req.body);
-  const secret = new Buffer(`${req.body.clientId}:${req.body.clientSecret}`, 'utf8').toString('base64');
-  const authHeader = `Basic ${secret}`;
+  if (!req.cookies.state.selectedOAuthClientId ) {
+    console.log('Missing client ID from state cookie.');
+    res.status(500).send('Missing client ID from state cookie.');
+    return;
+  }
+
+  if (!req.cookies.state.selectedAuthServerId) {
+    console.log('Missing Auth Server ID.');
+    res.status(500).send('Missing Auth Server ID.');
+    return;
+  }
+
+  const payload = req.body;
+
+  const options = {
+    uri: req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1/token',
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response.body);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+
+/**
+ * OLD VERSION all Okta /token endpoint with configuration info from demo toolkit (not the app itself)
+ */
+router.post('/tokenx', (req, res) => {
+   //Instead of using Basic auth, we're going to pass client id and client secret (even if it's empty) as form parameters. That's how we can get a token from a SPA app (that doesn't have a client secret
+   const secret = new Buffer(`${req.body.clientId}:${req.body.clientSecret}`, 'utf8').toString('base64');
+   const authHeader = `Basic ${secret}`;
 
   const payload = {
     'grant_type': 'client_credentials',
@@ -181,9 +225,166 @@ router.post('/getApp', (req, res) => {
 });
 
 /**
+ * retrieve user info from /userinfo endpoint using access token
+ */
+router.post('/userinfo', (req, res) => {
+
+  if (!req.cookies.state.selectedAuthServerId) {
+    console.log('Missing Auth Server ID.');
+    res.status(500).send('Missing Auth Server ID.');
+    return;
+  }
+
+  if (!req.body.token) {
+    console.log('Missing access token');
+    res.status(500).send('Missing access token');
+    return;
+  }
+
+  const token = req.body.token;
+  const options = {
+    uri: req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1/userinfo',
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'Bearer ' + token
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.send(response);
+      }
+    }
+  });
+
+  }
+);
+
+/**
+ * Revoke the provided token
+ */
+router.post('/revoke', (req, res) => {
+
+  if (!req.cookies.state.selectedOAuthClientId ) {
+    console.log('Missing client ID from state cookie.');
+    res.status(500).send('Missing client ID from state cookie.');
+    return;
+  }
+
+  if (!req.cookies.state.selectedAuthServerId) {
+    console.log('Missing Auth Server ID.');
+    res.status(500).send('Missing Auth Server ID.');
+    return;
+  }
+
+  const token = req.body.token;
+  const token_type = req.body.token_type;
+
+  const payload = {
+    token: token,
+    token_type_hint: token_type,
+    client_id: req.cookies.state.selectedOAuthClientId,
+    client_secret: req.cookies.state.unsafeSelectedClientSecret
+  };
+
+  const options = {
+    uri: req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1/revoke',
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
+ * call Okta's introspect endpoint
+ */
+router.post('/introspect', (req, res) => {
+
+  if (!req.cookies.state.selectedOAuthClientId ) {
+    console.log('Missing client ID from state cookie.');
+    res.status(500).send('Missing client ID from state cookie.');
+    return;
+  }
+
+  if (!req.cookies.state.selectedAuthServerId) {
+    console.log('Missing Auth Server ID.');
+    res.status(500).send('Missing Auth Server ID.');
+    return;
+  }
+
+  const token = req.body.token;
+  const token_type = req.body.token_type;
+
+  const payload = {
+    token: token,
+    token_type_hint: token_type,
+    client_id: req.cookies.state.selectedOAuthClientId,
+    client_secret: req.cookies.state.unsafeSelectedClientSecret
+  };
+
+  const options = {
+    uri: req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1/introspect',
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response.body);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
  * Get a list of authorization servers
  */
 router.get('/authorizationServers', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
   const apiKey = req.cookies.state.unsafeApiKey;
   const baseUrl = req.cookies.state.baseUrl;
   const endpoint = `${baseUrl}/api/v1/authorizationServers`;

@@ -30,6 +30,8 @@ export class ToolkitService {
   selectedAuthServer;
   selectedOAuthClientId;
   selectedOAuthClient;
+  unsafeSelectedClientSecret;
+  unsafeClientSecrets = {};
   selectedApp;
   selectedAppProfile;
   selectedGrantType;
@@ -45,6 +47,7 @@ export class ToolkitService {
   oAuthConfig = {};
   oktaAuthJsConfig = {};
   oktaWidgetConfig = {};
+
 
   /**
    * Get metadata from the well-known endpoint for the selected auth server
@@ -77,6 +80,14 @@ export class ToolkitService {
     return this.http.get('/demo/clients');
   }
 
+  /**
+   * Return the app object that corresponds to the selected OAuth client
+   * @returns {Observable<any>}
+   */
+  getSelectedApp(): Observable<any> {
+    return this.http.get('/demo/apps/' + this.selectedOAuthClient.client_id);
+  }
+
   /*
  * Call the /token endpoint for client credentials flow. Have to use the Node backend for this one
  */
@@ -90,16 +101,58 @@ export class ToolkitService {
       })
     };
 
-    let payload = {
-      endpoint: endpoint,
-      clientId: this.selectedOAuthClient.id,
-      clientSecret: this.selectedOAuthClient.secret,
-      scope: this.selectedScopes
+    const payload = {
+      scope: this.selectedScopes.join(' '),
+      grant_type: this.selectedGrantType,
+      redirect_uri: this.selectedRedirectUri,
+      client_id: this.selectedOAuthClientId,
+      client_secret: this.selectedApp.client_secret
     };
 
     return this.http.post('/demo/token', payload, httpOptions);
   }
 
+  /**
+   * Get user info from /userinfo endpoint
+   */
+  getUserInfo(token): Observable<any> {
+    const payload = {
+      token: token
+    };
+
+    return this.http.post('/demo/userinfo', payload);
+  }
+
+  /**
+   * Revoke token
+   * @param token
+   * @param token_type
+   * @returns {Observable<any>}
+   */
+  revokeToken(token, token_type): Observable<any> {
+    const payload = {
+      token: token,
+      token_type: token_type
+    };
+
+    return this.http.post('/demo/revoke', payload);
+  }
+
+  /**
+   * Validate the token with Okta's /introspect endpoint
+   */
+  introspectToken(token, token_type): Observable<any> {
+    const payload = {
+      token: token,
+      token_type: token_type
+    };
+
+    return this.http.post('/demo/introspect', payload);
+  }
+
+  /**
+   *
+   */
   getMaxScopeSet() {
     for (let scope of this.supportedScopes) {
       if (this.userScopes.includes(scope)) {
@@ -148,7 +201,7 @@ export class ToolkitService {
     this.nonce = 'mynonce';
 
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
-    const responseTypes = this.getResponseTypeIdentifiers().join(' ');
+    const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
 
     this.authUrlValid = this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce;
     this.tokenUrlValid = this.baseUrl && this.selectedAuthServerId && responseTypes;
@@ -179,6 +232,17 @@ export class ToolkitService {
 
     return JSON.parse(window.atob(base64));
   }
+
+  // auth
+  /**
+   * Log in using auth endpoint
+   */
+  authenticate(): void {
+    this.updateAuthorizeUrl();
+    // call authorize
+    window.location.href = this.authorizeUrl;
+  }
+
 
   /**
    * Constructor
