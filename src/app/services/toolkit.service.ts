@@ -41,7 +41,7 @@ export class ToolkitService {
 
   authServerUri;
   userScopes;
-  maxScopeSet;
+  maxScopeSet = [];
 
   oAuthConfig = {};
   oktaAuthJsConfig = {};
@@ -71,9 +71,15 @@ export class ToolkitService {
     return this.http.get('/demo/authorizationServers');
   }
 
-  storeClients(): Observable<any> {
-    return this.http.put('/demo/clients', this.oAuthClients);
+  cacheClients(): Observable<any> {
+    return this.http.put('/demo/cachedClients', this.oAuthClients);
   }
+
+  // return cached clients from cookie, if available
+  getCachedClients(): Observable<any> {
+    return this.http.get('/demo/cachedClients');
+  }
+
   /**
    * Get a list of OAUth clients (apps) in the selected Okta org
    * @returns {Observable<any>}
@@ -108,7 +114,7 @@ export class ToolkitService {
       grant_type: this.selectedGrantType,
       redirect_uri: this.selectedRedirectUri,
       client_id: this.selectedOAuthClientId,
-      client_secret: this.selectedApp.client_secret
+      client_secret: this.selectedOAuthClient.client_secret
     };
 
     return this.http.post('/demo/token', payload, httpOptions);
@@ -156,12 +162,14 @@ export class ToolkitService {
    *
    */
   getMaxScopeSet() {
-    for (let scope of this.supportedScopes) {
-      if (this.userScopes.includes(scope)) {
-        this.maxScopeSet.push(scope);
+    if (this.userScopes) {
+      for (let scope of this.supportedScopes) {
+        if (this.userScopes.includes(scope)) {
+          this.maxScopeSet.push(scope);
+        }
       }
+      console.log(this.maxScopeSet);
     }
-    console.log(this.maxScopeSet);
   }
 
   /**

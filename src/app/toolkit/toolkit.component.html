@@ -1,6 +1,5 @@
 <div class="jumbotron">
-  <h1 class="display-4">OAuth 2.0/OpenID Connect Toolkit</h1>
-  <p class="lead">Okta...</p>
+  <h1 class="display-6">OAuth 2.0/OpenID Connect Toolkit</h1>
 </div>
 
 <div class="card text-light bg-dark">
@@ -59,8 +58,8 @@
               <div class="btn-toolbar" role="group">
                 <span *ngFor="let scope of toolkit.supportedScopes">
 
-                  <button class="btn btn-sm btn-outline-info" *ngIf="scope === 'ifitmatches'" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
-                  <button class="btn btn-sm btn-outline-secondary" *ngIf="scope != 'ifitmatches'" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+                  <button class="btn btn-sm btn-outline-info" *ngIf="toolkit.userScopes && toolkit.userScopes.includes(scope);" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
+                  <button class="btn btn-sm btn-outline-secondary" *ngIf="!toolkit.userScopes || !toolkit.userScopes.includes(scope);" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
 
                 </span>
               </div>
@@ -139,25 +138,26 @@
                 </div>
               </div>
             </div>
-            <div class="col">
+            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType != 'client_credentials'">
               <div class="btn-toolbar" role="group">
-
                 <div class="row" *ngFor="let uri of client.redirect_uris">
                   <div class="col-sm">
                     <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
                     <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{uri}}</span>
                   </div>
                 </div>
-
-                <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType === 'client_credentials'">
-                  <div class="col-sm">
-                    <input class="form-control" type="text" name="secret{{client}}" [(ngModel)]="client.client_secret" placeholder="Client Secret">
-                  </div>
+              </div>
+            </div>
+            <!-- client secret if client credentials is selected -->
+            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType === 'client_credentials'">
+              <div class="row">
+                <div class="col-sm">
+                  <input class="form-control" type="password" name="secret{{client}}" [(ngModel)]="client.client_secret" placeholder="Client Secret">
                 </div>
-
               </div>
             </div>
           </div>
+
           <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm">
@@ -177,7 +177,7 @@
   <h5 class="card-header">Save to (or load from) cookie</h5>
   <div class="card-body">
     <form>
-      <button class="btn btn-primary" (click)="saveState()">Save</button><button class="btn btn-primary" (click)="loadState()">Load</button>
+      <button class="btn btn-primary" (click)="saveConfig()">Save</button><button class="btn btn-primary" (click)="loadConfig()">Load</button>
     </form>
   </div>
 </div>
@@ -253,15 +253,15 @@
               <button class="btn btn-primary token-button" (click)="introspectToken(toolkit.accessToken, 'access_token')">Introspect</button>
             </div>
             <div class="col">
-              {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.authServerUri + 'v1/introspect'}}
+              {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + '/v1/introspect'}}
             </div>
           </div>
-          <div class="row">
+          <div class="row" *ngIf="toolkit.selectedGrantType != 'client_credentials'">
             <div class="col-sm-2">
               <button class="btn btn-primary token-button" (click)="getUserInfo(toolkit.accessToken)">Get User Info</button>
             </div>
             <div class="col">
-              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.authServerUri+ 'v1/userinfo'}}
+              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId+ '/v1/userinfo'}}
             </div>
           </div>
           <div class="row">
@@ -269,7 +269,7 @@
               <button class="btn btn-primary token-button" (click)="revokeToken(toolkit.accessToken, 'access_token')">Revoke Token</button>
             </div>
             <div class="col">
-              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.authServerUri + 'v1/revoke'}}
+              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + '/v1/revoke'}}
             </div>
           </div>
         </div>
@@ -302,7 +302,7 @@
               <button class="btn btn-primary token-button" (click)="introspectToken(toolkit.idToken, 'id_token')">Introspect</button>
             </div>
             <div class="col">
-              {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.authServerUri + 'v1/introspect'}}
+              {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/introspect'}}
             </div>
           </div>
           <div class="row">
@@ -310,7 +310,7 @@
               <button class="btn btn-primary token-button" (click)="revokeToken(toolkit.idToken, 'id_token')">Revoke Token</button>
             </div>
             <div class="col">
-              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.authServerUri + 'v1/revoke'}}
+              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/revoke'}}
             </div>
           </div>
         </div>

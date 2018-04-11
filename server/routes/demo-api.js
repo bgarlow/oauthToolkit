@@ -62,7 +62,7 @@ router.post('/token', (req, res) => {
     }
     if (response) {
       if (response.statusCode === 200) {
-        res.json(response.body);
+        res.json(response);
       } else {
         console.error(response.statusCode);
         res.json(response);
@@ -415,15 +415,30 @@ router.get('/authorizationServers', (req, res) => {
 
 });
 
-router.put('/clients', (req, res) => {
+/**
+ * if there are OAuth clients stored in a cookie, return those
+ */
+router.get('/cachedClients', (req, res) => {
+
+  if (req.cookies.clients) {
+    res.send(req.cookies.clients);
+  } else {
+    res.status(404).send('No cached clients found.');
+  }
+
+});
+
+// cache OAuth clients
+router.put('/cachedClients', (req, res) => {
   res.cookie('clients', req.body);
-  res.send('clients cookie set.');
+  res.status(200).send();
 });
 
 /**
  * Get a list of authorization servers
  */
 router.get('/clients', (req, res) => {
+
   const apiKey = req.cookies.state.unsafeApiKey;
   const baseUrl = req.cookies.state.baseUrl;
   const endpoint = `${baseUrl}/oauth2/v1/clients`;
@@ -459,7 +474,8 @@ router.get('/clients', (req, res) => {
  */
 router.put('/state', (req, res) => {
   if (!req.body.state) {
-    res.state(500).send('State variable not found in request body.')
+    res.state(500).send('State variable not found in request body.');
+    return;
   }
   res.cookie('state', req.body.state);
   res.json({ok:true});
@@ -470,14 +486,14 @@ router.put('/state', (req, res) => {
  */
 router.get('/state', (req, res) => {
   if (!req.cookies) {
-    res.status(400).send(`Unable to retrieve cookie.`);
+    res.status(404).send(`Unable to retrieve cookie.`);
     return;
   }
 
   if (req.cookies.state) {
     res.json(req.cookies.state)
   } else {
-    res.status(400).send('Unable to find state cookie.');
+    res.status(404).send('Unable to find state cookie.');
   }
 });
 

@@ -99,6 +99,7 @@ export class ToolkitComponent implements OnInit {
    */
   getToken() {
     //this.clearLocalTokens();
+    this.saveConfig();
     this.toolkit.getToken()
       .subscribe(
         data => {
@@ -110,9 +111,18 @@ export class ToolkitComponent implements OnInit {
             if (this.toolkit.supportedScopes) {
               this.toolkit.getMaxScopeSet();
             }
+            this.saveState()
+              .subscribe(
+                data => {
+                  console.log('Saved state in getToken()');
+                },
+                error => {
+                  this.errorMessage = error;
+                }
+              );
           } else {
             console.log(data);
-            this.errorMessage = data;
+            this.errorMessage = JSON.parse(data['body']);;
           }
         }
       );
@@ -145,8 +155,6 @@ export class ToolkitComponent implements OnInit {
     this.saveState()
       .subscribe(
         data => {
-          this.responseMessage = this.toolkit.selectedAuthServer;
-          this.responseMessageTitle = 'Selected Authorization Server';
           this.toolkit.updateAuthorizeUrl();
         },
         error => {
@@ -164,11 +172,11 @@ export class ToolkitComponent implements OnInit {
     this.getSelectedApp();
     this.toolkit.selectedAppProfile = undefined;
 
-    if (this.toolkit.selectedGrantType) {
+    if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
       this.toolkit.selectedGrantType = oauthClient.grant_types[0];
     }
 
-    if (!this.toolkit.selectedRedirectUri) {
+    if (!this.toolkit.selectedRedirectUri || !oauthClient.redirect_uris.includes(this.toolkit.selectedRedirectUri)) {
       this.toolkit.selectedRedirectUri = oauthClient.redirect_uris[0];
     }
 
@@ -180,13 +188,11 @@ export class ToolkitComponent implements OnInit {
       });
     }
 
-
+    this.toolkit.unsafeSelectedClientSecret = oauthClient.client_secret;
 
     this.saveState()
       .subscribe(
         data => {
-          this.responseMessage = this.toolkit.selectedOAuthClient;
-          this.responseMessageTitle = 'Selected OAuth 2.0 client';
           this.toolkit.updateAuthorizeUrl();
         },
         error => {
@@ -312,6 +318,40 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  saveConfig() {
+    this.saveState()
+      .subscribe(
+        data => {
+          this.toolkit.cacheClients()
+            .subscribe(
+              data => {
+                console.log('State saved and OAuth clients cached.');
+              },
+              error => {
+                this.errorMessage = error;
+              }
+            );
+        },
+        error => {
+          this.errorMessage = error;
+        }
+      );
+  }
+
+  // Load state and cached clients from cookie
+  loadConfig() {
+    this.loadState();
+    this.toolkit.getCachedClients()
+      .subscribe(
+        data => {
+          console.log('State and cached OAuth clients loaded.');
+        },
+        error => {
+          this.errorMessage = error;
+        }
+      );
+  }
+
   /**
    * post our current state variables to node back end, stuff them in a cookie
    */
@@ -323,6 +363,7 @@ export class ToolkitComponent implements OnInit {
         unsafeApiKey: this.toolkit.unsafeApiKey,
         selectedAuthServerId: this.toolkit.selectedAuthServerId,
         selectedOAuthClientId: this.toolkit.selectedOAuthClientId,
+        unsafeSelectedClientSecret: this.toolkit.unsafeSelectedClientSecret,
         selectedScopes: this.toolkit.selectedScopes,
         selectedResponseType: this.toolkit.selectedResponseType,
         selectedGrantType: this.toolkit.selectedGrantType,
@@ -351,6 +392,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
           this.toolkit.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : undefined; // this.toolkit.authorizationServers[0];
           this.toolkit.selectedOAuthClientId = (data['selectedOAuthClientId']) ? data['selectedOAuthClientId'] : undefined; // this.toolkit.oAuthClients[0];
+          this.toolkit.unsafeSelectedClientSecret = (data['unsafeSelectedClientSecret']) ? data['unsafeSelectedClientSecret'] : undefined;
           this.toolkit.selectedScopes = (data['selectedScopes']) ? data['selectedScopes'] : this.toolkit.selectedScopes;
           this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined; // this.toolkit.oAuthClients[0].grant_types[0];
           this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined; // this.toolkit.oAuthClients[0].response_types[0];
@@ -369,7 +411,7 @@ export class ToolkitComponent implements OnInit {
           }
         },
         error => {
-          console.log(error);
+          console.log('No state cookie found.');
         }
       );
   }
@@ -412,6 +454,7 @@ export class ToolkitComponent implements OnInit {
     if (queryParams['access_token']) {
       this.toolkit.accessToken = queryParams['access_token'];
       this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
+      this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
     }
 
     // re-save our state with the new tokens
@@ -444,6 +487,7 @@ export class ToolkitComponent implements OnInit {
     for (let client of this.toolkit.oAuthClients) {
       if (client.client_id === this.toolkit.selectedOAuthClientId) {
         this.toolkit.selectedOAuthClient = client;
+        this.toolkit.unsafeSelectedClientSecret = client.client_secret;
       }
     }
   }
@@ -535,46 +579,66 @@ export class ToolkitComponent implements OnInit {
     this.successMessage = undefined;
     this.responseMessage = undefined;
 
+    this.toolkit.getCachedClients()
+      .subscribe(
+        data => {
+          console.log('Cached clients:');
+          console.log(data);
+          this.toolkit.oAuthClients = data;
+        },
+        error => {
+          console.log('No cached clients found.');
+        }
+      );
+
+    // Return authorization servers from Okta
     this.toolkit.getAuthorizationServers()
       .subscribe(
         data => {
           this.toolkit.authorizationServers = JSON.parse(data.toString());
 
-          this.toolkit.getClients()
-            .subscribe(
-              data => {
-                const clients = JSON.parse(data.toString());
-                for (let client of clients) {
-                  client['client_secret'] = '';
-                  this.toolkit.oAuthClients.push(client);
-                }
-
-                this.toolkit.storeClients()
-                  .subscribe(
-                    data => {
-                      this.responseMessage = data;
-                    },
-                    error => {
-                      this.errorMessage = error;
-                    }
-                  );
-                //this.toolkit.oAuthClients = JSON.parse(data.toString());
-                this.mapSelectedAuthServer();
-                this.mapSelectedOAuthClient();
-
-                // check to see if this is a redirect with tokens
-                this.route.fragment.subscribe(
-                  fragment => {
-                    if (fragment) {
-                      this.extractTokensFromFragment(fragment);
-                    }
+          if (!(this.toolkit.oAuthClients.length > 0)) {
+            this.toolkit.getClients()
+              .subscribe(
+                data => {
+                  const clients = JSON.parse(data.toString());
+                  for (let client of clients) {
+                    client['client_secret'] = '';
+                    this.toolkit.oAuthClients.push(client);
                   }
-                );
+
+                  this.toolkit.cacheClients()
+                    .subscribe(
+                      data => {
+                        console.log = data;
+                      },
+                      error => {
+                        this.errorMessage = error;
+                      }
+                    );
+                  //this.toolkit.oAuthClients = JSON.parse(data.toString());
+                  this.mapSelectedAuthServer();
+                  this.mapSelectedOAuthClient();
+                }
+              );
+          } else {
+            //this.toolkit.oAuthClients = JSON.parse(data.toString());
+            this.mapSelectedAuthServer();
+            this.mapSelectedOAuthClient();
+          }
+
+          // check to see if this is a redirect with tokens
+          this.route.fragment.subscribe(
+            fragment => {
+              if (fragment) {
+                this.extractTokensFromFragment(fragment);
               }
-            );
+            }
+          );
+
         },
         error => {
-          console.log(error);
+          console.log('Unable to load authorization servers because of missing configuration info (Base URL and API Key)');
         }
       );
     }
