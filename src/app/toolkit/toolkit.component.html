@@ -149,9 +149,9 @@
                   </div>
                 </div>
 
-                <div class="row" *ngIf="toolkit.selectedGrantType === 'client_credentials'">
+                <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType === 'client_credentials'">
                   <div class="col-sm">
-                    <input class="form-control" type="password" name="secret{{client}}" placeholder="Client Secret"><button class="btn btn-primary">Save</button>
+                    <input class="form-control" type="text" name="secret{{client}}" [(ngModel)]="client.client_secret" placeholder="Client Secret">
                   </div>
                 </div>
 

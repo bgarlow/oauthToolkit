@@ -164,11 +164,11 @@ export class ToolkitComponent implements OnInit {
     this.getSelectedApp();
     this.toolkit.selectedAppProfile = undefined;
 
-    if (oauthClient.grant_types.length < 2) {
+    if (this.toolkit.selectedGrantType) {
       this.toolkit.selectedGrantType = oauthClient.grant_types[0];
     }
 
-    if (oauthClient.redirect_uris.length < 2) {
+    if (!this.toolkit.selectedRedirectUri) {
       this.toolkit.selectedRedirectUri = oauthClient.redirect_uris[0];
     }
 
@@ -484,7 +484,13 @@ export class ToolkitComponent implements OnInit {
                 this.toolkit.getClients()
                   .subscribe(
                     data => {
-                      this.toolkit.oAuthClients = JSON.parse(data.toString());
+                      // TODO: loop through the response and add values to the "new" metaOAuthClients array (which includes client_secret)
+                      const clients = JSON.parse(data.toString());
+                      for (let client of clients) {
+                        client['client_secret'] = '';
+                        this.toolkit.oAuthClients.push(client);
+                      }
+                      //this.toolkit.oAuthClients = JSON.parse(data.toString());
                       this.loadState();
                       this.mapSelectedAuthServer();
                       this.mapSelectedOAuthClient();
@@ -533,10 +539,26 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           this.toolkit.authorizationServers = JSON.parse(data.toString());
+
           this.toolkit.getClients()
             .subscribe(
               data => {
-                this.toolkit.oAuthClients = JSON.parse(data.toString());
+                const clients = JSON.parse(data.toString());
+                for (let client of clients) {
+                  client['client_secret'] = '';
+                  this.toolkit.oAuthClients.push(client);
+                }
+
+                this.toolkit.storeClients()
+                  .subscribe(
+                    data => {
+                      this.responseMessage = data;
+                    },
+                    error => {
+                      this.errorMessage = error;
+                    }
+                  );
+                //this.toolkit.oAuthClients = JSON.parse(data.toString());
                 this.mapSelectedAuthServer();
                 this.mapSelectedOAuthClient();
 

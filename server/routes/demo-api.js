@@ -415,6 +415,11 @@ router.get('/authorizationServers', (req, res) => {
 
 });
 
+router.put('/clients', (req, res) => {
+  res.cookie('clients', req.body);
+  res.send('clients cookie set.');
+});
+
 /**
  * Get a list of authorization servers
  */

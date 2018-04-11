@@ -19,7 +19,7 @@ export class ToolkitService {
   decodedAccessToken;
 
   authorizationServers;
-  oAuthClients;
+  oAuthClients = [];
   metadataEndpoint;
   authorizeUrl;
   tokenUrl;
@@ -31,7 +31,6 @@ export class ToolkitService {
   selectedOAuthClientId;
   selectedOAuthClient;
   unsafeSelectedClientSecret;
-  unsafeClientSecrets = {};
   selectedApp;
   selectedAppProfile;
   selectedGrantType;
@@ -72,6 +71,9 @@ export class ToolkitService {
     return this.http.get('/demo/authorizationServers');
   }
 
+  storeClients(): Observable<any> {
+    return this.http.put('/demo/clients', this.oAuthClients);
+  }
   /**
    * Get a list of OAUth clients (apps) in the selected Okta org
    * @returns {Observable<any>}
