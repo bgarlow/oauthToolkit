@@ -20,6 +20,7 @@ export class ToolkitService {
 
   authorizationServers;
   oAuthClients = [];
+  cachedClients = [];
   metadataEndpoint;
   authorizeUrl;
   tokenUrl;
@@ -79,6 +80,12 @@ export class ToolkitService {
   getCachedClients(): Observable<any> {
     return this.http.get('/demo/cachedClients');
   }
+
+  // Delete cached clients (remove from cookie
+  clearCachedClients(): Observable<any> {
+    return this.http.delete('/demo/cachedClients');
+  }
+
 
   /**
    * Get a list of OAUth clients (apps) in the selected Okta org

@@ -419,19 +419,32 @@ router.get('/authorizationServers', (req, res) => {
  * if there are OAuth clients stored in a cookie, return those
  */
 router.get('/cachedClients', (req, res) => {
-
-  if (req.cookies.clients) {
-    res.send(req.cookies.clients);
-  } else {
-    res.status(404).send('No cached clients found.');
-  }
-
+    res.send(req.cookies.cachedClients);
 });
 
 // cache OAuth clients
 router.put('/cachedClients', (req, res) => {
-  res.cookie('clients', req.body);
+  let cachedClients = [];
+
+  let cachedClient = {};
+
+  for (let client of req.body) {
+    cachedClient = {
+      client_id: client.client_id,
+      client_secret: client.client_secret
+    };
+
+    cachedClients.push(cachedClient);
+  }
+
+  res.cookie('cachedClients', cachedClients);
   res.status(200).send();
+});
+
+// delete cached clients from clients cookie
+router.delete('/cachedClients', (req, res) => {
+    res.clearCookie('cachedClients');
+    res.status(200).send();
 });
 
 /**
@@ -485,16 +498,7 @@ router.put('/state', (req, res) => {
  * return state
  */
 router.get('/state', (req, res) => {
-  if (!req.cookies) {
-    res.status(404).send(`Unable to retrieve cookie.`);
-    return;
-  }
-
-  if (req.cookies.state) {
-    res.json(req.cookies.state)
-  } else {
-    res.status(404).send('Unable to find state cookie.');
-  }
+  res.json(req.cookies.state)
 });
 
 /**
