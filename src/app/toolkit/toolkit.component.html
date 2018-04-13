@@ -149,7 +149,7 @@
               </div>
             </div>
             <!-- client secret if client credentials is selected -->
-            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType === 'client_credentials'">
+            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
               <div class="row">
                 <div class="col-sm">
                   <input class="form-control" type="password" name="secret{{client}}" [(ngModel)]="client.client_secret" placeholder="Client Secret">

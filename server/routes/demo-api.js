@@ -346,7 +346,7 @@ router.post('/introspect', (req, res) => {
     token: token,
     token_type_hint: token_type,
     client_id: req.cookies.state.selectedOAuthClientId,
-    client_secret: req.cookies.state.unsafeSelectedClientSecret
+    client_secret: (req.cookies.state.unsafeSelectedClientSecret) ? req.cookies.state.unsafeSelectedClientSecret : ''
   };
 
   const options = {
