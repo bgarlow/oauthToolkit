@@ -104,6 +104,29 @@ export class ToolkitService {
     return this.http.delete('/demo/cachedClients');
   }
 
+
+  getCachedToken(tokenType): Observable<any> {
+    const uri = '/demo/tokenstorage/' + tokenType;
+    return this.http.get(uri);
+  }
+
+  cacheToken(token, tokenType): Observable<any> {
+    const uri = '/demo/tokenstorage';
+
+    const payload = {
+      token_type: tokenType,
+      token: token
+    };
+
+    return this.http.put('/demo/tokenstorage', payload);
+  }
+
+  clearCachedToken(tokenType): Observable<any> {
+    const uri = '/demo/tokenstorage/' + tokenType;
+
+    return this.http.delete(uri);
+  }
+
   /**
    * clear the state cookie when loading new org info
    * @returns {Observable<any>}

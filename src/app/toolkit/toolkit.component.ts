@@ -47,6 +47,15 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.revokeToken(token, tokenType)
       .subscribe(
         data => {
+          this.toolkit.clearCachedToken(tokenType)
+            .subscribe(
+              data => {
+                this.errorMessage = data;
+              },
+              error => {
+                this.errorMessage = error;
+              }
+            );
           this.responseMessage = `${tokenType} revoked`;
           this.responseMessageTitle = `/revoke response for ${tokenType}`;
 
@@ -357,9 +366,9 @@ export class ToolkitComponent implements OnInit {
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
         selectedRedirectUri: this.toolkit.selectedRedirectUri,
-        idToken: this.toolkit.idToken,
+        //idToken: this.toolkit.idToken,
         decodedIdToken: this.toolkit.decodedIdToken,
-        accessToken: this.toolkit.accessToken,
+        //accessToken: this.toolkit.accessToken,
         decodedAccessToken: this.toolkit.decodedAccessToken
       }
     };
@@ -375,6 +384,7 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           if (data === null) return;
+
           this.toolkit.baseUrl = (data['baseUrl']) ? data['baseUrl'] : undefined;
           this.toolkit.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
           this.toolkit.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : undefined; // this.toolkit.authorizationServers[0];
@@ -387,9 +397,9 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
-          this.toolkit.idToken =  (data['idToken']) ? data['idToken'] : undefined;
+          //this.toolkit.idToken =  (data['idToken']) ? data['idToken'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
-          this.toolkit.accessToken =  (data['accessToken']) ? data['accessToken'] : undefined;
+          //this.toolkit.accessToken =  (data['accessToken']) ? data['accessToken'] : undefined;
           this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
 
           this.toolkit.updateAuthorizeUrl();
@@ -435,25 +445,30 @@ export class ToolkitComponent implements OnInit {
 
     if (queryParams['id_token']) {
       this.toolkit.idToken = queryParams['id_token'];
+      this.toolkit.cacheToken(this.toolkit.idToken, 'id_token')
+        .subscribe(
+          cachedIDToken => {
+            this.successMessage = 'ID Token cached';
+          },
+          idTokenError => {
+            this.errorMessage = idTokenError;
+          });
       this.toolkit.decodedIdToken = this.toolkit.parseJwt(this.toolkit.idToken);
     }
 
     if (queryParams['access_token']) {
       this.toolkit.accessToken = queryParams['access_token'];
+      this.toolkit.cacheToken(this.toolkit.accessToken, 'access_token')
+        .subscribe(
+          cachedAccesstoken => {
+            this.successMessage += 'Access Token cached';
+          },
+          accessTokenError => {
+            this.errorMessage = accessTokenError;
+          });
       this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
       this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
     }
-
-    // re-save our state with the new tokens
-    this.saveState()
-      .subscribe(
-        data => {
-          console.log('State saved in extractTokensFromFragment');
-        },
-        error => {
-          this.errorMessage = error;
-        }
-      );
   }
 
   /**
@@ -479,7 +494,40 @@ export class ToolkitComponent implements OnInit {
     }
   }
 
+  loadCachedTokens() {
+    this.toolkit.getCachedToken('id_token')
+      .subscribe(
+        cachedIdToken => {
+          this.toolkit.idToken = cachedIdToken;
+        },
+        idTokenError => {
+          this.errorMessage = idTokenError;
+        });
+
+    this.toolkit.getCachedToken('access_token')
+      .subscribe(
+        cachedAccessToken => {
+          this.toolkit.accessToken = cachedAccessToken;
+        },
+        accesstokenError => {
+          this.errorMessage = accesstokenError;
+        });
+  }
+
+  clearCachedTokens() {
+    this.toolkit.clearCachedToken('access_token');
+    this.toolkit.clearCachedToken('id_token');
+    this.toolkit.clearCachedToken('refresh_token');
+  }
+
+  loadConfig() {
+    this.loadCachedTokens();
+    this.loadState();
+  }
+
+  // initialize state variables
   initState() {
+
     this.toolkit.accessToken = undefined;
     this.toolkit.decodedAccessToken = undefined;
     this.toolkit.idToken = undefined;
@@ -512,6 +560,7 @@ export class ToolkitComponent implements OnInit {
       return;
     }
 
+    this.clearCachedTokens();
     this.initState();
     // save state to add baseUrl and unsafeApiKey to cookie
     this.saveState()
@@ -577,6 +626,7 @@ export class ToolkitComponent implements OnInit {
   ngOnInit() {
 
     this.loadState();
+    this.loadCachedTokens();
 
     this.toolkit.getAuthorizationServers()
       .subscribe(
@@ -597,11 +647,13 @@ export class ToolkitComponent implements OnInit {
                       // check to see if this is a redirect with tokens in the URL fragment
                       this.route.fragment.subscribe(
                         fragment => {
-                          this.extractTokensFromFragment(fragment);
+                          if (fragment) {
+                            this.extractTokensFromFragment(fragment);
+                          }
                         },
                         fragmentError => {
                           this.errorMessage = fragmentError;
-                      });
+                        });
 
                     },
                     cacheError => {
@@ -612,6 +664,6 @@ export class ToolkitComponent implements OnInit {
         authServerError => {
           this.errorMessage = authServerError;
         });
-  });
+  }
 
 }

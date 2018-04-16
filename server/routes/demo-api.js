@@ -289,6 +289,8 @@ router.post('/revoke', (req, res) => {
   const token = req.body.token;
   const token_type = req.body.token_type;
 
+  res.clearCookie(token_type);
+
   const payload = {
     token: token,
     token_type_hint: token_type,
@@ -480,6 +482,40 @@ router.get('/clients', (req, res) => {
       }
     }
   });
+
+});
+
+router.put('/tokenstorage', (req, res) => {
+
+  const token = req.body.token;
+  const tokenType = req.body.token_type;
+
+   res.cookie(tokenType, token);
+   res.status(200).send();
+});
+
+router.get('/tokenstorage/:token_type', (req, res) => {
+
+  const tokenType = req.params['token_type'];
+
+  switch(tokenType) {
+    case 'access_token':
+      res.json(req.cookies.access_token);
+      break;
+    case 'id_token':
+      res.json(req.cookies.id_token);
+      break;
+    case 'refresh_token':
+      res.json(req.cookies.refresh_token);
+  }
+});
+
+router.delete('/tokenstorage/:token_type', (req, res) => {
+
+  const tokenType = req.params.token_type;
+
+  res.clearCookie(tokenType);
+  res.status(200).send();
 
 });
 

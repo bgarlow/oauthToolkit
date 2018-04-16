@@ -93,6 +93,13 @@
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
     <form>
+      <div class="row">
+        <div class="col-sm-1"></div>
+        <div class="col-sm-3">Client Name</div>
+        <div class="col-sm-2">Client Type</div>
+        <div class="col-sm-2">Client ID</div>
+        <div class="col-sm-2">Client Secret</div>
+      </div>
       <div class="form-group row" *ngFor="let client of toolkit.oAuthClients">
         <div class="col-sm">
           <div class="row">
@@ -102,16 +109,19 @@
             <div class="col-sm-3">
               <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="name{{client.client_id}}" [(ngModel)]="client.client_name">
             </div>
-            <div class="col-sm-4">
+            <div class="col-sm-2">
               <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="label{{client.client_id}}" [(ngModel)]="client.application_type">
             </div>
-            <div class="col-sm">
+            <div class="col-sm-2">
               <div class="input-group mb-3">
                 <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  name="id{{client.client_id}}" [(ngModel)]="client.client_id">
                 <div class="input-group-append" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
                   <span class="input-group-text" id="basic-addon2" (click)="getAppProfile(client)">Edit Profile</span>
                 </div>
               </div>
+            </div>
+            <div class="col-sm">
+                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
             </div>
           </div>
           <div class="row">
@@ -148,19 +158,11 @@
                 </div>
               </div>
             </div>
-            <!-- client secret if client credentials is selected -->
-            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
-              <div class="row">
-                <div class="col-sm">
-                  <input class="form-control" type="password" name="secret{{client}}" [(ngModel)]="client.client_secret" placeholder="Client Secret">
-                </div>
-              </div>
-            </div>
           </div>
 
           <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
-            <div class="col-sm">
+            <div class="col-sm-7">
               <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea>
               <div>
                 <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
