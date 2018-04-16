@@ -338,20 +338,6 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
-  // Load state and cached clients from cookie
-  loadConfig() {
-    this.loadState();
-    this.toolkit.getCachedClients()
-      .subscribe(
-        data => {
-          console.log('State and cached OAuth clients loaded.');
-        },
-        error => {
-          this.errorMessage = error;
-        }
-      );
-  }
-
   /**
    * post our current state variables to node back end, stuff them in a cookie
    */
@@ -501,11 +487,15 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.scopesClaim = undefined;
 
     this.toolkit.selectedAuthServerId = undefined;
+    this.toolkit.selectedAuthServer = undefined;
     this.toolkit.selectedOAuthClientId = undefined;
+    this.toolkit.selectedOAuthClient = undefined;
+    this.toolkit.unsafeSelectedClientSecret = undefined;
     this.toolkit.selectedGrantType = undefined;
     this.toolkit.selectedResponseType = undefined;
     this.toolkit.selectedScopes = undefined;
     this.toolkit.selectedRedirectUri = undefined;
+    this.toolkit.userScopes = undefined;
 
     this.errorMessage = undefined;
     this.successMessage = undefined;
@@ -513,77 +503,63 @@ export class ToolkitComponent implements OnInit {
   }
 
   /**
-   * reload page with config from cookie
+   * Load (or reload) data from org. If same org, don't wipe out the clients cache. Clear and reebuild the state cache.
    */
   reload() {
 
-    // clear any cached clients from the previous org load
-    this.toolkit.clearCachedClients()
+    if (!this.toolkit.baseUrl || !this.toolkit.unsafeApiKey) {
+      this.errorMessage = 'Please enter Base URL and API key to continue.';
+      return;
+    }
+
+    this.initState();
+    // save state to add baseUrl and unsafeApiKey to cookie
+    this.saveState()
       .subscribe(
-        data => {
-          // clear current org values
-          this.initState();
-          // Save state so that the base url and api token are available in the cookie
-          this.saveState()
+        state => {
+          this.toolkit.getAuthorizationServers()
             .subscribe(
-              data => {
-                this.toolkit.getAuthorizationServers()
-                  .subscribe(
-                    data => {
-                      this.toolkit.authorizationServers = JSON.parse(data.toString());
-                      this.toolkit.getClients()
-                        .subscribe(
-                          data => {
-                            // TODO: loop through the response and add values to the "new" metaOAuthClients array (which includes client_secret)
-                            const clients = JSON.parse(data.toString());
-                            for (let client of clients) {
-                              client.client_secret = '';
-                              this.toolkit.oAuthClients.push(client);
-                            }
+              authServers => {
+                if (!authServers.statusCode || authServers.statusCode === 200) {
+                  this.toolkit.authorizationServers = JSON.parse(authServers.toString());
 
-                            this.toolkit.cacheClients()
-                              .subscribe(
-                                data => {
-                                  console.log(data);
-                                },
-                                error => {
-                                  this.errorMessage = error;
-                                }
-                              );
-
-                            //this.toolkit.oAuthClients = JSON.parse(data.toString());
-                            //this.loadState();
-                            this.saveState()
-                              .subscribe(
-                                data => {
-                                  this.mapSelectedAuthServer();
-                                  this.mapSelectedOAuthClient();
-                                },
-                                error => {
-                                  this.errorMessage = error;
-                                }
-                              );
-                          },
-                          error => {
-                            console.log(error);
-                            this.errorMessage = error;
-                          }
-                        );
-                    },
-                    error => {
-                      console.log(error);
-                      this.errorMessage = error;
-                    }
-                  );
-              }, error => {
-                  this.errorMessage = error;
-              }
-            );
+                  this.toolkit.getClients()
+                    .subscribe(
+                      clients => {
+                        this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                        this.saveState()
+                          .subscribe(
+                            state => {
+                              console.log('State saved after reload.');
+                              this.toolkit.cacheClients()
+                                .subscribe(
+                                  cached => {
+                                    console.log('OAuth clients cached');
+                                  },
+                                  cacheError => {
+                                    this.errorMessage = cacheError;
+                                  });
+                            },
+                            stateError => {
+                              this.errorMessage = stateError;
+                            });
+                      },
+                      clientError => {
+                        this.errorMessage = clientError;
+                      });
+                } else {
+                  this.errorMessage = JSON.parse(authServers.body.toString());
+                }
+              },
+              authServerError => {
+                this.errorMessage = authServerError;
+              });
         },
-        error => {
-          this.errorMessage = error;
-        }
-      );
+        stateError => {
+            this.errorMessage = stateError;
+        });
+
+
   }
 
   /*
@@ -602,86 +578,40 @@ export class ToolkitComponent implements OnInit {
 
     this.loadState();
 
-    this.errorMessage = undefined;
-    this.successMessage = undefined;
-    this.responseMessage = undefined;
-
-    //this.loadState();
-
-    this.toolkit.getCachedClients()
+    this.toolkit.getAuthorizationServers()
       .subscribe(
-        data => {
-          console.log('Cached clients:');
-          console.log(data);
-          this.toolkit.cachedClients = data;
-
-          if (!this.toolkit.baseUrl || !this.toolkit.unsafeApiKey) {
-            this.errorMessage = 'Please fill in Base URL and API Key and click Load';
-            return;
-          }
-          // Return authorization servers from Okta
-          this.toolkit.getAuthorizationServers()
+        authServers => {
+          this.toolkit.authorizationServers = JSON.parse(authServers.toString());
+          this.toolkit.getClients()
             .subscribe(
-              data => {
-
-                this.toolkit.authorizationServers = JSON.parse(data.toString());
-
-                this.toolkit.getClients()
+              clients => {
+                this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                this.toolkit.getCachedClients()
                   .subscribe(
-                    data => {
-                      const clients = JSON.parse(data.toString());
-                      for (let client of clients) {
-                        let secret = '';
-                        for (let cachedClient of this.toolkit.cachedClients) {
-                          if (cachedClient['client_id'] === client.client_id) {
-                            secret = cachedClient['client_secret'];
-                          }
-                        }
-                        client['client_secret'] = secret;
-                        this.toolkit.oAuthClients.push(client);
-                      }
-
-                      if (this.toolkit.cachedClients.length < 1) {
-                        this.toolkit.cacheClients()
-                          .subscribe(
-                            data => {
-                              console.log = data;
-                            },
-                            error => {
-                              this.errorMessage = error;
-                            }
-                          );
-                      }
-
-                      //this.toolkit.oAuthClients = JSON.parse(data.toString());
+                    cachedClients => {
+                      this.toolkit.cachedClients = cachedClients;
+                      this.toolkit.setClientSecretFromCache();
                       this.mapSelectedAuthServer();
                       this.mapSelectedOAuthClient();
-                    }
-                  );
-                //this.toolkit.oAuthClients = JSON.parse(data.toString());
-                this.mapSelectedAuthServer();
-                this.mapSelectedOAuthClient();
 
+                      // check to see if this is a redirect with tokens in the URL fragment
+                      this.route.fragment.subscribe(
+                        fragment => {
+                          this.extractTokensFromFragment(fragment);
+                        },
+                        fragmentError => {
+                          this.errorMessage = fragmentError;
+                      });
 
-                // check to see if this is a redirect with tokens
-                this.route.fragment.subscribe(
-                  fragment => {
-                    if (fragment) {
-                      this.extractTokensFromFragment(fragment);
-                    }
-                  }
-                );
-
-              },
-              error => {
-                console.log('Unable to load authorization servers because of missing configuration info (Base URL and API Key)');
-              }
-            );
+                    },
+                    cacheError => {
+                      this.errorMessage = cacheError;
+                    });
+              });
         },
-        error => {
-          this.errorMessage = error;
-        }
-      );
-  }
+        authServerError => {
+          this.errorMessage = authServerError;
+        });
+  });
 
 }

@@ -72,6 +72,24 @@ export class ToolkitService {
     return this.http.get('/demo/authorizationServers');
   }
 
+
+  /**
+   * get the client secret from the cached OAuth client, set the value on OAuthClients
+   */
+  setClientSecretFromCache() {
+    for (let client of this.oAuthClients) {
+      for (let cachedClient of this.cachedClients) {
+        if (client.client_id === cachedClient.client_id) {
+          client.client_secret = cachedClient.client_secret;
+        }
+      }
+    }
+  }
+
+  /**
+   * Save OAuth clients to cookie
+    * @returns {Observable<any>}
+   */
   cacheClients(): Observable<any> {
     return this.http.put('/demo/cachedClients', this.oAuthClients);
   }
@@ -86,6 +104,13 @@ export class ToolkitService {
     return this.http.delete('/demo/cachedClients');
   }
 
+  /**
+   * clear the state cookie when loading new org info
+   * @returns {Observable<any>}
+   */
+  clearState(): Observable<any> {
+    return this.http.delete('/demo/state');
+  }
 
   /**
    * Get a list of OAUth clients (apps) in the selected Okta org

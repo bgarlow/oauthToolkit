@@ -402,6 +402,8 @@ router.get('/authorizationServers', (req, res) => {
   request(options, function(error, response, body) {
     if (error) {
       console.error(error);
+      res.status(500).send(error);
+      return;
     }
     if (response) {
       if (response.statusCode === 200) {
@@ -425,13 +427,12 @@ router.get('/cachedClients', (req, res) => {
 // cache OAuth clients
 router.put('/cachedClients', (req, res) => {
   let cachedClients = [];
-
   let cachedClient = {};
 
   for (let client of req.body) {
     cachedClient = {
       client_id: client.client_id,
-      client_secret: client.client_secret
+      client_secret: client.client_secret ? client.client_secret : ''
     };
 
     cachedClients.push(cachedClient);
@@ -499,6 +500,14 @@ router.put('/state', (req, res) => {
  */
 router.get('/state', (req, res) => {
   res.json(req.cookies.state)
+});
+
+/**
+ * clear the state cookie
+ */
+router.delete('/state', (req, res) => {
+  res.clearCookie('state');
+  res.status(200).send();
 });
 
 /**
