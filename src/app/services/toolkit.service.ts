@@ -155,6 +155,7 @@ export class ToolkitService {
  * Call the /token endpoint for client credentials flow. Have to use the Node backend for this one
  */
   getToken(): Observable<any> {
+
     this.authServerUri = this.getAuthServerUri();
     const endpoint = this.baseUrl + '/oauth2/' + this.authServerUri + 'v1/token';
 
@@ -269,7 +270,7 @@ export class ToolkitService {
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
 
     this.authUrlValid = this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce;
-    this.tokenUrlValid = this.baseUrl && this.selectedAuthServerId && responseTypes;
+    this.tokenUrlValid = this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret;
 
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId

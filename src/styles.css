@@ -11,6 +11,10 @@
   margin: 3px;
 }
 
+.form-group {
+  margin-bottom: 10px;
+}
+
 .form-control {
   font-size: .85rem;
   line-height: 1;

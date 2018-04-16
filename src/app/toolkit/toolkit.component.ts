@@ -439,7 +439,7 @@ export class ToolkitComponent implements OnInit {
       queryParams[tmp[0]] = tmp[1];
     }
     if (queryParams['error']) {
-      this.errorMessage = queryParams;
+      this.errorMessage = queryParams['error'] + ': ' + queryParams['error_description'];
       return;
     }
 
@@ -448,7 +448,7 @@ export class ToolkitComponent implements OnInit {
       this.toolkit.cacheToken(this.toolkit.idToken, 'id_token')
         .subscribe(
           cachedIDToken => {
-            this.successMessage = 'ID Token cached';
+            this.successMessage = 'ID Token cached. ';
           },
           idTokenError => {
             this.errorMessage = idTokenError;
@@ -461,7 +461,7 @@ export class ToolkitComponent implements OnInit {
       this.toolkit.cacheToken(this.toolkit.accessToken, 'access_token')
         .subscribe(
           cachedAccesstoken => {
-            this.successMessage += 'Access Token cached';
+            this.successMessage += 'Access Token cached. ';
           },
           accessTokenError => {
             this.errorMessage = accessTokenError;
@@ -499,6 +499,7 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         cachedIdToken => {
           this.toolkit.idToken = cachedIdToken;
+          this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
         },
         idTokenError => {
           this.errorMessage = idTokenError;
@@ -507,7 +508,8 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getCachedToken('access_token')
       .subscribe(
         cachedAccessToken => {
-          this.toolkit.accessToken = cachedAccessToken;
+          this.toolkit.accessToken = cachedAccessToken
+          this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
         },
         accesstokenError => {
           this.errorMessage = accesstokenError;
@@ -627,6 +629,18 @@ export class ToolkitComponent implements OnInit {
 
     this.loadState();
     this.loadCachedTokens();
+    console.log(this.toolkit);
+    // check to see if this is a redirect with tokens in the URL fragment
+    this.route.fragment.subscribe(
+      fragment => {
+        if (fragment) {
+          this.extractTokensFromFragment(fragment);
+          console.log(this.toolkit.decodedAccessToken);
+        }
+      },
+      fragmentError => {
+        this.errorMessage = fragmentError;
+      });
 
     this.toolkit.getAuthorizationServers()
       .subscribe(
@@ -636,6 +650,15 @@ export class ToolkitComponent implements OnInit {
             .subscribe(
               clients => {
                 this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                this.saveState()
+                  .subscribe(
+                    state => {
+                      history.pushState('', document.title, window.location.pathname);
+                    },
+                    stateError => {
+                      this.errorMessage = stateError;
+                    });
+
                 this.toolkit.getCachedClients()
                   .subscribe(
                     cachedClients => {
@@ -643,18 +666,6 @@ export class ToolkitComponent implements OnInit {
                       this.toolkit.setClientSecretFromCache();
                       this.mapSelectedAuthServer();
                       this.mapSelectedOAuthClient();
-
-                      // check to see if this is a redirect with tokens in the URL fragment
-                      this.route.fragment.subscribe(
-                        fragment => {
-                          if (fragment) {
-                            this.extractTokensFromFragment(fragment);
-                          }
-                        },
-                        fragmentError => {
-                          this.errorMessage = fragmentError;
-                        });
-
                     },
                     cacheError => {
                       this.errorMessage = cacheError;
