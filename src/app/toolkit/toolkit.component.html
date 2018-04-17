@@ -1,5 +1,6 @@
 <div class="jumbotron">
   <h1 class="display-6">OAuth 2.0/OpenID Connect Toolkit</h1>
+  <a href="https://btgapi.okta.com/api/v1/sessions/me" target="_blank">Session</a>
 </div>
 <div class="card text-light bg-dark">
   <h5 class="card-header">Okta config</h5>
@@ -162,7 +163,7 @@
           <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm-7">
-              <textarea type="text" class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea>
+              <textarea class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea>
               <div>
                 <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
               </div>
@@ -179,6 +180,26 @@
   <div class="card-body">
     <form>
       <button class="btn btn-primary" (click)="saveConfig()">Save</button><button class="btn btn-primary" (click)="loadConfig()">Load</button>
+    </form>
+  </div>
+</div>
+
+
+<!-- Sign In Widget -->
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('implicit' || 'code' || 'refresh')">
+  <h5 class="card-header">Sign in Widget</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-6">
+          {{toolkit.updatedWidgetConfig | json}}
+        </div>
+        <div class="col-sm-6">
+          <textarea class="edit-area" name="widgetConfig" [(ngModel)]="toolkit.liveWidgetConfig"></textarea>
+          <div><button class="btn btn-primary" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="toolkit.updatedWidgetConfig = toolkit.originalWidgetConfig">Reset Widget</button></div>
+        </div>
+      </div>
+
     </form>
   </div>
 </div>

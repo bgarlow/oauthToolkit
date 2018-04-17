@@ -498,8 +498,10 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getCachedToken('id_token')
       .subscribe(
         cachedIdToken => {
-          this.toolkit.idToken = cachedIdToken;
-          this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
+          if (cachedIdToken) {
+            this.toolkit.idToken = cachedIdToken;
+            this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
+          }
         },
         idTokenError => {
           this.errorMessage = idTokenError;
@@ -508,8 +510,10 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getCachedToken('access_token')
       .subscribe(
         cachedAccessToken => {
-          this.toolkit.accessToken = cachedAccessToken
-          this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
+          if (cachedAccessToken) {
+            this.toolkit.accessToken = cachedAccessToken
+            this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
+          }
         },
         accesstokenError => {
           this.errorMessage = accesstokenError;
@@ -626,6 +630,8 @@ export class ToolkitComponent implements OnInit {
    * ngOnInit
    */
   ngOnInit() {
+
+    this.http.get('https://btgapi.okta.com/api/v1/sessions/me');
 
     this.loadState();
     this.loadCachedTokens();

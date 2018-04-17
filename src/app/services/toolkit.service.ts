@@ -46,7 +46,51 @@ export class ToolkitService {
 
   oAuthConfig = {};
   oktaAuthJsConfig = {};
-  oktaWidgetConfig = {};
+  originalWidgetConfig = {
+    baseUrl: '',
+    clientId: '',
+    redirectUri: '',
+    /* See also: https://github.com/okta/okta-signin-widget#registration */
+    registration: {
+      parseSchema: function(schema, onSuccess, onFailure) {
+        // handle parseSchema callback
+        onSuccess(schema);
+      },
+      preSubmit: function (postData, onSuccess, onFailure) {
+        // handle preSubmit callback
+        onSuccess(postData);
+      },
+      postSubmit: function (response, onSuccess, onFailure) {
+        // handle postsubmit callback
+        onSuccess(response);
+      }
+    },
+    authParams: {
+      issuer: '',
+      responseType: [],
+      scopes: []
+    },
+    features: {
+      router: true,
+      registration: false,
+      securityImage: false,
+      autoPush: true
+    },
+    /* See also: https://developer.okta.com/code/javascript/okta_sign-in_widget.html#customization */
+    labels: {
+      'primaryauth.title': 'Example Okta Widget'
+    },
+    language: "en"
+  };
+  updatedWidgetConfig = this.originalWidgetConfig;
+
+  set liveWidgetConfig(value) {
+    this.updatedWidgetConfig = JSON.parse(value);
+  }
+
+  get liveWidgetConfig() {
+    return JSON.stringify(this.updatedWidgetConfig, undefined, 2);
+  }
 
 
   /**
@@ -278,6 +322,15 @@ export class ToolkitService {
       + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
 
     this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
+
+    this.updatedWidgetConfig.baseUrl = this.baseUrl;
+    this.updatedWidgetConfig.clientId = this.selectedOAuthClientId;
+    this.updatedWidgetConfig.redirectUri = this.selectedRedirectUri;
+    this.updatedWidgetConfig.authParams.issuer = this.selectedAuthServerId;
+    this.updatedWidgetConfig.authParams.responseType = this.getResponseTypeIdentifiers();
+    this.updatedWidgetConfig.authParams.scopes = this.selectedScopes;
+
+
   }
 
   /**
