@@ -557,6 +557,57 @@ export class ToolkitComponent implements OnInit {
   }
 
   /**
+   * Render the Okta sign  in widget
+   */
+  showLogin() {
+    this.toolkit.widget.renderEl({el: '#okta-login-container'},
+      response => {
+        if (response.status === 'SUCCESS') {
+          this.toolkit.currentUser = (response[0].claims.name) ? response[0].claims.name : response[0].claims.sub;
+
+          // Normally, we would use token.hasTokensInUrl() and token.parseTokensFromUrl() to extract our tokens. I'm already doing that in the onInit()
+          // of the toolkit and stuffing them into cookies, so I don't need to do it here.
+
+          return;
+        }
+      },
+      error => {
+        this.errorMessage = error;
+    });
+  }
+
+  /**
+   * reload the widget with the latest config
+   */
+  updateWidget() {
+    this.saveState()
+      .subscribe(
+        state => {
+          this.toolkit.updateWidgetConfig();
+          this.showLogin();
+        },
+        error => {
+          this.errorMessage = error;
+        });
+  }
+
+  /**
+   * close widget session
+   */
+  logout() {
+    this.toolkit.signout();
+  }
+
+  /**
+   * Restore widget to original configuration
+   */
+  resetWidget() {
+    this.toolkit.updatedWidgetConfig = this.toolkit.originalWidgetConfig;
+    this.toolkit.updateWidgetConfig();
+    this.showLogin();
+  }
+
+  /**
    * Load (or reload) data from org. If same org, don't wipe out the clients cache. Clear and reebuild the state cache.
    */
   reload() {
@@ -631,11 +682,8 @@ export class ToolkitComponent implements OnInit {
    */
   ngOnInit() {
 
-    this.http.get('https://btgapi.okta.com/api/v1/sessions/me');
-
     this.loadState();
     this.loadCachedTokens();
-    console.log(this.toolkit);
     // check to see if this is a redirect with tokens in the URL fragment
     this.route.fragment.subscribe(
       fragment => {
@@ -676,6 +724,23 @@ export class ToolkitComponent implements OnInit {
                     cacheError => {
                       this.errorMessage = cacheError;
                     });
+
+                if (this.toolkit.widget) {
+                  if (this.toolkit.authUrlValid) {
+                    this.toolkit.widget.remove();
+                    this.toolkit.widget.session.get((response) => {
+                      if (response.status !== 'INACTIVE') {
+                        this.toolkit.currentUser = response.login;
+                        //this.toolkit.widget.getWithoutPrompt();
+                        this.showLogin();
+                        // get out tokens?
+                      } else {
+                        this.toolkit.currentUser = undefined;
+                        this.showLogin();
+                      }
+                    });
+                  }
+                }
               });
         },
         authServerError => {

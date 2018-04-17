@@ -44,6 +44,12 @@ code {
   overflow: scroll;
 }
 
+.edit-area-widget {
+  min-width: 100%;
+  min-height: 400px;
+  overflow: scroll;
+}
+
 .token-button {
   width: 100%;
   margin-bottom: 2px;

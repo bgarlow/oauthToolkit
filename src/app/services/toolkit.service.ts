@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
-import { of } from 'rxjs/observable/of';
+//import * as OktaSignIn from '@okta/okta-signin-widget';
+import * as OktaSignIn from '@okta/okta-signin-widget/dist/js/okta-sign-in.min.js';
 
 @Injectable()
 export class ToolkitService {
 
+  widget;
+  currentUser;
   baseUrl;
   state;
   nonce;
@@ -48,6 +51,7 @@ export class ToolkitService {
   oktaAuthJsConfig = {};
   originalWidgetConfig = {
     baseUrl: '',
+    logo: './assets/Okta_Logo_BrightBlue_Medium.png',
     clientId: '',
     redirectUri: '',
     /* See also: https://github.com/okta/okta-signin-widget#registration */
@@ -68,7 +72,8 @@ export class ToolkitService {
     authParams: {
       issuer: '',
       responseType: [],
-      scopes: []
+      scopes: [],
+      display: 'page'
     },
     features: {
       router: true,
@@ -77,11 +82,20 @@ export class ToolkitService {
       autoPush: true
     },
     /* See also: https://developer.okta.com/code/javascript/okta_sign-in_widget.html#customization */
-    labels: {
-      'primaryauth.title': 'Example Okta Widget'
+    language: "en",
+    // The i18n object maps language codes to a hash of property keys ->
+    // property values.
+    i18n: {
+      // Overriding English properties
+      'en': {
+        'primaryauth.title': 'Sign in to the Toolkit',
+        'primaryauth.username.placeholder': 'Your username'
+      }
     },
-    language: "en"
+    // An example that adds a custom button underneath the login form on the primary auth page
+    customButtons: []
   };
+
   updatedWidgetConfig = this.originalWidgetConfig;
 
   set liveWidgetConfig(value) {
@@ -92,6 +106,24 @@ export class ToolkitService {
     return JSON.stringify(this.updatedWidgetConfig, undefined, 2);
   }
 
+  updateWidgetConfig() {
+    if (this.widget) {
+      this.widget.remove();
+      this.widget = undefined;
+    }
+    this.initWidget();
+  }
+  /**
+   *  initialize our widget with the latest configuration options
+   */
+  initWidget() {
+    this.widget = new OktaSignIn(this.updatedWidgetConfig);
+  }
+
+  signout() {
+    this.widget.session.close();
+    this.currentUser = undefined;
+  }
 
   /**
    * Get metadata from the well-known endpoint for the selected auth server
@@ -313,8 +345,8 @@ export class ToolkitService {
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
 
-    this.authUrlValid = this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce;
-    this.tokenUrlValid = this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret;
+    this.authUrlValid = (this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined;
+    this.tokenUrlValid = (this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined;
 
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId
@@ -330,6 +362,21 @@ export class ToolkitService {
     this.updatedWidgetConfig.authParams.responseType = this.getResponseTypeIdentifiers();
     this.updatedWidgetConfig.authParams.scopes = this.selectedScopes;
 
+    let sessionUrl = this.baseUrl + '/api/v1/sessions/me';
+    let sessionButton = {
+      title: 'Session Info',
+      className: 'btn-customAuth',
+      click: function() {
+        // Open a popup with the current session info
+        window.open(sessionUrl, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+      }
+    };
+
+    this.updatedWidgetConfig.customButtons[0] = sessionButton;
+
+    if (this.authUrlValid) {
+      this.updateWidgetConfig();
+    }
 
   }
 
@@ -367,6 +414,6 @@ export class ToolkitService {
    * Constructor
    * @param {HttpClient} http
    */
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
 }
