@@ -193,7 +193,7 @@
 
 
 <!-- Sign In Widget -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('implicit' || 'code' || 'refresh')">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
   <h5 class="card-header">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -212,7 +212,7 @@
 </div>
 
 <!-- auth endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('implicit' || 'code' || 'refresh')">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
   <h5 class="card-header">Authorize Endpoint</h5>
   <div class="card-body">
     <form>
@@ -235,7 +235,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedOAuthClient.grant_types.includes('client_credentials')">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient">
   <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
     <form>

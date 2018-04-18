@@ -3,6 +3,11 @@ const router = express.Router();
 const request = require('request');
 const querystring = require('querystring');
 const config = require('../config.js');
+const jws = require('jws');
+const jwk2pem = require('pem-jwk').jwk2pem;
+
+const cachedJwks = {};    // cache the JWK from Okta the first time, so we don't have to retrieve it on subsequent token validation
+
 
 /* GET api listing. */
 router.get('/', (req, res) => {
@@ -27,8 +32,6 @@ router.get('/oktaConfig', (req, res) => {
 
   res.json(demoConfig);
 });
-
-
 
 router.post('/token', (req, res) => {
   if (!req.cookies.state.selectedOAuthClientId ) {
@@ -552,6 +555,227 @@ router.delete('/state', (req, res) => {
 router.get('/cookies', (req, res) => {
   res.json(req.cookies);
 });
+
+
+/**
+ * Handle the redirect from our OAuth app in Okta. We'll do some verify that the state and nonce match what we are expecting,
+ * exchange our access token for an id_token and access_token, and do some intensive local validation on the id_token. We'll be
+ * validating the acess token on each route change in the Angular app (using Route Guard), so we don't necessarily need to
+ * validate it here. We just want to estalish that the user is authenticated via a valid id_token.
+ */
+router.get('/authorization-code/callback', (req, res) => {
+
+  const secret = new Buffer(`${req.cookies.state.selectedOAuthClientId}:${req.cookies.state.unsafeSelectedClientSecret}`, 'utf8').toString('base64');
+
+  // ************** short circuit *******************
+  //console.log('Here we go....');
+  //res.redirect('/login');
+  //return;
+  // ************** short circuit *******************
+
+  let nonce;
+  let state;
+
+  if (!req.query == {}) {
+    res.redirect(`/toolkit#error=Unknown error in redirect from authorization server. Check Okta system log.`);
+    return;
+  }
+
+  if (req.query.error) {
+    res.redirect(`/toolkit#error=${req.query.error}&error_description=${req.query.error_description}`);
+    return;
+  }
+
+  // Before initiating the /token request, validate that the users's state matches what we expect.
+  // The client sends a state parameter to Okta in the /authorize request, and sets these cookies for validation here on the server side.
+
+  if (req.cookies['okta-oauth-nonce'] && req.cookies['okta-oauth-state']) {
+
+    nonce = req.cookies.state.nonce;
+    state = req.cookies.state.state;
+
+    // nonce = req.cookies['okta-oauth-nonce'];
+    // state = req.cookies['okta-oauth-state'];
+  } else {
+    console.log('GET /api/authorization-code/callback error: "state" and "nonce" cookies have not been set before the /authcode/callback request');
+    //res.status(401).send('"state" and "nonce" cookies have not been set before the /authcode/callback request');
+    res.redirect(`/toolkit#error=${'Cookie error'}&error_description=${'state and nonce cookies have not been set before the /authcode/callback request'}`);
+    return;
+  }
+
+  if (!req.query.fromLogin || !req.query.fromLogin == true) {
+    if (!req.query.state || req.query.state != state) {
+      console.log('/callback state does not match');
+      res.redirect(`/toolkit#error=${'state error'}&error_description='Query state ${req.query.state} does not match cookie state ${state}`);
+      return;
+    }
+  }
+
+  if (!req.query.code) {
+    res.redirect(`/toolkit#error=Authorization Code Missing`);
+    return;
+  }
+
+  const scopes = req.cookies.state.selectedScopes.join(' ');
+
+  const payload = {
+    grant_type: req.cookies.state.selectedGrantType,
+    code: req.query.code,
+    client_id: req.cookies.state.selectedOAuthClientId,
+    client_secret: req.cookies.state.unsafeSelectedClientSecret,
+    redirect_uri: req.cookies.state.selectedRedirectUri,
+    scopes: scopes,
+    state: req.cookies.state.state,
+    nonce: req.cookies.state.nonce
+    // client_id: req.cookies.state.selectedOAuthClientId,
+    // client_secret: req.cookies.state.unsafeSelectedClientSecret
+    // ******** hardcoded ***********
+    //scope: 'openId profile email' // <----- am I doing that right?
+  };
+
+  const query = querystring.stringify(payload);
+
+  //const endpoint = `https://${config.oktaConfig.oktaTenant}.${config.oktaConfig.oktaDomain}/oauth2/${req.cookies.state.selectedAuthServerId}/v1/token?${query}`
+  const endpoint = `${req.cookies.state.baseUrl}/oauth2/${req.cookies.state.selectedAuthServerId}/v1/token`;
+
+  const options = {
+    url: endpoint,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  console.log('Callback token url: ' + options.url);
+
+  // Request token(s)
+  request(options, (err, tokenRes, json) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+    if (typeof json === 'string') {
+      json = JSON.parse(json);
+    }
+    if (json.error) {
+      res.redirect(`/toolkit#error=${json.error}: ${json.error_description}`);
+      //res.status(500).send(err);
+      return;
+    }
+
+    /* TODO - if we were going to break this out, here's where we'd do it..we have access to our tokens here */
+
+
+    // Decode the id_token locally to:
+    // 1. Verify that it is a JWT
+    // 2. Decode the header, whic contains the public key id (kid) we can use to verify the id_token signature.
+    const decoded = jws.decode(json.id_token);
+    if (!decoded) {
+      res.redirect('/toolkit#error=id_token could not be decoded from response.');
+      return;
+    }
+
+    new Promise((resolve, reject) => {
+      // If we've already cached this JWK, return it
+      if (cachedJwks[decoded.header.kid]) {
+        resolve(cachedJwks[decoded.header.kid]);
+        return;
+      }
+
+      // if it's not in the cache, get the latest JWKS from /oauth2/v1/keys
+      const options = {
+        url: `${req.cookies.state.baseUrl}/oauth2/${req.cookies.state.selectedAuthServerId}/v1/keys`,
+        json: true
+      };
+
+      request(options, (err, resp, json) => {
+        if (err) {
+          reject(err);
+          return;
+        } else if (json.error) {
+          reject(json);
+          return;
+        }
+
+        json.keys.forEach(key => cachedJwks[key.kid] = key);
+        if (!cachedJwks[decoded.header.kid]) {
+          res.redirect('/toolkit#error=No public key for the returned id_token.');
+          return;
+        }
+
+        resolve(cachedJwks[decoded.header.kid]);
+      });
+    })
+      .then((jwk) => {
+        const claims = JSON.parse(decoded.payload);
+
+        // Using the jwk, verify that the id_token signature is valid. In this case, we're using he JWS library, which requires PEM encoding the JWK.
+        const pem = jwk2pem(jwk);
+        if (!jws.verify(json.id_token, jwk.alg, pem)) {
+          res.status(401).send('id_token signature not valid.');
+          return;
+        }
+
+        // Verify that the nonce matches the nonce generated on the client side
+        if (nonce != claims.nonce) {
+          res.status(401).send(`claims.nonce "${claims.nonce}" does not match cookie nonce ${nonce}`);
+          return;
+        }
+
+        const authServerUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId;
+        // Verify that the issuer is Okta, and specifically the endpoint we performed the authorization against
+        if (authServerUrl != claims.iss) {
+          res.redirect(`/toolkit#error=id_token issuer "${claims.iss}" does not match our issuer ${authServerUrl}`);
+          return;
+        }
+
+        // Verify that the id_token was minted specifically for our clientId
+        if (req.cookies.state.selectedOAuthClientId != claims.aud) {
+          res.redirect(`/toolkit#error=id_token aud "${claims.aud}" does not match our clientId ${req.cookies.state.selectedOAuthClientId}`);
+          return;
+        }
+
+        // Verify that the token has not expired. It is also important to account for clock skew in the event that this server or the Okta authorization server has drifted.
+        const now = Math.floor(new Date().getTime() / 1000);
+        const maxClockSkew = 300; // 5 min
+        if (now - maxClockSkew > claims.exp) {
+          const date = new Date(claims.exp * 1000);
+          res.redirect(`/toolkit#error=The JWT expired and is no longer valid - claims.exp ${claims.exp}, ${date}`);
+          return;
+        }
+
+        // Verify that the token was not issued in the future (accounting for clock skew).
+        if (claims.iat > (now + maxClockSkew)) {
+          res.redirect(`toolkit#The JWT was issued in the future - iat ${claims.iat}`);
+          return;
+        }
+
+        // The id_token is good!
+        /*
+        req.session.user = {
+          email: claims.email,
+          claims
+        };
+        */
+
+        // TODO: need to add cookie config to make these HTTP only cookies
+        res.cookie('id_token', json.id_token);
+        res.cookie('access_token', json.access_token);
+
+        console.log('****************** Tokens received and validated *******************');
+
+        // Now that the session cookie is set, we can navigate to the logged-in landing page.
+        res.redirect(302, '/toolkit');
+
+      })
+      .catch(err => res.status(500).send(`Error! -> ${JSON.stringify(err)}`));
+
+  });
+});
+
 
 /**
  * Expose the API routes

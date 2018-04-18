@@ -73,7 +73,9 @@ export class ToolkitService {
       issuer: '',
       responseType: [],
       scopes: [],
-      display: 'page'
+      display: 'page',
+      state: this.state,
+      nonce: this.nonce
     },
     features: {
       router: true,
@@ -320,6 +322,10 @@ export class ToolkitService {
   getResponseTypeIdentifiers() {
     let responseTypes = [];
 
+    if (!this.selectedResponseType) {
+      return responseTypes;
+    }
+
     const keys = Object.keys(this.selectedResponseType);
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
@@ -361,6 +367,8 @@ export class ToolkitService {
     this.updatedWidgetConfig.authParams.issuer = this.selectedAuthServerId;
     this.updatedWidgetConfig.authParams.responseType = this.getResponseTypeIdentifiers();
     this.updatedWidgetConfig.authParams.scopes = this.selectedScopes;
+    this.updatedWidgetConfig.authParams.state = this.state;
+    this.updatedWidgetConfig.authParams.nonce = this.nonce;
 
     let sessionUrl = this.baseUrl + '/api/v1/sessions/me';
     let sessionButton = {
@@ -368,7 +376,7 @@ export class ToolkitService {
       className: 'btn-customAuth',
       click: function() {
         // Open a popup with the current session info
-        window.open(sessionUrl, '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+        window.open(sessionUrl, '_blank', 'location=yes,height=570,width=700,scrollbars=yes,status=yes');
       }
     };
 

@@ -595,6 +595,8 @@ export class ToolkitComponent implements OnInit {
    * close widget session
    */
   logout() {
+    this.revokeToken(this.toolkit.accessToken, 'access_token');
+    this.revokeToken(this.toolkit.idToken, 'id_token');
     this.toolkit.signout();
   }
 
