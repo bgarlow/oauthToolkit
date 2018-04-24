@@ -1,5 +1,5 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" routerLink="/home">Demo6</a>
+  <a class="navbar-brand" routerLink="/home">Toolkit</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo01" aria-controls="navbarTogglerDemo01" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -7,10 +7,7 @@
 
     <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
       <li class="nav-item active">
-        <a class="nav-link" routerLink="/home">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" routerLink="/about">About</a>
+        <a class="nav-link" routerLink="/home">Home<span class="sr-only">(current)</span></a>
       </li>
       <li class="nav-item">
         <a class="nav-link" routerLink="/toolkit">OAuth Toolkit</a>
@@ -36,6 +33,15 @@
           <a class="dropdown-item" href="#">Group B option 1</a>
           <a class="dropdown-item" href="#">Group B option 2</a>
           <a class="dropdown-item" href="#">Group B option 3</a>
+        </div>
+      </li>
+      <li class="nav-item dropdown" *ngIf="toolkit.dynamicMenus.includes('window')">
+        <a class="nav-link dropdown-toggle" href="#" id="window" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Window
+        </a>
+        <div class="dropdown-menu">
+          <a class="dropdown-item" *ngIf="toolkit.dynamicMenus.includes('window.active_tool')" href="#">Active Tool Window</a>
+          <a class="dropdown-item" *ngIf="toolkit.dynamicMenus.includes('window.editor_tabs')" href="#">Editor Tabs</a>
         </div>
       </li>
     </ul>

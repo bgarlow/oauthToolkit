@@ -120,7 +120,7 @@
               </div>
             </div>
             <div class="col-sm">
-                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
+                <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
             </div>
           </div>
           <div class="row">

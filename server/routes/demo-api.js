@@ -668,13 +668,13 @@ router.get('/authorization-code/callback', (req, res) => {
 
     /* TODO - if we were going to break this out, here's where we'd do it..we have access to our tokens here */
 
-
-    // Decode the id_token locally to:
+    // Decode the access_token locally to:
     // 1. Verify that it is a JWT
-    // 2. Decode the header, whic contains the public key id (kid) we can use to verify the id_token signature.
-    const decoded = jws.decode(json.id_token);
+    // 2. Decode the header, which contains the public key id (kid) we can use to verify the id_token signature.
+
+    const decoded = jws.decode(json.access_token);
     if (!decoded) {
-      res.redirect('/toolkit#error=id_token could not be decoded from response.');
+      res.redirect('/toolkit#error=access_token could not be decoded from response.');
       return;
     }
 
@@ -702,7 +702,7 @@ router.get('/authorization-code/callback', (req, res) => {
 
         json.keys.forEach(key => cachedJwks[key.kid] = key);
         if (!cachedJwks[decoded.header.kid]) {
-          res.redirect('/toolkit#error=No public key for the returned id_token.');
+          res.redirect('/toolkit#error=No public key for the returned access_token.');
           return;
         }
 
@@ -714,16 +714,18 @@ router.get('/authorization-code/callback', (req, res) => {
 
         // Using the jwk, verify that the id_token signature is valid. In this case, we're using he JWS library, which requires PEM encoding the JWK.
         const pem = jwk2pem(jwk);
-        if (!jws.verify(json.id_token, jwk.alg, pem)) {
-          res.status(401).send('id_token signature not valid.');
+        if (!jws.verify(json.access_token, jwk.alg, pem)) {
+          res.status(401).send('access_token signature not valid.');
           return;
         }
 
+        /*
         // Verify that the nonce matches the nonce generated on the client side
         if (nonce != claims.nonce) {
           res.status(401).send(`claims.nonce "${claims.nonce}" does not match cookie nonce ${nonce}`);
           return;
         }
+        */
 
         const authServerUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId;
         // Verify that the issuer is Okta, and specifically the endpoint we performed the authorization against
@@ -762,14 +764,16 @@ router.get('/authorization-code/callback', (req, res) => {
         */
 
         // TODO: need to add cookie config to make these HTTP only cookies
-        res.cookie('id_token', json.id_token);
-        res.cookie('access_token', json.access_token);
+        if (json.id_token) {
+          res.cookie('id_token', json.id_token);
+        }
 
-        console.log('****************** Tokens received and validated *******************');
+        if (json.access_token) {
+          res.cookie('access_token', json.access_token);
+        }
 
-        // Now that the session cookie is set, we can navigate to the logged-in landing page.
+        // Now that the  cookie(s) is set, we can navigate to the logged-in landing page.
         res.redirect(302, '/toolkit');
-
       })
       .catch(err => res.status(500).send(`Error! -> ${JSON.stringify(err)}`));
 

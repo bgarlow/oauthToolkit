@@ -108,6 +108,31 @@ export class ToolkitService {
     return JSON.stringify(this.updatedWidgetConfig, undefined, 2);
   }
 
+  /**
+   * Role Groups (document editors, document creators, document administrators)
+   *  -> sets values on "menus" attribute. menu.tier1.tier2, i.e. window.active_tool_window.hide_active_tool_window. <- will need to be mapped in app
+   *  -> sets values on "role_scopes" attribute. window, window.manage_tabs, window.manage_tools
+   *
+   *  ??? Can values be set up as enumerations in Okta?
+   *
+   * @type {{}}
+   */
+
+  dynamicMenus = [
+    'window',
+    'window.active_tool',
+    'window.active_tool.hide_active',
+    'window.active_tool.hide_side',
+    'window.active_tool.hide_all',
+    'window.editor_tabs',
+    'window.editor_tabs.select_next',
+    'window.editor_tabs.tab_placement'
+  ];
+
+  dynamicScopes = {
+
+  };
+
   updateWidgetConfig() {
     if (this.widget) {
       this.widget.remove();
