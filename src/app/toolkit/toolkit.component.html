@@ -1,5 +1,7 @@
 <div class="jumbotron">
   <h1 class="display-6">OAuth 2.0/OpenID Connect Toolkit</h1>
+  {{this.toolkit.scopesClaim}}
+  {{this.toolkit.userScopes | json}}
 </div>
 <div class="card text-light bg-dark">
   <h5 class="card-header">Okta config</h5>
@@ -30,25 +32,25 @@
   <h5 class="card-header">Authorization Servers</h5>
   <div class="card-body">
     <form>
-      <div class="form-group row" *ngFor="let authServer of toolkit.authorizationServers">
+      <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" *ngFor="let authServer of toolkit.authorizationServers">
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectAuthServer(authServer)">Select</button>
+              <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="toolkit.selectedAuthServerId && authServer.id != toolkit.selectedAuthServerId">Select</button>
             </div>
             <div class="col-sm-3">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" name="name{{authServer.id}}" [(ngModel)]="authServer.name">
+              <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.name}}</span>
             </div>
-            <div class="col-sm-4">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" name="desc{{authServer.id}}" [(ngModel)]="authServer.description">
+            <div class="col-sm-5">
+              <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.description}}</span>
             </div>
-            <div class="col-sm">
+            <div class="col-sm-2">
               <div class="input-group mb-3">
-                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}"  name="id{{authServer.id}}" [(ngModel)]="authServer.id">
-                <div class="input-group-append">
-                  <span class="input-group-text" id="basic-addon2" (click)="metadataResponse ? metadataResponse = undefined : getAuthServerMetadata(authServer, true)">metadata</span>
-                </div>
+                <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.id}}</span>
               </div>
+            </div>
+            <div class="col-sm-1">
+              <button class="btn btn-primary" id="metadataBtn{{authServer.id}}" (click)="metadataResponse ? metadataResponse = undefined : getAuthServerMetadata(authServer, true)">metadata</button>
             </div>
           </div>
           <div class="row" *ngIf="toolkit.selectedAuthServerId && (authServer.id === toolkit.selectedAuthServerId)">
@@ -92,32 +94,30 @@
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
     <form>
+      <!--
       <div class="row">
         <div class="col-sm-1"></div>
-        <div class="col-sm-3">Client Name</div>
-        <div class="col-sm-2">Client Type</div>
-        <div class="col-sm-2">Client ID</div>
-        <div class="col-sm-2">Client Secret</div>
+        <div class="col-sm-3"><span class="colheader">Client Name</span></div>
+        <div class="col-sm-2"><span class="colheader">Client Type</span></div>
+        <div class="col-sm-2"><span class="colheader">Client ID</span></div>
+        <div class="col-sm-2"><span class="colheader">Client Secret</span></div>
       </div>
-      <div class="form-group row" *ngFor="let client of toolkit.oAuthClients">
+      -->
+      <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" *ngFor="let client of toolkit.oAuthClients">
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectOAuthClient(client)">Select</button>
+              <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id != toolkit.selectedOAuthClientId">Select</button>
+              <button class="btn btn-secondary" id="profileBtn" (click)="getAppProfile(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Profile</button>
             </div>
             <div class="col-sm-3">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="name{{client.client_id}}" [(ngModel)]="client.client_name">
+              <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
             </div>
             <div class="col-sm-2">
-              <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" name="label{{client.client_id}}" [(ngModel)]="client.application_type">
+              <span class="list-item-bold" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.application_type}}</span>
             </div>
             <div class="col-sm-2">
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  name="id{{client.client_id}}" [(ngModel)]="client.client_id">
-                <div class="input-group-append" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
-                  <span class="input-group-text" id="basic-addon2" (click)="getAppProfile(client)">Edit Profile</span>
-                </div>
-              </div>
+              <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_id}}</span>
             </div>
             <div class="col-sm">
                 <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
@@ -126,23 +126,21 @@
           <div class="row">
             <div class="col-sm-1"></div>
             <div class="col-sm-3">
-              <div class="row">
-                <div class="col-sm">
                   <div class="btn-toolbar" role="group">
-                    <span  *ngFor="let responseType of client.response_types">
-                      <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === toolkit.selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
-                      <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{responseType}}</span>
-                    </span>
+                    <div class="row" *ngFor="let responseType of client.response_types">
+                      <div class="col-sm">
+                        <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === toolkit.selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
+                        <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{responseType}}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
             <div class="col-sm-4">
               <div class="btn-toolbar" role="group">
                 <div class="row" *ngFor="let grant of client.grant_types">
                   <div class="col-sm">
                     <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': toolkit.selectedGrantType && grant === toolkit.selectedGrantType}">{{grant}}</button>
-                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{grant}}</span>
+                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{grant}}</span>&nbsp;
                   </div>
                 </div>
               </div>
@@ -171,6 +169,7 @@
         </div>
       </div>
     </form>
+
   </div>
 </div>
 
@@ -227,7 +226,8 @@
         <div class="col-sm">
           <div class="btn-group" role="group">
             <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" (click)="authenticate();" [ngClass]="{'btn-danger': !toolkit.authUrlValid}">Authenticate</button>
-            <!-- <button class="btn btn-primary" (click)="logout();">Logout</button> -->
+            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Enrich Token</button>
+            <!--<button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Get Enriched Token</button>-->
           </div>
         </div>
       </div>

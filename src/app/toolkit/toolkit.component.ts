@@ -94,7 +94,11 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.introspectToken(token, tokenType)
       .subscribe(
         data => {
-          this.responseMessage = JSON.parse(data.toString());
+          if (data.statusCode === 401) {
+            this.responseMessage = data.body;
+          } else {
+            this.responseMessage = JSON.parse(data.toString());
+          }
           this.responseMessageTitle = `/introspect response for ${tokenType}`;
         },
         error => {
@@ -146,7 +150,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getMetadata(authServer)
       .subscribe(
         data => {
-          this.toolkit.supportedScopes = data['scopes_supported'];
+          //this.toolkit.supportedScopes = data['scopes_supported'];
           if (display) {
             this.metadataResponse = data;
           }
@@ -154,17 +158,40 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  getSupportedScopes(authServer) {
+
+    return new Promise(resolve => {
+      let scopes;
+      this.toolkit.getMetadata(authServer)
+        .subscribe(
+          data => {
+            scopes = data['scopes_supported'];
+            resolve(scopes);
+          }
+        );
+    });
+  }
+
   /**
    * Selected auth server
    */
   selectAuthServer(authServer) {
+    this.toolkit.selectedScopes = undefined;
     this.toolkit.selectedAuthServerId = authServer.id;
     this.toolkit.selectedAuthServer = authServer;
-    this.getAuthServerMetadata(authServer, false);
-    this.saveState()
-      .subscribe(
-        data => {
-          this.toolkit.updateAuthorizeUrl();
+    this.getSupportedScopes(authServer)
+      .then(
+        supportedScopes => {
+          this.toolkit.supportedScopes = supportedScopes;
+          this.saveState()
+            .subscribe(
+              data => {
+                this.toolkit.updateAuthorizeUrl();
+              },
+              error => {
+                this.errorMessage = error;
+              }
+            );
         },
         error => {
           this.errorMessage = error;
@@ -362,6 +389,7 @@ export class ToolkitComponent implements OnInit {
         selectedScopes: this.toolkit.selectedScopes,
         selectedResponseType: this.toolkit.selectedResponseType,
         selectedGrantType: this.toolkit.selectedGrantType,
+        supportedScopes: this.toolkit.supportedScopes,
         nonce: this.toolkit.nonce,
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
@@ -394,6 +422,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined; // this.toolkit.oAuthClients[0].grant_types[0];
           this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined; // this.toolkit.oAuthClients[0].response_types[0];
           this.toolkit.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined; // this.toolkit.oAuthClients[0].redirect_uris[0];
+          this.toolkit.supportedScopes = (data['supportedScopes']) ? data['supportedScopes'] : undefined;
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
@@ -401,7 +430,6 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
           //this.toolkit.accessToken =  (data['accessToken']) ? data['accessToken'] : undefined;
           this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
-
           this.toolkit.updateAuthorizeUrl();
           if (this.toolkit.selectedAuthServerId) {
             this.getAuthServerMetadata(this.toolkit.selectedAuthServerId, false);
@@ -444,7 +472,18 @@ export class ToolkitComponent implements OnInit {
     }
 
     if (queryParams['id_token']) {
+      //this.toolkit.decodedIdToken = this.toolkit.parseJwt(this.toolkit.idToken);
       this.toolkit.idToken = queryParams['id_token'];
+
+      this.toolkit.parseJwt(this.toolkit.idToken)
+        .subscribe(
+          decodedToken => {
+            this.toolkit.decodedIdToken = decodedToken;
+          },
+          error => {
+            this.errorMessage = error;
+          });
+
       this.toolkit.cacheToken(this.toolkit.idToken, 'id_token')
         .subscribe(
           cachedIDToken => {
@@ -453,11 +492,20 @@ export class ToolkitComponent implements OnInit {
           idTokenError => {
             this.errorMessage = idTokenError;
           });
-      this.toolkit.decodedIdToken = this.toolkit.parseJwt(this.toolkit.idToken);
     }
 
     if (queryParams['access_token']) {
       this.toolkit.accessToken = queryParams['access_token'];
+
+      this.toolkit.parseJwt(this.toolkit.accessToken)
+        .subscribe(
+            decodedToken => {
+              this.toolkit.decodedAccessToken = decodedToken;
+            },
+            error => {
+              this.errorMessage = error;
+            });
+
       this.toolkit.cacheToken(this.toolkit.accessToken, 'access_token')
         .subscribe(
           cachedAccesstoken => {
@@ -466,8 +514,9 @@ export class ToolkitComponent implements OnInit {
           accessTokenError => {
             this.errorMessage = accessTokenError;
           });
-      this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
-      this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+      //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
+
+      this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
     }
   }
 
@@ -686,21 +735,24 @@ export class ToolkitComponent implements OnInit {
 
     this.loadState();
     this.loadCachedTokens();
-    // check to see if this is a redirect with tokens in the URL fragment
-    this.route.fragment.subscribe(
-      fragment => {
-        if (fragment) {
-          this.extractTokensFromFragment(fragment);
-          console.log(this.toolkit.decodedAccessToken);
-        }
-      },
-      fragmentError => {
-        this.errorMessage = fragmentError;
-      });
 
     this.toolkit.getAuthorizationServers()
       .subscribe(
         authServers => {
+
+          // check to see if this is a redirect with tokens in the URL fragment
+          this.route.fragment.subscribe(
+            fragment => {
+              if (fragment) {
+                this.extractTokensFromFragment(fragment);
+                console.log(this.toolkit.decodedAccessToken);
+              }
+            },
+            fragmentError => {
+              this.errorMessage = fragmentError;
+            });
+
+
           this.toolkit.authorizationServers = JSON.parse(authServers.toString());
           this.toolkit.getClients()
             .subscribe(

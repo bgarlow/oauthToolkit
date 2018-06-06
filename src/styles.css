@@ -1,8 +1,17 @@
 /* You can add global styles to this file, and also import other style files */
 @import "~bootstrap/dist/css/bootstrap.css";
 
+.row {
+  width: 100% !important;
+}
+
+.small {
+  color: #e6e6e6;
+}
+
 .card {
   margin-bottom: 10px;
+  border-radius: 5px;
 }
 
 .badge {
@@ -20,6 +29,29 @@
   line-height: 1;
 }
 
+.btn-toolbar {
+  padding-top: 10px !important;
+}
+
+.list-item-subject {
+  font-size: 1.2rem;
+  line-height: 1;
+  color: eeeeee;
+}
+
+.list-item {
+  font-size: .85rem;
+  line-height: 1;
+  color: e6e6e6;
+}
+
+.list-item-bold {
+  font-size: .85rem;
+  line-height: 1;
+  font-weight: bold;
+  color: e6e6e6;
+}
+
 .btn {
   line-height: 1;
 }
@@ -29,7 +61,21 @@ code {
 }
 
 .current-selection {
-  background-color: greenyellow;
+  color: greenyellow;
+}
+
+.current-selection-row {
+  border-color: greenyellow !important;
+}
+
+.unselected-row {
+  border-radius: 8px;
+  margin-bottom: 10px;
+  border: 1px solid;
+  border-color: #6a6a6a;
+  border-width: 1px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .copy-area {

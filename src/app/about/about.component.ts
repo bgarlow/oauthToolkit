@@ -200,7 +200,7 @@ export class AboutComponent implements OnInit {
             this.userScopes = (this.decodedAccessToken[this.userScopesClaim]) ? this.decodedAccessToken[this.userScopesClaim] : undefined;
             if (this.supportedScopes) {
               this.getMaxScopeSet();
-            }``
+            }
           } else {
             console.error(`/token ${data}`);
             this.errorMessage = data;

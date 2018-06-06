@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 //import * as OktaSignIn from '@okta/okta-signin-widget';
 import * as OktaSignIn from '@okta/okta-signin-widget/dist/js/okta-sign-in.min.js';
+import {of} from 'rxjs/observable/of';
 
 @Injectable()
 export class ToolkitService {
@@ -322,7 +323,8 @@ export class ToolkitService {
    */
   getMaxScopeSet() {
     if (this.userScopes) {
-      for (let scope of this.supportedScopes) {
+      let scopes = this.supportedScopes;
+      for (let scope of scopes) {
         if (this.userScopes.includes(scope)) {
           this.maxScopeSet.push(scope);
         }
@@ -425,11 +427,11 @@ export class ToolkitService {
   /**
    * Parse token and return JSON
    */
-  parseJwt(token) {
+  parseJwt(token): Observable<any> {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace('-', '+').replace('_', '/');
 
-    return JSON.parse(window.atob(base64));
+    return of(JSON.parse(window.atob(base64)));
   }
 
   // auth
@@ -440,6 +442,16 @@ export class ToolkitService {
     this.updateAuthorizeUrl();
     // call authorize
     window.location.href = this.authorizeUrl;
+  }
+
+  /**
+   * Request a new access token with expanded scopes
+   */
+  enrichToken(): void {
+    this.getMaxScopeSet();
+    let newScopes = this.selectedScopes.concat(this.maxScopeSet);
+    this.selectedScopes = newScopes;
+    this.updateAuthorizeUrl();
   }
 
 
