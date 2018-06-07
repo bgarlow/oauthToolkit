@@ -11,8 +11,6 @@ export class JsoneditorComponent implements OnInit {
   public editorOptions: JsonEditorOptions;
   public data: any;
 
-  //@ViewChild(JsonEditorComponent) editor: JsonEditorComponent;
-
   constructor() {
     this.editorOptions = new JsonEditorOptions();
   }

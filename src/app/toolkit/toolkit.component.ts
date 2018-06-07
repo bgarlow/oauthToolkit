@@ -26,6 +26,9 @@ export class ToolkitComponent implements OnInit {
   @ViewChild('widgetEditor') widgetConfigEditor: JsoneditorComponent;
   public widgetConfigOptions: JsonEditorOptions;
 
+  @ViewChild('profileEditor') appProfileEditor: JsoneditorComponent;
+  public profileConfigOptions: JsonEditorOptions;
+
   getUserInfo(token) {
     this.toolkit.getUserInfo(token)
       .subscribe(
@@ -315,6 +318,7 @@ export class ToolkitComponent implements OnInit {
 
     const profile = JSON.parse(this.toolkit.selectedAppProfile);
     this.toolkit.selectedApp.profile = profile;
+    this.appProfileEditor.data = this.toolkit.selectedApp.profile;
 
     this.http.post('/demo/apps/' + oauthClient.client_id, this.toolkit.selectedApp)
       .subscribe(
@@ -644,11 +648,11 @@ export class ToolkitComponent implements OnInit {
    * reload the widget with the latest config
    */
   updateWidget() {
+    this.toolkit.liveWidgetConfig = this.widgetConfigEditor.editor.get();
+    this.toolkit.updateWidgetConfig();
     this.saveState()
       .subscribe(
         state => {
-          this.toolkit.liveWidgetConfig = this.widgetConfigEditor.editor.get();
-          this.toolkit.updateWidgetConfig();
           this.showLogin();
         },
         error => {
@@ -746,6 +750,10 @@ export class ToolkitComponent implements OnInit {
     this.widgetConfigOptions = new JsonEditorOptions();
     this.widgetConfigOptions.modes = ['code', 'text', 'tree', 'view']; // set all allowed modes
     this.widgetConfigOptions.name = 'widgetConfigEditor';
+
+    this.profileConfigOptions = new JsonEditorOptions();
+    this.profileConfigOptions.modes = ['code', 'text', 'tree', 'view']; // set all allowed modes
+    this.profileConfigOptions.name = 'appProfileEditor';
   }
 
   /*
@@ -798,7 +806,7 @@ export class ToolkitComponent implements OnInit {
                     cacheError => {
                       this.errorMessage = cacheError;
                     });
-
+                this.widgetConfigEditor = new JsoneditorComponent();
                 this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
 
                 if (this.toolkit.widget) {

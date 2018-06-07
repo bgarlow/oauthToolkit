@@ -140,8 +140,11 @@ export class ToolkitService {
       this.widget.remove();
       this.widget = undefined;
     }
+    /* TODO: update the rest of the config stuff */
     this.updatedWidgetConfig = this.liveWidgetConfig;
     this.selectedScopes = this.liveWidgetConfig.authParams.scopes;
+    this.selectedAuthServerId = this.liveWidgetConfig.authParams.issuer;
+    this.selectedOAuthClientId = this.liveWidgetConfig.clientId;
     this.initWidget();
   }
   /**

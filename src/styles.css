@@ -97,6 +97,23 @@ code {
   overflow: scroll;
 }
 
+.widget-container {
+  position: relative;
+  float: left;
+  top: 50%;
+  left: 25%;
+}
+
+json-editor>div {
+  padding-top: 20px;
+  padding-bottom: 10px;
+  height: 100%;
+}
+
+div.jsoneditor-tree {
+  background-color: #cfcfcf !important;
+}
+
 .token-button {
   width: 100%;
   margin-bottom: 2px;
