@@ -102,11 +102,12 @@ export class ToolkitService {
   updatedWidgetConfig = this.originalWidgetConfig;
 
   set liveWidgetConfig(value) {
-    this.updatedWidgetConfig = JSON.parse(value);
+    this.updatedWidgetConfig = value;
   }
 
   get liveWidgetConfig() {
-    return JSON.stringify(this.updatedWidgetConfig, undefined, 2);
+    //return JSON.stringify(this.updatedWidgetConfig, undefined, 2); // string version was used prior to jsoneditor
+    return this.updatedWidgetConfig;
   }
 
   /**
@@ -139,6 +140,8 @@ export class ToolkitService {
       this.widget.remove();
       this.widget = undefined;
     }
+    this.updatedWidgetConfig = this.liveWidgetConfig;
+    this.selectedScopes = this.liveWidgetConfig.authParams.scopes;
     this.initWidget();
   }
   /**

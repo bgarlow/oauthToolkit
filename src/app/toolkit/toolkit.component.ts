@@ -1,9 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, OnInit, ViewChild} from '@angular/core';
 import {HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import {ActivatedRoute} from '@angular/router';
 import {ToolkitService} from '../services/toolkit.service';
+import {JsoneditorComponent} from '../jsoneditor/jsoneditor.component';
+import {JsonEditorComponent, JsonEditorOptions} from 'ang-jsoneditor';
 
 @Component({
   selector: 'app-toolkit',
@@ -20,6 +22,9 @@ export class ToolkitComponent implements OnInit {
   metadataResponse;
   responseMessage;
   responseMessageTitle;
+
+  @ViewChild('widgetEditor') widgetConfigEditor: JsoneditorComponent;
+  public widgetConfigOptions: JsonEditorOptions;
 
   getUserInfo(token) {
     this.toolkit.getUserInfo(token)
@@ -139,6 +144,15 @@ export class ToolkitComponent implements OnInit {
           }
         }
       );
+  }
+
+  /**
+   * meta function to update widget configuration and authorize URL
+   */
+  updateAuthConfig() {
+    this.toolkit.updateAuthorizeUrl();
+    console.log(this.toolkit.liveWidgetConfig);
+    this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
   }
 
   /**
@@ -288,7 +302,8 @@ export class ToolkitComponent implements OnInit {
       }
     }
     this.toolkit.selectedScopes = scopeArray;
-    this.toolkit.updateAuthorizeUrl();
+    //this.toolkit.updateAuthorizeUrl();
+    this.updateAuthConfig();
   }
 
   /**
@@ -632,6 +647,7 @@ export class ToolkitComponent implements OnInit {
     this.saveState()
       .subscribe(
         state => {
+          this.toolkit.liveWidgetConfig = this.widgetConfigEditor.editor.get();
           this.toolkit.updateWidgetConfig();
           this.showLogin();
         },
@@ -726,6 +742,10 @@ export class ToolkitComponent implements OnInit {
    */
   constructor(private route: ActivatedRoute, private http: HttpClient, private _toolkit: ToolkitService) {
     this.toolkit = _toolkit;
+
+    this.widgetConfigOptions = new JsonEditorOptions();
+    this.widgetConfigOptions.modes = ['code', 'text', 'tree', 'view']; // set all allowed modes
+    this.widgetConfigOptions.name = 'widgetConfigEditor';
   }
 
   /*
@@ -778,6 +798,8 @@ export class ToolkitComponent implements OnInit {
                     cacheError => {
                       this.errorMessage = cacheError;
                     });
+
+                this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
 
                 if (this.toolkit.widget) {
                   if (this.toolkit.authUrlValid) {

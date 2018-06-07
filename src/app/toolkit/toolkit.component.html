@@ -1,7 +1,5 @@
 <div class="jumbotron">
   <h1 class="display-6">OAuth 2.0/OpenID Connect Toolkit</h1>
-  {{this.toolkit.scopesClaim}}
-  {{this.toolkit.userScopes | json}}
 </div>
 <div class="card text-light bg-dark">
   <h5 class="card-header">Okta config</h5>
@@ -37,6 +35,7 @@
           <div class="row">
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="toolkit.selectedAuthServerId && authServer.id != toolkit.selectedAuthServerId">Select</button>
+              <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
             </div>
             <div class="col-sm-3">
               <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.name}}</span>
@@ -201,7 +200,7 @@
           <div id="okta-login-container"></div>
         </div>
         <div class="col-sm-6">
-          <textarea class="edit-area-widget" name="widgetConfig" [(ngModel)]="toolkit.liveWidgetConfig"></textarea>
+          <pre name="widgetConfig">{{toolkit.liveWidgetConfig | json}}</pre>
           <div><button class="btn btn-primary" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="resetWidget()">Reset Widget</button></div>
         </div>
       </div>
@@ -380,6 +379,14 @@
     </div>
     <div>
       <button class="btn btn-primary" (click)="errorMessage = undefined;">Clear</button>
+    </div>
+  </div>
+</div>
+
+<div class="form-group row">
+  <div class="col-sm">
+    <div>
+      <json-editor #widgetEditor name="widgetConfigEditor" id="widgetConfigEditor" [options]="widgetConfigOptions" [data]="this.toolkit.liveWidgetConfig"></json-editor>
     </div>
   </div>
 </div>

@@ -12,6 +12,8 @@ import { ProfileComponent } from './profile/profile.component';
 import { ToolkitService } from './services/toolkit.service';
 import { ToolkitComponent } from './toolkit/toolkit.component';
 import { ConfigService } from './config.service';
+import { NgJsonEditorModule } from 'ang-jsoneditor';
+import { JsoneditorComponent } from './jsoneditor/jsoneditor.component';
 
 @NgModule({
   declarations: [
@@ -21,15 +23,17 @@ import { ConfigService } from './config.service';
     AboutComponent,
     LoginComponent,
     ProfileComponent,
-    ToolkitComponent
+    ToolkitComponent,
+    JsoneditorComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    NgJsonEditorModule
   ],
-  providers: [ToolkitService, ConfigService],
+  providers: [ToolkitService, ConfigService, JsoneditorComponent],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
