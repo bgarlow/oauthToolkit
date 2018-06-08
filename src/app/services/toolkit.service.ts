@@ -436,8 +436,10 @@ export class ToolkitService {
   parseJwt(token): Observable<any> {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace('-', '+').replace('_', '/');
+    const decoded = window.atob(base64);
+    const decodedJSON = JSON.parse(decoded);
 
-    return of(JSON.parse(window.atob(base64)));
+    return decodedJSON;
   }
 
   // auth

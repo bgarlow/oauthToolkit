@@ -186,7 +186,8 @@
   </div>
 </div>
 
-<div class="form-group row" *ngIf="toolkit.currentUser">
+<!-- <div class="form-group row" *ngIf="toolkit.currentUser"> -->
+<div class="form-group row">
   <div class="col-sm">
     <div class="alert alert-success">
       <h5>Current User: {{toolkit.currentUser}}</h5><button class="btn btn-primary" (click)="logout()">Logout</button>
@@ -241,7 +242,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType === 'client credentials'">
   <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
     <form>

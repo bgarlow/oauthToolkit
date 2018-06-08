@@ -579,6 +579,7 @@ export class ToolkitComponent implements OnInit {
           if (cachedIdToken) {
             this.toolkit.idToken = cachedIdToken;
             this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
+            console.log(this.toolkit.decodedIdToken);
           }
         },
         idTokenError => {
@@ -591,6 +592,7 @@ export class ToolkitComponent implements OnInit {
           if (cachedAccessToken) {
             this.toolkit.accessToken = cachedAccessToken
             this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
+            console.log(this.toolkit.decodedAccessToken);
           }
         },
         accesstokenError => {
@@ -784,6 +786,9 @@ export class ToolkitComponent implements OnInit {
               if (fragment) {
                 this.extractTokensFromFragment(fragment);
                 console.log(this.toolkit.decodedAccessToken);
+              } else {
+                console.log(this.toolkit.decodedIdToken[this.toolkit.scopesClaim]);
+                this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
               }
             },
             fragmentError => {
@@ -819,7 +824,7 @@ export class ToolkitComponent implements OnInit {
                     });
                 this.widgetConfigEditor = new JsoneditorComponent();
                 this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
-
+                
                 if (this.toolkit.widget) {
                   if (this.toolkit.authUrlValid) {
                     this.toolkit.widget.remove();
