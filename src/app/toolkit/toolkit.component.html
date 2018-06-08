@@ -256,7 +256,7 @@
         <div class="col-sm">
           <div class="btn-group" role="group">
             <button class="btn btn-primary" [disabled]="!toolkit.tokenUrlValid" (click)="getToken();" [ngClass]="{'btn-danger': !toolkit.tokenUrlValid}">Get Token</button>
-            <!-- <button class="btn btn-primary" (click)="logout();">Logout</button> -->
+            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Enrich Token</button>
           </div>
         </div>
       </div>

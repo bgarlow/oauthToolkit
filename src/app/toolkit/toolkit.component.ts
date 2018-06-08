@@ -127,20 +127,29 @@ export class ToolkitComponent implements OnInit {
           if (data['statusCode'] === 200) {
             let token = JSON.parse(data['body']);
             this.toolkit.accessToken = token.access_token;
-            this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
-            this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
-            if (this.toolkit.supportedScopes) {
-              this.toolkit.getMaxScopeSet();
-            }
-            this.saveState()
+            //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
+
+            this.toolkit.parseJwt(this.toolkit.accessToken)
               .subscribe(
-                data => {
-                  console.log('Saved state in getToken()');
+                decodedToken => {
+                  this.toolkit.decodedAccessToken = decodedToken;
+                  this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+                  if (this.toolkit.supportedScopes) {
+                    this.toolkit.getMaxScopeSet();
+                  }
+                  this.saveState()
+                    .subscribe(
+                      data => {
+                        console.log('Saved state in getToken()');
+                      },
+                      error => {
+                        this.errorMessage = error;
+                      }
+                    );
                 },
                 error => {
                   this.errorMessage = error;
-                }
-              );
+                });
           } else {
             console.log(data);
             this.errorMessage = JSON.parse(data['body']);;
@@ -449,7 +458,6 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
           //this.toolkit.accessToken =  (data['accessToken']) ? data['accessToken'] : undefined;
           this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
-          this.toolkit.updateAuthorizeUrl();
           if (this.toolkit.selectedAuthServerId) {
             this.getAuthServerMetadata(this.toolkit.selectedAuthServerId, false);
           }
@@ -543,6 +551,7 @@ export class ToolkitComponent implements OnInit {
    * get the selected auth server object by ID
    */
   mapSelectedAuthServer() {
+    console.log(this.toolkit.authorizationServers);
     for (let authServer of this.toolkit.authorizationServers) {
       if (authServer.id === this.toolkit.selectedAuthServerId) {
         this.toolkit.selectedAuthServer = authServer;
@@ -554,6 +563,7 @@ export class ToolkitComponent implements OnInit {
    *  get the selected oAuth client by ID
    */
   mapSelectedOAuthClient() {
+    console.log(this.toolkit.oauthClients);
     for (let client of this.toolkit.oAuthClients) {
       if (client.client_id === this.toolkit.selectedOAuthClientId) {
         this.toolkit.selectedOAuthClient = client;
@@ -802,6 +812,7 @@ export class ToolkitComponent implements OnInit {
                       this.toolkit.setClientSecretFromCache();
                       this.mapSelectedAuthServer();
                       this.mapSelectedOAuthClient();
+                      this.toolkit.updateAuthorizeUrl();
                     },
                     cacheError => {
                       this.errorMessage = cacheError;
