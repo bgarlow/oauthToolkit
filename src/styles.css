@@ -104,6 +104,10 @@ code {
   left: 25%;
 }
 
+div.jsoneditor-outer {
+  height: 500px !important;
+}
+
 json-editor>div {
   padding-top: 20px;
   padding-bottom: 10px;

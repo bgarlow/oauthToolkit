@@ -163,8 +163,9 @@ export class ToolkitComponent implements OnInit {
    */
   updateAuthConfig() {
     this.toolkit.updateAuthorizeUrl();
-    console.log(this.toolkit.liveWidgetConfig);
-    this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
+    if (this.widgetConfigEditor) {  // this won't be displayed if we selected client credentials grant type
+      this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
+    }
   }
 
   /**
@@ -229,10 +230,10 @@ export class ToolkitComponent implements OnInit {
    * @param oauthClient
    */
   selectOAuthClient(oauthClient) {
+    this.toolkit.selectedAppProfile = undefined;
     this.toolkit.selectedOAuthClientId = oauthClient.client_id;
     this.toolkit.selectedOAuthClient = oauthClient;
     this.getSelectedApp();
-    this.toolkit.selectedAppProfile = undefined;
 
     if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
       this.toolkit.selectedGrantType = oauthClient.grant_types[0];
@@ -325,9 +326,9 @@ export class ToolkitComponent implements OnInit {
    */
   updateAppProfile(oauthClient) {
 
-    const profile = JSON.parse(this.toolkit.selectedAppProfile);
+    //const profile = JSON.parse(this.toolkit.selectedAppProfile);
+    const profile = this.appProfileEditor.editor.get();
     this.toolkit.selectedApp.profile = profile;
-    this.appProfileEditor.data = this.toolkit.selectedApp.profile;
 
     this.http.post('/demo/apps/' + oauthClient.client_id, this.toolkit.selectedApp)
       .subscribe(
@@ -347,14 +348,16 @@ export class ToolkitComponent implements OnInit {
    * Get the selected app's profile attribute
    * @param app
    */
-  getAppProfile(app) {
+  getAppProfile(client) {
     this.showAppProfile = !this.showAppProfile;
 
     if (this.showAppProfile === false ) {
       return;
     }
 
-    this.http.get('/demo/apps/' + app.client_id)
+    this.getSelectedApp();
+    /*
+    (this.http.get('/demo/apps/' + client.client_id)
       .subscribe(
         data => {
           this.toolkit.selectedApp = JSON.parse(data['body'].toString());
@@ -364,6 +367,7 @@ export class ToolkitComponent implements OnInit {
           this.errorMessage = error;
         }
       );
+      */
   }
 
   /**
@@ -375,6 +379,7 @@ export class ToolkitComponent implements OnInit {
         data => {
           this.toolkit.selectedApp = JSON.parse(data['body'].toString());
           this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
+          this.appProfileEditor.data = this.toolkit.selectedAppProfile;
         },
         error => {
           this.errorMessage = error;
@@ -541,7 +546,6 @@ export class ToolkitComponent implements OnInit {
           accessTokenError => {
             this.errorMessage = accessTokenError;
           });
-      //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
 
       this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
     }
@@ -551,7 +555,6 @@ export class ToolkitComponent implements OnInit {
    * get the selected auth server object by ID
    */
   mapSelectedAuthServer() {
-    console.log(this.toolkit.authorizationServers);
     for (let authServer of this.toolkit.authorizationServers) {
       if (authServer.id === this.toolkit.selectedAuthServerId) {
         this.toolkit.selectedAuthServer = authServer;
@@ -563,7 +566,6 @@ export class ToolkitComponent implements OnInit {
    *  get the selected oAuth client by ID
    */
   mapSelectedOAuthClient() {
-    console.log(this.toolkit.oauthClients);
     for (let client of this.toolkit.oAuthClients) {
       if (client.client_id === this.toolkit.selectedOAuthClientId) {
         this.toolkit.selectedOAuthClient = client;
@@ -578,8 +580,15 @@ export class ToolkitComponent implements OnInit {
         cachedIdToken => {
           if (cachedIdToken) {
             this.toolkit.idToken = cachedIdToken;
-            this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
-            console.log(this.toolkit.decodedIdToken);
+            //this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
+            this.toolkit.parseJwt(this.toolkit.idToken)
+              .subscribe(
+                decodedToken => {
+                  this.toolkit.decodedIdToken = decodedToken;
+                },
+                error => {
+                  this.errorMessage = error;
+                });
           }
         },
         idTokenError => {
@@ -590,9 +599,16 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         cachedAccessToken => {
           if (cachedAccessToken) {
-            this.toolkit.accessToken = cachedAccessToken
-            this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
-            console.log(this.toolkit.decodedAccessToken);
+            this.toolkit.accessToken = cachedAccessToken;
+            //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
+            this.toolkit.parseJwt(this.toolkit.accessToken)
+              .subscribe(
+                decodedToken => {
+                  this.toolkit.decodedAccessToken = decodedToken;
+                },
+                error => {
+                  this.errorMessage = error;
+                });
           }
         },
         accesstokenError => {
@@ -785,10 +801,10 @@ export class ToolkitComponent implements OnInit {
             fragment => {
               if (fragment) {
                 this.extractTokensFromFragment(fragment);
-                console.log(this.toolkit.decodedAccessToken);
               } else {
-                console.log(this.toolkit.decodedIdToken[this.toolkit.scopesClaim]);
-                this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+                if (this.toolkit.decodedIdToken && this.toolkit.scopesClaim) {
+                  this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+                }
               }
             },
             fragmentError => {
@@ -817,6 +833,7 @@ export class ToolkitComponent implements OnInit {
                       this.toolkit.setClientSecretFromCache();
                       this.mapSelectedAuthServer();
                       this.mapSelectedOAuthClient();
+                      this.getSelectedApp();
                       this.toolkit.updateAuthorizeUrl();
                     },
                     cacheError => {
@@ -824,7 +841,10 @@ export class ToolkitComponent implements OnInit {
                     });
                 this.widgetConfigEditor = new JsoneditorComponent();
                 this.widgetConfigEditor.data = this.toolkit.liveWidgetConfig;
-                
+
+                this.appProfileEditor = new JsoneditorComponent();
+                this.widgetConfigEditor.data = {};
+
                 if (this.toolkit.widget) {
                   if (this.toolkit.authUrlValid) {
                     this.toolkit.widget.remove();

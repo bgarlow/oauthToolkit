@@ -34,7 +34,7 @@
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="toolkit.selectedAuthServerId && authServer.id != toolkit.selectedAuthServerId">Select</button>
+              <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="!toolkit.selectedAuthServerId || authServer.id != toolkit.selectedAuthServerId">Select</button>
               <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
             </div>
             <div class="col-sm-3">
@@ -106,8 +106,8 @@
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id != toolkit.selectedOAuthClientId">Select</button>
-              <button class="btn btn-secondary" id="profileBtn" (click)="getAppProfile(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Profile</button>
+              <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
+              <!-- <button class="btn btn-secondary" id="profileBtn" (click)="getAppProfile(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Profile</button> -->
             </div>
             <div class="col-sm-3">
               <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
@@ -156,15 +156,15 @@
             </div>
           </div>
 
-          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
+          <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm-11">
-              <json-editor #appProfileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp.profile) ? (this.toolkit.selectedApp.profile) : undefined "></json-editor>
+              <json-editor #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp && this.toolkit.selectedApp.profile) ? (this.toolkit.selectedApp.profile) : undefined "></json-editor>
 
               <!-- <textarea class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea> -->
             </div>
           </div>
-          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
+          <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm">
               <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
@@ -242,7 +242,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType === 'client credentials'">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType === 'client_credentials'">
   <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
     <form>

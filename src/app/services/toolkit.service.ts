@@ -439,7 +439,7 @@ export class ToolkitService {
     const decoded = window.atob(base64);
     const decodedJSON = JSON.parse(decoded);
 
-    return decodedJSON;
+    return of(decodedJSON);
   }
 
   // auth
