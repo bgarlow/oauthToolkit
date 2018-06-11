@@ -16,9 +16,9 @@
       </div>
       <div class="form-group row">
         <div class="col-sm-1">SCP claim</div>
-        <div class="col-sm-2"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="toolkit.scopesClaim" placeholder="Name of claim identifying scopes"></div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="scopesClaim" [(ngModel)]="toolkit.scopesClaim" (blur)="updateUserScopes()" placeholder="Name of claim identifying scopes"></div>
         <div class="col-sm-1">State</div>
-        <div class="col-sm-2"><input class="form-control" type="text" name="state" [(ngModel)]="toolkit.state" placeholder="state"></div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="thestate" [(ngModel)]="toolkit.state" placeholder="state"></div>
         <div class="col-sm-1">Nonce</div>
         <div class="col-sm-2"><input class="form-control" type="text" name="nonce" [(ngModel)]="toolkit.nonce" placeholder="nonce"></div>
       </div>
@@ -233,8 +233,7 @@
         <div class="col-sm">
           <div class="btn-group" role="group">
             <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" (click)="authenticate();" [ngClass]="{'btn-danger': !toolkit.authUrlValid}">Authenticate</button>
-            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Enrich Token</button>
-            <!--<button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Get Enriched Token</button>-->
+            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
           </div>
         </div>
       </div>
@@ -257,7 +256,7 @@
         <div class="col-sm">
           <div class="btn-group" role="group">
             <button class="btn btn-primary" [disabled]="!toolkit.tokenUrlValid" (click)="getToken();" [ngClass]="{'btn-danger': !toolkit.tokenUrlValid}">Get Token</button>
-            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.enrichToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Enrich Token</button>
+            <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
           </div>
         </div>
       </div>

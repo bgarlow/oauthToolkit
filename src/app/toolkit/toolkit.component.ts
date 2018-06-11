@@ -177,7 +177,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getMetadata(authServer)
       .subscribe(
         data => {
-          //this.toolkit.supportedScopes = data['scopes_supported'];
+          this.toolkit.supportedScopes = data['scopes_supported'];
           if (display) {
             this.metadataResponse = data;
           }
@@ -197,6 +197,17 @@ export class ToolkitComponent implements OnInit {
           }
         );
     });
+  }
+
+  /**
+   * update the list of userScopes overlap with auth server scopes, to allow token enrichment
+   */
+  updateUserScopes() {
+    if (this.toolkit.decodedIdToken) {
+      this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+    } else {
+      this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+    }
   }
 
   /**
@@ -422,7 +433,7 @@ export class ToolkitComponent implements OnInit {
         selectedScopes: this.toolkit.selectedScopes,
         selectedResponseType: this.toolkit.selectedResponseType,
         selectedGrantType: this.toolkit.selectedGrantType,
-        supportedScopes: this.toolkit.supportedScopes,
+        //supportedScopes: this.toolkit.supportedScopes,
         nonce: this.toolkit.nonce,
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
@@ -455,7 +466,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined; // this.toolkit.oAuthClients[0].grant_types[0];
           this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined; // this.toolkit.oAuthClients[0].response_types[0];
           this.toolkit.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined; // this.toolkit.oAuthClients[0].redirect_uris[0];
-          this.toolkit.supportedScopes = (data['supportedScopes']) ? data['supportedScopes'] : undefined;
+          //this.toolkit.supportedScopes = (data['supportedScopes']) ? data['supportedScopes'] : undefined;
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;

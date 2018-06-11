@@ -329,6 +329,7 @@ export class ToolkitService {
    */
   getMaxScopeSet() {
     if (this.userScopes) {
+      this.maxScopeSet = [];
       let scopes = this.supportedScopes;
       for (let scope of scopes) {
         if (this.userScopes.includes(scope)) {
@@ -455,10 +456,11 @@ export class ToolkitService {
   /**
    * Request a new access token with expanded scopes
    */
-  enrichToken(): void {
+  rescopeToken(): void {
     this.getMaxScopeSet();
-    let newScopes = this.selectedScopes.concat(this.maxScopeSet);
-    this.selectedScopes = newScopes;
+    //const newScopes = this.selectedScopes.concat(this.maxScopeSet);
+    //this.selectedScopes = Array.from(new Set(newScopes));
+    this.selectedScopes = this.maxScopeSet;
     this.updateAuthorizeUrl();
   }
 
