@@ -155,7 +155,9 @@ export class ToolkitService {
   }
 
   signout() {
-    this.widget.session.close();
+    if (this.widget) {
+      this.widget.session.close();
+    }
     this.currentUser = undefined;
   }
 

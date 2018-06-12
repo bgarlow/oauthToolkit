@@ -590,6 +590,14 @@ router.get('/authorization-code/callback', (req, res) => {
     return;
   }
 
+  // If we don't have an authorization code, we can't request tokens
+
+  if (!req.query.code) {
+    res.redirect(`/toolkit#error=Authorization Code Missing`);
+    return;
+  }
+
+  /*
   if (!req.query.fromLogin || !req.query.fromLogin == true) {
     if (!req.query.state || req.query.state != state) {
       console.log('/callback state does not match');
@@ -597,13 +605,7 @@ router.get('/authorization-code/callback', (req, res) => {
       return;
     }
   }
-
-  // If we don't have an authorization code, we can't request tokens
-
-  if (!req.query.code) {
-    res.redirect(`/toolkit#error=Authorization Code Missing`);
-    return;
-  }
+  */
 
   // Build the token request
   const scopes = req.cookies.state.selectedScopes.join(' ');

@@ -190,7 +190,7 @@
 <div class="form-group row">
   <div class="col-sm">
     <div class="alert alert-success">
-      <h5>Current User: {{toolkit.currentUser}}</h5><button class="btn btn-primary" (click)="logout()">Logout</button>
+      <!--<h5>Current User: {{toolkit.currentUser}}</h5>--><button class="btn btn-primary" (click)="logout()">Logout</button>
     </div>
   </div>
 </div>
@@ -266,7 +266,7 @@
 
 <!-- Access Token -->
 <div class="card bg-light" *ngIf="toolkit.accessToken">
-  <h5 class="card-header">Access Token</h5>
+  <h5 class="card-header">Access Token  <small>Expires in {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes</small></h5>
   <div class="card-body">
     <form>
       <div class="form-group row">

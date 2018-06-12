@@ -215,6 +215,7 @@ export class ToolkitComponent implements OnInit {
    */
   selectAuthServer(authServer) {
     this.toolkit.selectedScopes = undefined;
+    this.toolkit.userScopes = undefined;
     this.toolkit.selectedAuthServerId = authServer.id;
     this.toolkit.selectedAuthServer = authServer;
     this.getSupportedScopes(authServer)
