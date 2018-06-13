@@ -21,7 +21,7 @@ export class JsoneditorComponent implements OnInit {
   }
 
   change() {
-    console.log('change:' + this.editor);
+    //console.log('change:' + this.editor);
   }
 
   initEditorOptions() {
@@ -31,7 +31,7 @@ export class JsoneditorComponent implements OnInit {
 
   setLanguage(lang) {
     this.editorOptions.language = lang; // force a specific language, ie. pt-BR
-    this.editor.setOptions(this.editorOptions);
+    //this.editor.setOptions(this.editorOptions);
   }
 
   customLanguage() {
@@ -43,7 +43,7 @@ export class JsoneditorComponent implements OnInit {
         'auto': 'Auto testing'
       }
     };
-    this.editor.setOptions(this.editorOptions);
+    //this.editor.setOptions(this.editorOptions);
   }
 
   changeObject() {
@@ -51,14 +51,14 @@ export class JsoneditorComponent implements OnInit {
   }
 
   setData(data) {
-    this.editor.setData(data);
+    //this.editor.setData(data);
   }
 
   /**
    * Example on how get the json changed from the jsoneditor
    */
   getData() {
-    const changedJson = this.editor.get();
-    return changedJson;
+    //const changedJson = this.editor.get();
+    //return changedJson;
   }
 }

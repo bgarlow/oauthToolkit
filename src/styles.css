@@ -87,13 +87,13 @@ code {
 
 .edit-area {
   min-width: 100%;
-  min-height: 300px;
+  min-height: 200px;
   overflow: scroll;
 }
 
 .edit-area-widget {
   min-width: 100%;
-  min-height: 400px;
+  min-height: 200px;
   overflow: scroll;
 }
 
@@ -105,7 +105,7 @@ code {
 }
 
 div.jsoneditor-outer {
-  height: 500px !important;
+  height: 200px !important;
 }
 
 json-editor>div {
@@ -130,4 +130,38 @@ div.jsoneditor-tree {
 .jumbotron {
   padding: 10px 20px 10px 20px;
   margin-bottom: 10px;
+}
+
+.expired {
+  color: red;
+}
+
+.active {
+  color: green;
+}
+
+.countdown {
+  width: 50%;
+  font-size: .75rem;
+}
+
+.countdown[_ngcontent-c3] {
+  display: flex;
+  align-items: left !important;
+  justify-content: left !important;
+  align-content: left !important;
+}
+
+.two-dots {
+  display: none;
+}
+
+.measurements {
+  color: black;
+  margin-right: 5px;
+  padding: 0px;
+}
+
+.divider {
+  font-size: 10px;
 }

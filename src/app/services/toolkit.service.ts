@@ -21,6 +21,7 @@ export class ToolkitService {
   refreshToken;
   decodedIdToken;
   decodedAccessToken;
+  accessTokenExp;
 
   authorizationServers;
   oAuthClients = [];
@@ -28,6 +29,7 @@ export class ToolkitService {
   metadataEndpoint;
   authorizeUrl;
   tokenUrl;
+  tokenPayload;
   authUrlValid;
   tokenUrlValid;
 
@@ -277,15 +279,7 @@ export class ToolkitService {
       })
     };
 
-    const payload = {
-      scope: this.selectedScopes.join(' '),
-      grant_type: this.selectedGrantType,
-      redirect_uri: this.selectedRedirectUri,
-      client_id: this.selectedOAuthClientId,
-      client_secret: this.selectedOAuthClient.client_secret
-    };
-
-    return this.http.post('/demo/token', payload, httpOptions);
+    return this.http.post('/demo/token', this.tokenPayload, httpOptions);
   }
 
   /**
@@ -389,6 +383,18 @@ export class ToolkitService {
 
     this.authUrlValid = (this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined;
     this.tokenUrlValid = (this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined;
+
+    this.tokenPayload = {
+      scope: this.selectedScopes.join(' '),
+      grant_type: this.selectedGrantType,
+      redirect_uri: this.selectedRedirectUri,
+      client_id: this.selectedOAuthClientId,
+      client_secret: this.selectedOAuthClient.client_secret
+    };
+
+    if (this.selectedGrantType === 'refresh_token') {
+      this.tokenPayload.refresh_token = this.refreshToken;
+    }
 
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId

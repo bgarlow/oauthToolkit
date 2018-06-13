@@ -241,7 +241,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType === 'client_credentials'">
+<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'client_credentials' || toolkit.refreshToken)">
   <h5 class="card-header">Token Endpoint</h5>
   <div class="card-body">
     <form>
@@ -250,6 +250,11 @@
           <div><code>
             {{toolkit.tokenUrl}}
           </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div><pre>{{toolkit.tokenPayload | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">
@@ -266,7 +271,15 @@
 
 <!-- Access Token -->
 <div class="card bg-light" *ngIf="toolkit.accessToken">
-  <h5 class="card-header">Access Token  <small>Expires in {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes</small></h5>
+  <h5 class="card-header">Access Token</h5>
+  <div class="card-header">
+    <span><small>Lifetime: {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes.</small></span>
+    <span><small>Minted on: {{this.toolkit.decodedAccessToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</small></span>
+    <span><small>Expires on: {{this.toolkit.decodedAccessToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}} </small></span>
+  </div>
+  <div class="card-header">
+    <countdown units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}"></countdown>
+  </div>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -343,6 +356,42 @@
           <div class="row">
             <div class="col-sm-2">
               <button class="btn btn-primary token-button" (click)="revokeToken(toolkit.idToken, 'id_token')">Revoke Token</button>
+            </div>
+            <div class="col">
+              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/revoke'}}
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Refresh Token -->
+<div class="card bg-light" *ngIf="toolkit.refreshToken">
+  <h5 class="card-header">Refresh Token</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="input-group">
+            <textarea class="copy-area">{{ toolkit.refreshToken.trim()}}</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="row">
+            <div class="col-sm-2">
+              <button class="btn btn-primary token-button" (click)="introspectToken(toolkit.refreshToken, 'refresh_token')">Introspect</button>
+            </div>
+            <div class="col">
+              {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/introspect'}}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-2">
+              <button class="btn btn-primary token-button" (click)="revokeToken(toolkit.refreshToken, 'refresh_token')">Revoke Token</button>
             </div>
             <div class="col">
               {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/revoke'}}

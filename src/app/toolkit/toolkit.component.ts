@@ -5,7 +5,8 @@ import { of } from 'rxjs/observable/of';
 import {ActivatedRoute} from '@angular/router';
 import {ToolkitService} from '../services/toolkit.service';
 import {JsoneditorComponent} from '../jsoneditor/jsoneditor.component';
-import {JsonEditorComponent, JsonEditorOptions} from 'ang-jsoneditor';
+import {JsonEditorOptions} from 'ang-jsoneditor';
+import {CountDown} from 'ng4-date-countdown-timer';
 
 @Component({
   selector: 'app-toolkit',
@@ -46,6 +47,7 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+
   /**
    * revokeToken
    * @param token
@@ -75,6 +77,9 @@ export class ToolkitComponent implements OnInit {
             case 'id_token':
               this.toolkit.idToken = undefined;
               this.toolkit.decodedIdToken = undefined;
+              break;
+            case 'refresh_token':
+              this.toolkit.refreshToken = undefined;
               break;
           }
 
@@ -129,10 +134,15 @@ export class ToolkitComponent implements OnInit {
             this.toolkit.accessToken = token.access_token;
             //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
 
+            if (token.refresh_token) {
+              this.toolkit.refreshToken = token.refresh_token;
+            }
+
             this.toolkit.parseJwt(this.toolkit.accessToken)
               .subscribe(
                 decodedToken => {
                   this.toolkit.decodedAccessToken = decodedToken;
+                  this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
                   this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
                   if (this.toolkit.supportedScopes) {
                     this.toolkit.getMaxScopeSet();
@@ -434,15 +444,13 @@ export class ToolkitComponent implements OnInit {
         selectedScopes: this.toolkit.selectedScopes,
         selectedResponseType: this.toolkit.selectedResponseType,
         selectedGrantType: this.toolkit.selectedGrantType,
-        //supportedScopes: this.toolkit.supportedScopes,
         nonce: this.toolkit.nonce,
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
         selectedRedirectUri: this.toolkit.selectedRedirectUri,
-        //idToken: this.toolkit.idToken,
         decodedIdToken: this.toolkit.decodedIdToken,
-        //accessToken: this.toolkit.accessToken,
-        decodedAccessToken: this.toolkit.decodedAccessToken
+        decodedAccessToken: this.toolkit.decodedAccessToken,
+        refreshToken: this.toolkit.refreshToken
       }
     };
 
@@ -467,14 +475,13 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined; // this.toolkit.oAuthClients[0].grant_types[0];
           this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined; // this.toolkit.oAuthClients[0].response_types[0];
           this.toolkit.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined; // this.toolkit.oAuthClients[0].redirect_uris[0];
-          //this.toolkit.supportedScopes = (data['supportedScopes']) ? data['supportedScopes'] : undefined;
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
-          //this.toolkit.idToken =  (data['idToken']) ? data['idToken'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
-          //this.toolkit.accessToken =  (data['accessToken']) ? data['accessToken'] : undefined;
           this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
+          this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
+
           if (this.toolkit.selectedAuthServerId) {
             this.getAuthServerMetadata(this.toolkit.selectedAuthServerId, false);
           }
@@ -543,12 +550,13 @@ export class ToolkitComponent implements OnInit {
 
       this.toolkit.parseJwt(this.toolkit.accessToken)
         .subscribe(
-            decodedToken => {
-              this.toolkit.decodedAccessToken = decodedToken;
-            },
-            error => {
-              this.errorMessage = error;
-            });
+          decodedToken => {
+            this.toolkit.decodedAccessToken = decodedToken;
+            this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
+          },
+          error => {
+            this.errorMessage = error;
+          });
 
       this.toolkit.cacheToken(this.toolkit.accessToken, 'access_token')
         .subscribe(
@@ -557,6 +565,19 @@ export class ToolkitComponent implements OnInit {
           },
           accessTokenError => {
             this.errorMessage = accessTokenError;
+          });
+
+      if (queryParams['refresh_token']) {
+        this.toolkit.refreshToken = queryParams['refresh_token'];
+      }
+
+      this.toolkit.cacheToken(this.toolkit.refreshToken, 'refresh_token')
+        .subscribe(
+          cachedRefreshToken => {
+            this.successMessage += 'Refresh Token cached. ';
+          },
+          refreshTokenError => {
+            this.errorMessage = refreshTokenError;
           });
 
       this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
@@ -612,7 +633,6 @@ export class ToolkitComponent implements OnInit {
         cachedAccessToken => {
           if (cachedAccessToken) {
             this.toolkit.accessToken = cachedAccessToken;
-            //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(cachedAccessToken);
             this.toolkit.parseJwt(this.toolkit.accessToken)
               .subscribe(
                 decodedToken => {
@@ -625,6 +645,17 @@ export class ToolkitComponent implements OnInit {
         },
         accesstokenError => {
           this.errorMessage = accesstokenError;
+        });
+
+    this.toolkit.getCachedToken('refresh_token')
+      .subscribe(
+        cachedRefreshToken => {
+          if (cachedRefreshToken) {
+            this.toolkit.refreshToken = cachedRefreshToken;
+          }
+        },
+        refreshTokenError => {
+          this.errorMessage = refreshTokenError;
         });
   }
 
@@ -644,6 +675,7 @@ export class ToolkitComponent implements OnInit {
 
     this.toolkit.accessToken = undefined;
     this.toolkit.decodedAccessToken = undefined;
+    this.toolkit.refreshToken = undefined;
     this.toolkit.idToken = undefined;
     this.toolkit.decodedIdToken = undefined;
     this.toolkit.scopesClaim = undefined;
@@ -706,6 +738,7 @@ export class ToolkitComponent implements OnInit {
   logout() {
     this.revokeToken(this.toolkit.accessToken, 'access_token');
     this.revokeToken(this.toolkit.idToken, 'id_token');
+    this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
     this.toolkit.signout();
   }
 

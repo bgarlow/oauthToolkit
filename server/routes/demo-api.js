@@ -670,6 +670,9 @@ router.get('/authorization-code/callback', (req, res) => {
       }
     });
 
+   if (json.refresh_token) {
+      res.cookie('refresh_token', json.refresh_token);
+    }
 
     if (json.access_token) {
       oktaAccessTokenVerifier.verifyAccessToken(json.access_token)

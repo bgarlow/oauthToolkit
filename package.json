@@ -32,6 +32,7 @@
     "jquery": "^3.3.1",
     "jsoneditor": "^5.17.1",
     "jws": "^3.1.4",
+    "ng4-date-countdown-timer": "^1.0.4",
     "pem-jwk": "^1.5.1",
     "popper.js": "^1.14.1",
     "rxjs": "^5.5.2",
