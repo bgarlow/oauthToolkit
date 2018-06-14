@@ -22,6 +22,8 @@ export class ToolkitService {
   decodedIdToken;
   decodedAccessToken;
   accessTokenExp;
+  idTokenExp;
+  refreshTokenExp;
 
   authorizationServers;
   oAuthClients = [];

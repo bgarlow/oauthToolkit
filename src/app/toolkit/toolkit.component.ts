@@ -126,16 +126,23 @@ export class ToolkitComponent implements OnInit {
   getToken() {
     //this.clearLocalTokens();
     this.saveConfig();
+    this.errorMessage = undefined;
     this.toolkit.getToken()
       .subscribe(
         data => {
           if (data['statusCode'] === 200) {
             let token = JSON.parse(data['body']);
             this.toolkit.accessToken = token.access_token;
-            //this.toolkit.decodedAccessToken = this.toolkit.parseJwt(this.toolkit.accessToken);
 
             if (token.refresh_token) {
               this.toolkit.refreshToken = token.refresh_token;
+              this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
+                .subscribe(
+                  data => {
+                    const introspectResponse = JSON.parse(data);
+                    this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+                  }
+                );
             }
 
             this.toolkit.parseJwt(this.toolkit.accessToken)
@@ -448,9 +455,10 @@ export class ToolkitComponent implements OnInit {
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
         selectedRedirectUri: this.toolkit.selectedRedirectUri,
+        refreshToken: this.toolkit.refreshToken,
         decodedIdToken: this.toolkit.decodedIdToken,
         decodedAccessToken: this.toolkit.decodedAccessToken,
-        refreshToken: this.toolkit.refreshToken
+        refreshTokenExp: this.toolkit.refreshTokenExp;
       }
     };
 
@@ -479,8 +487,15 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
+          if (this.toolkit.decodedIdToken) {
+            this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
+          } else {
+            this.toolkit.currentUser = undefined;
+          }
           this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
-          this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
+          this.toolkit.accessTokenExp = (this.toolkit.decodedAccessToken) ? new Date(this.toolkit.decodedAccessToken.exp * 1000) : undefined;
+          this.toolkit.idTokenExp = (this.toolkit.decodedIdToken) ? new Date(this.toolkit.decodedIdToken.exp * 1000) : undefined;
+          this.toolkit.refreshTokenExp = (data['refreshTokenExp']) ? data['refreshTokenExp'] : undefined;
 
           if (this.toolkit.selectedAuthServerId) {
             this.getAuthServerMetadata(this.toolkit.selectedAuthServerId, false);
@@ -495,6 +510,7 @@ export class ToolkitComponent implements OnInit {
   // Utility functions
 
   authenticate() {
+    this.errorMessage = undefined;
     this.saveState()
       .subscribe(
         data => {
@@ -523,13 +539,14 @@ export class ToolkitComponent implements OnInit {
     }
 
     if (queryParams['id_token']) {
-      //this.toolkit.decodedIdToken = this.toolkit.parseJwt(this.toolkit.idToken);
       this.toolkit.idToken = queryParams['id_token'];
 
       this.toolkit.parseJwt(this.toolkit.idToken)
         .subscribe(
           decodedToken => {
             this.toolkit.decodedIdToken = decodedToken;
+            this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
+            this.toolkit.idtokenExp = new Date(this.toolkit.decodedIdToken.exp * 1000);
           },
           error => {
             this.errorMessage = error;
@@ -569,7 +586,14 @@ export class ToolkitComponent implements OnInit {
 
       if (queryParams['refresh_token']) {
         this.toolkit.refreshToken = queryParams['refresh_token'];
-      }
+        this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
+          .subscribe(
+            data => {
+              const introspectResponse = JSON.parse(data);
+              this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+            }
+          );
+        }
 
       this.toolkit.cacheToken(this.toolkit.refreshToken, 'refresh_token')
         .subscribe(
@@ -613,11 +637,12 @@ export class ToolkitComponent implements OnInit {
         cachedIdToken => {
           if (cachedIdToken) {
             this.toolkit.idToken = cachedIdToken;
-            //this.toolkit.decodedIdToken = this.toolkit.parseJwt(cachedIdToken);
             this.toolkit.parseJwt(this.toolkit.idToken)
               .subscribe(
                 decodedToken => {
                   this.toolkit.decodedIdToken = decodedToken;
+                  this.toolkit.idTokenExp = new Date(decodedToken.exp * 1000);
+                  this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
                 },
                 error => {
                   this.errorMessage = error;
@@ -637,6 +662,8 @@ export class ToolkitComponent implements OnInit {
               .subscribe(
                 decodedToken => {
                   this.toolkit.decodedAccessToken = decodedToken;
+                  this.toolkit.accessTokenExp = new Date(decodedToken.exp * 1000);
+
                 },
                 error => {
                   this.errorMessage = error;
@@ -652,6 +679,13 @@ export class ToolkitComponent implements OnInit {
         cachedRefreshToken => {
           if (cachedRefreshToken) {
             this.toolkit.refreshToken = cachedRefreshToken;
+            this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
+              .subscribe(
+                data => {
+                  const introspectResponse = JSON.parse(data);
+                  this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+                }
+              );
           }
         },
         refreshTokenError => {
@@ -703,7 +737,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.widget.renderEl({el: '#okta-login-container'},
       response => {
         if (response.status === 'SUCCESS') {
-          this.toolkit.currentUser = (response[0].claims.name) ? response[0].claims.name : response[0].claims.sub;
+          //this.toolkit.currentUser = (response[0].claims.name) ? response[0].claims.name : response[0].claims.sub;
 
           // Normally, we would use token.hasTokensInUrl() and token.parseTokensFromUrl() to extract our tokens. I'm already doing that in the onInit()
           // of the toolkit and stuffing them into cookies, so I don't need to do it here.

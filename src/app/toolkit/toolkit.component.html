@@ -93,21 +93,12 @@
   <h5 class="card-header">OAuth Clients</h5>
   <div class="card-body">
     <form>
-      <!--
-      <div class="row">
-        <div class="col-sm-1"></div>
-        <div class="col-sm-3"><span class="colheader">Client Name</span></div>
-        <div class="col-sm-2"><span class="colheader">Client Type</span></div>
-        <div class="col-sm-2"><span class="colheader">Client ID</span></div>
-        <div class="col-sm-2"><span class="colheader">Client Secret</span></div>
-      </div>
-      -->
       <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" *ngFor="let client of toolkit.oAuthClients">
         <div class="col-sm">
           <div class="row">
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
-              <!-- <button class="btn btn-secondary" id="profileBtn" (click)="getAppProfile(client)" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Profile</button> -->
+              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Show Profile</button>
             </div>
             <div class="col-sm-3">
               <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
@@ -160,11 +151,9 @@
             <div class="col-sm-1"></div>
             <div class="col-sm-11">
               <json-editor #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp && this.toolkit.selectedApp.profile) ? (this.toolkit.selectedApp.profile) : undefined "></json-editor>
-
-              <!-- <textarea class="edit-area" name="profile{{client.id}}" [(ngModel)]="toolkit.selectedAppProfile"></textarea> -->
             </div>
           </div>
-          <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
+          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm">
               <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
@@ -187,10 +176,10 @@
 </div>
 
 <!-- <div class="form-group row" *ngIf="toolkit.currentUser"> -->
-<div class="form-group row">
+<div class="form-group row" *ngIf="toolkit.currentUser">
   <div class="col-sm">
     <div class="alert alert-success">
-      <!--<h5>Current User: {{toolkit.currentUser}}</h5>--><button class="btn btn-primary" (click)="logout()">Logout</button>
+      <h5>Current User: {{toolkit.currentUser}}</h5><button class="btn btn-primary" (click)="logout()">Logout</button>
     </div>
   </div>
 </div>
@@ -271,17 +260,19 @@
 
 <!-- Access Token -->
 <div class="card bg-light" *ngIf="toolkit.accessToken">
-  <h5 class="card-header">Access Token</h5>
-  <div class="card-header">
-    <span><small>Lifetime: {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes.</small></span>
-    <span><small>Minted on: {{this.toolkit.decodedAccessToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</small></span>
-    <span><small>Expires on: {{this.toolkit.decodedAccessToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}} </small></span>
-  </div>
-  <div class="card-header">
-    <countdown units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}"></countdown>
-  </div>
+  <h5 class="card-header bg-info">Access Token</h5>
   <div class="card-body">
     <form>
+      <div class="form-group row">
+        <div class="col-sm-8">
+          <span class="timer">Lifetime: {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes.</span>
+          <span class="timer">Minted on: {{this.toolkit.decodedAccessToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+          <span class="timer">Expires on: {{this.toolkit.decodedAccessToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+        </div>
+        <div class="col-sm-4">
+          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}" (click)="this.toolkit.accessTokenExp = 0"></countdown>
+        </div>
+      </div>
       <div class="form-group row">
         <div class="col-sm">
           <div class="input-group">
@@ -328,9 +319,19 @@
 
 <!-- ID Token -->
 <div class="card bg-light" *ngIf="toolkit.idToken">
-  <h5 class="card-header">ID Token</h5>
+  <h5 class="card-header bg-info">ID Token</h5>
   <div class="card-body">
     <form>
+      <div class="form-group row">
+        <div class="col-sm-8">
+          <span class="timer">Lifetime: {{(this.toolkit.decodedIdToken.exp - this.toolkit.decodedIdToken.iat)/60}} minutes.</span>
+          <span class="timer">Minted on: {{this.toolkit.decodedIdToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+          <span class="timer">Expires on: {{this.toolkit.decodedIdToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+        </div>
+        <div class="col-sm-4">
+          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.idTokenExp}}"></countdown>
+        </div>
+      </div>
       <div class="form-group row">
         <div class="col-sm">
           <div class="input-group">
@@ -369,9 +370,17 @@
 
 <!-- Refresh Token -->
 <div class="card bg-light" *ngIf="toolkit.refreshToken">
-  <h5 class="card-header">Refresh Token</h5>
+  <h5 class="card-header bg-info">Refresh Token</h5>
   <div class="card-body">
     <form>
+      <div class="form-group row">
+        <div class="col-sm-8">
+          <span class="timer">Expires on: {{this.toolkit.refreshTokenExp| date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+        </div>
+        <div class="col-sm-4">
+          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.refreshTokenExp}}"></countdown>
+        </div>
+      </div>
       <div class="form-group row">
         <div class="col-sm">
           <div class="input-group">

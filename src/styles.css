@@ -105,7 +105,7 @@ code {
 }
 
 div.jsoneditor-outer {
-  height: 200px !important;
+  height: 400px !important;
 }
 
 json-editor>div {
@@ -138,6 +138,10 @@ div.jsoneditor-tree {
 
 .active {
   color: green;
+}
+
+.timer {
+  font-size: .75rem;
 }
 
 .countdown {
