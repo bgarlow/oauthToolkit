@@ -355,15 +355,29 @@ export class ToolkitComponent implements OnInit {
    */
   updateAppProfile(oauthClient) {
 
-    //const profile = JSON.parse(this.toolkit.selectedAppProfile);
     const profile = this.appProfileEditor.editor.get();
-    this.toolkit.selectedApp.profile = profile;
+    this.toolkit.selectedApp = profile;
 
     this.http.post('/demo/apps/' + oauthClient.client_id, this.toolkit.selectedApp)
       .subscribe(
         data => {
           if (data['statusCode'] === 200) {
             this.successMessage = data['body'];
+
+            this.http.get('/demo/clients/' + oauthClient.client_id)
+              .subscribe(
+                data => {
+                  const jsonData = JSON.parse(data);
+                  this.toolkit.selectedOAuthClient = jsonData;
+
+                  this.toolkit.getClients()
+                    .subscribe(
+                      clients => {
+                        this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                        this.saveState();
+                      }
+                    );
+                });
           }
         },
         error => {
@@ -385,18 +399,6 @@ export class ToolkitComponent implements OnInit {
     }
 
     this.getSelectedApp();
-    /*
-    (this.http.get('/demo/apps/' + client.client_id)
-      .subscribe(
-        data => {
-          this.toolkit.selectedApp = JSON.parse(data['body'].toString());
-          this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
-        },
-        error => {
-          this.errorMessage = error;
-        }
-      );
-      */
   }
 
   /**
@@ -407,8 +409,10 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           this.toolkit.selectedApp = JSON.parse(data['body'].toString());
-          this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
-          this.appProfileEditor.data = this.toolkit.selectedAppProfile;
+          //this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
+          if (this.appProfileEditor) {
+            this.appProfileEditor.data = this.toolkit.selectedApp;
+          }
         },
         error => {
           this.errorMessage = error;

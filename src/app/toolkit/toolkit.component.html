@@ -147,10 +147,10 @@
             </div>
           </div>
 
-          <div class="row" *ngIf="client.client_id === toolkit.selectedOAuthClientId">
+          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
             <div class="col-sm-1"></div>
             <div class="col-sm-11">
-              <json-editor #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp && this.toolkit.selectedApp.profile) ? (this.toolkit.selectedApp.profile) : undefined "></json-editor>
+              <json-editor class="editor-large" #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp) ? (this.toolkit.selectedApp) : undefined "></json-editor>
             </div>
           </div>
           <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
