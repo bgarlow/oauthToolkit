@@ -421,7 +421,142 @@ router.get('/authorizationServers', (req, res) => {
       }
     }
   });
+});
 
+
+/**
+ * Revoke token by ID
+ */
+router.delete('/tokens/:authServerId/:clientId/:tokenId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const authServerId = req.params.authServerId;
+  const clientId = req.params.clientId;
+  const tokenId = req.params.tokenId
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens/${tokenId}`;
+  const options = {
+    uri: endpoint,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        const tokenArray = JSON.parse(response.body);
+        res.json(response.body)
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
+ * Get token by ID
+ */
+router.get('/tokens/:authServerId/:clientId/:tokenId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const authServerId = req.params.authServerId;
+  const clientId = req.params.clientId;
+  const tokenId = req.params.tokenId
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens/${tokenId}`;
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        const tokenArray = JSON.parse(response.body);
+        res.json(response.body)
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+
+/**
+ * Get a list of tokens for an Auth Server & Client
+ */
+router.get('/tokens/:authServerId/:clientId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const authServerId = req.params.authServerId;
+  const clientId = req.params.clientId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens`;
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        const tokenArray = JSON.parse(response.body);
+        res.json(response.body)
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
 });
 
 /**
@@ -525,6 +660,9 @@ router.get('/clients', (req, res) => {
   });
 });
 
+/**
+ * Store tokens in a cookie to preserve state between page refreshes
+ */
 router.put('/tokenstorage', (req, res) => {
 
   const token = req.body.token;

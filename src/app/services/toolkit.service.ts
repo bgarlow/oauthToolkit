@@ -44,6 +44,7 @@ export class ToolkitService {
   selectedAppProfile;
   selectedGrantType;
   selectedResponseType = [];
+  selectedAuthClientTokens = [];
   selectedRedirectUri;
   selectedScopes;
   supportedScopes;
@@ -387,7 +388,7 @@ export class ToolkitService {
     this.tokenUrlValid = (this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined;
 
     this.tokenPayload = {
-      scope: this.selectedScopes.join(' '),
+      scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',
       grant_type: this.selectedGrantType,
       redirect_uri: this.selectedRedirectUri,
       client_id: this.selectedOAuthClientId,

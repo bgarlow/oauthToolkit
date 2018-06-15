@@ -18,6 +18,7 @@ export class ToolkitComponent implements OnInit {
 
   toolkit: ToolkitService;
   showAppProfile = false;
+  showAuthClientTokens = false;
   errorMessage;
   successMessage;
   metadataResponse;
@@ -384,6 +385,43 @@ export class ToolkitComponent implements OnInit {
           this.errorMessage = error;
         }
       );
+  }
+
+  /*
+   * TODO: this should be in the toolkit service, not here
+   * show tokens
+   */
+  getTokens() {
+
+    this.http.get('/demo/tokens/' + this.toolkit.selectedAuthServerId + '/' + this.toolkit.selectedOAuthClientId)
+      .subscribe(
+        data => {
+          this.toolkit.selectedAuthClientTokens = JSON.parse(data);
+        }
+      );
+  }
+
+  /*
+   * TODO: this should also be in toolkit service, not here
+   */
+  revokeTokenById(tokenId) {
+
+    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${tokenId}`)
+      .subscribe(
+        data => {
+          if (data.statusCode === 204) {
+            this.successMessage = 'Token revoked.';
+            this.getTokens();
+          }
+        }
+      );
+  }
+
+  /*
+ * TODO: this should also be in toolkit service, not here
+ */
+  getTokenById(token) {
+    return this.http.get(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${token.id}`);
   }
 
   /**

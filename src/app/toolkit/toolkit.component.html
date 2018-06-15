@@ -98,7 +98,8 @@
           <div class="row">
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
-              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Show Profile</button>
+              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Get Profile</button>
+              <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Show Tokens</button>
             </div>
             <div class="col-sm-3">
               <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
@@ -157,6 +158,37 @@
             <div class="col-sm-1"></div>
             <div class="col-sm">
               <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
+            </div>
+          </div>
+
+
+          <div *ngIf="showClientTokens && client.client_id === toolkit.selectedOAuthClientId && !toolkit.selectedAuthClientTokens">
+            <div class="row">
+              <div class="col-sm-11">
+                <div class="outlined">
+                  <pre class="small">No Tokens for the selected Authorization Server and Client.</pre>
+                </div>
+              </div>
+              <div class="col-sm-1">
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="showAuthClientTokens && client.client_id === toolkit.selectedOAuthClientId">
+            <div class="row">
+              <div class="col-sm">
+                {{toolkit.selectedAuthClientTokens.length}} tokens:
+              </div>
+            </div>
+            <div class="row" *ngFor="let token of toolkit.selectedAuthClientTokens">
+              <div class="col-sm-11">
+                <div class="outlined">
+                  <pre class="small">{{token | json}}</pre>
+                </div>
+              </div>
+              <div class="col-sm-1">
+                <button class="btn btn-secondary" (click)="revokeTokenById(token);">Revoke</button>
+              </div>
             </div>
           </div>
         </div>
