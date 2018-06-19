@@ -347,7 +347,7 @@ export class ToolkitComponent implements OnInit {
       }
     }
     this.toolkit.selectedScopes = scopeArray;
-    //this.toolkit.updateAuthorizeUrl();
+    this.toolkit.updateAuthorizeUrl();
     this.updateAuthConfig();
   }
 
@@ -370,7 +370,7 @@ export class ToolkitComponent implements OnInit {
             this.http.get('/demo/clients/' + oauthClient.client_id)
               .subscribe(
                 data => {
-                  const jsonData = JSON.parse(data);
+                  const jsonData = JSON.parse(data.toString());
                   this.toolkit.selectedOAuthClient = jsonData;
 
                   this.toolkit.getClients()
@@ -596,7 +596,7 @@ export class ToolkitComponent implements OnInit {
           decodedToken => {
             this.toolkit.decodedIdToken = decodedToken;
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
-            this.toolkit.idtokenExp = new Date(this.toolkit.decodedIdToken.exp * 1000);
+            this.toolkit.idTokenExp = new Date(this.toolkit.decodedIdToken.exp * 1000);
           },
           error => {
             this.errorMessage = error;
@@ -853,13 +853,13 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.getAuthorizationServers()
             .subscribe(
               authServers => {
-                if (!authServers.statusCode || authServers.statusCode === 200) {
-                  this.toolkit.authorizationServers = JSON.parse(authServers.toString());
+                if (authServers.statusCode === 200) {
+                  this.toolkit.authorizationServers = JSON.parse(authServers.body);
 
                   this.toolkit.getClients()
                     .subscribe(
                       clients => {
-                        this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                        this.toolkit.oAuthClients = JSON.parse(clients.body);
                         this.saveState()
                           .subscribe(
                             state => {
@@ -924,6 +924,11 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         authServers => {
 
+          // something went wrong, probably used the wrong API key
+          if (authServers.statusCode !== 200) {
+            this.errorMessage = JSON.parse(authServers.body);
+            return;
+          }
           // check to see if this is a redirect with tokens in the URL fragment
           this.route.fragment.subscribe(
             fragment => {
@@ -940,11 +945,11 @@ export class ToolkitComponent implements OnInit {
             });
 
 
-          this.toolkit.authorizationServers = JSON.parse(authServers.toString());
+          this.toolkit.authorizationServers = JSON.parse(authServers.body);
           this.toolkit.getClients()
             .subscribe(
               clients => {
-                this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                this.toolkit.oAuthClients = JSON.parse(clients.body);
                 this.saveState()
                   .subscribe(
                     state => {

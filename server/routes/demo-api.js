@@ -18,7 +18,8 @@ router.get('/', (req, res) => {
 
 router.post('/config', (req, res) => {
   let demoConfig = req.body('config');
-  res.cookie('demo-config', demoConfig, { httpOnly : true }).send('Configuration saved to cookie.');
+  res.cookie('demo-config', demoConfig, { httpOnly : true, secure: false });
+  res.status(200).send();
 });
 
 /**
@@ -387,6 +388,7 @@ router.post('/introspect', (req, res) => {
  */
 router.get('/authorizationServers', (req, res) => {
 
+
   if (!req.cookies.state) {
     res.status(422).send('No Cookie');
     return;
@@ -414,7 +416,7 @@ router.get('/authorizationServers', (req, res) => {
     }
     if (response) {
       if (response.statusCode === 200) {
-        res.json(response.body);
+        res.json(response);
       } else {
         console.error(response.statusCode);
         res.json(response);
@@ -584,7 +586,7 @@ router.put('/cachedClients', (req, res) => {
     cachedClients.push(cachedClient);
   }
 
-  res.cookie('cachedClients', cachedClients);
+  res.cookie('cachedClients', cachedClients, { httpOnly : true, secure: false });
   res.status(200).send();
 });
 
@@ -655,7 +657,7 @@ router.get('/clients', (req, res) => {
     }
     if (response) {
       if (response.statusCode === 200) {
-        res.json(response.body);
+        res.json(response);
       } else {
         console.error(response.statusCode);
         res.json(response);
@@ -672,8 +674,8 @@ router.put('/tokenstorage', (req, res) => {
   const token = req.body.token;
   const tokenType = req.body.token_type;
 
-   res.cookie(tokenType, token);
-   res.status(200).send();
+  res.cookie(tokenType, token, { httpOnly : true, secure: false });
+  res.status(200).send();
 });
 
 /*
@@ -714,8 +716,8 @@ router.put('/state', (req, res) => {
     res.state(500).send('State variable not found in request body.');
     return;
   }
-  res.cookie('state', req.body.state);
-  res.json({ok:true});
+  res.cookie('state', req.body.state, { httpOnly : true, secure: false });
+  res.status(200).send();
 });
 
 /**
@@ -853,7 +855,8 @@ router.get('/authorization-code/callback', (req, res) => {
     });
 
    if (json.refresh_token) {
-      res.cookie('refresh_token', json.refresh_token);
+      res.cookie('refresh_token', json.refresh_token, { httpOnly : true, secure: false });
+     res.status(200).send();
     }
 
     if (json.access_token) {
@@ -861,14 +864,14 @@ router.get('/authorization-code/callback', (req, res) => {
         .then(jwt => {
           // the token is valid
           console.log(jwt.claims);
-          res.cookie('access_token', json.access_token);
+          res.cookie('access_token', json.access_token, { httpOnly : true, secure: false });
           if (json.id_token) {
             // yeah, weird that the function is called verifyAccessToken. It works for ID token as well.
             oktaIdTokenVerifier.verifyAccessToken(json.id_token)
               .then(jwt => {
                 // the token is valid
                 console.log(jwt.claims);
-                res.cookie('id_token', json.id_token);
+                res.cookie('id_token', json.id_token, { httpOnly : true, secure: false });
                 res.redirect(302, '/toolkit');
               })
               .catch(err => {
@@ -891,7 +894,7 @@ router.get('/authorization-code/callback', (req, res) => {
         .then(jwt => {
           // the token is valid
           console.log(jwt.claims);
-          res.cookie('id_token', json.id_token);
+          res.cookie('id_token', json.id_token, { httpOnly : true, secure: false });
           res.redirect(302, '/toolkit');
         })
         .catch(err => {

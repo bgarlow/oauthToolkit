@@ -404,8 +404,8 @@ export class ToolkitService {
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
 
-    this.authUrlValid = (this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined;
-    this.tokenUrlValid = (this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined;
+    this.authUrlValid = ((this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined) && this.selectedGrantType !== 'client_credentials';
+    this.tokenUrlValid = ((this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined) && (this.selectedGrantType === 'client_credentials' || this.selectedGrantType === 'refresh_token');
 
     this.tokenPayload = {
       scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',

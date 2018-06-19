@@ -228,7 +228,7 @@
 
 
 <!-- Sign In Widget -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
   <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -241,7 +241,7 @@
         <div class="col-sm">
           <!-- <pre name="widgetConfig">{{toolkit.liveWidgetConfig | json}}</pre> -->
           <json-editor #widgetEditor name="widgetConfigEditor" id="widgetConfigEditor" [options]="widgetConfigOptions" [data]="this.toolkit.liveWidgetConfig"></json-editor>
-          <div><button class="btn btn-primary" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="resetWidget()">Reset Widget</button></div>
+          <div><button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="resetWidget()">Reset Widget</button></div>
         </div>
       </div>
     </form>
@@ -249,7 +249,7 @@
 </div>
 
 <!-- auth endpoint -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
   <h5 class="card-header bg-info">Authorize Endpoint</h5>
   <div class="card-body">
     <form>
@@ -263,7 +263,7 @@
       <div class="form-group row">
         <div class="col-sm">
           <div class="btn-group" role="group">
-            <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" (click)="authenticate();" [ngClass]="{'btn-danger': !toolkit.authUrlValid}">Authenticate</button>
+            <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="authenticate();">Authenticate</button>
             <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
           </div>
         </div>
@@ -272,7 +272,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'client_credentials' || toolkit.refreshToken)">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
   <h5 class="card-header bg-info">Token Endpoint</h5>
   <div class="card-body">
     <form>
