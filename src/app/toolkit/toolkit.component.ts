@@ -24,6 +24,8 @@ export class ToolkitComponent implements OnInit {
   metadataResponse;
   responseMessage;
   responseMessageTitle;
+  collapseAuthServers = false;
+  collapseOAuthClients = false;
 
   @ViewChild('widgetEditor') widgetConfigEditor: JsoneditorComponent;
   public widgetConfigOptions: JsonEditorOptions;
@@ -393,10 +395,16 @@ export class ToolkitComponent implements OnInit {
    */
   getTokens() {
 
-    this.http.get('/demo/tokens/' + this.toolkit.selectedAuthServerId + '/' + this.toolkit.selectedOAuthClientId)
+    let endpoint = `/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}`;
+
+    if (this.toolkit.expand) {
+        endpoint += '?expand=scope';
+    }
+
+    this.http.get(endpoint)
       .subscribe(
         data => {
-          this.toolkit.selectedAuthClientTokens = JSON.parse(data);
+          this.toolkit.selectedAuthClientTokens = JSON.parse(data.toString());
         }
       );
   }
@@ -404,9 +412,9 @@ export class ToolkitComponent implements OnInit {
   /*
    * TODO: this should also be in toolkit service, not here
    */
-  revokeTokenById(tokenId) {
+  revokeTokenById(token) {
 
-    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${tokenId}`)
+    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${token.id}`)
       .subscribe(
         data => {
           if (data.statusCode === 204) {
@@ -500,7 +508,7 @@ export class ToolkitComponent implements OnInit {
         refreshToken: this.toolkit.refreshToken,
         decodedIdToken: this.toolkit.decodedIdToken,
         decodedAccessToken: this.toolkit.decodedAccessToken,
-        refreshTokenExp: this.toolkit.refreshTokenExp;
+        refreshTokenExp: this.toolkit.refreshTokenExp
       }
     };
 
@@ -813,7 +821,6 @@ export class ToolkitComponent implements OnInit {
    */
   logout() {
     this.revokeToken(this.toolkit.accessToken, 'access_token');
-    this.revokeToken(this.toolkit.idToken, 'id_token');
     this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
     this.toolkit.signout();
   }

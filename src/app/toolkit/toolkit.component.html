@@ -27,41 +27,48 @@
 </div>
 
 <div class="card text-light bg-dark">
-  <h5 class="card-header">Authorization Servers</h5>
+  <div class="card-header h5">
+    Authorization Servers
+    <span *ngIf="collapseAuthServers" (click)="collapseAuthServers = !collapseAuthServers">[+]</span>
+    <span *ngIf="!collapseAuthServers" (click)="collapseAuthServers = !collapseAuthServers">[-]</span>
+  </div>
+
   <div class="card-body">
     <form>
-      <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" *ngFor="let authServer of toolkit.authorizationServers">
-        <div class="col-sm">
-          <div class="row">
-            <div class="col-sm-1">
-              <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="!toolkit.selectedAuthServerId || authServer.id != toolkit.selectedAuthServerId">Select</button>
-              <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
-            </div>
-            <div class="col-sm-3">
-              <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.name}}</span>
-            </div>
-            <div class="col-sm-5">
-              <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.description}}</span>
-            </div>
-            <div class="col-sm-2">
-              <div class="input-group mb-3">
-                <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.id}}</span>
+      <div *ngFor="let authServer of toolkit.authorizationServers">
+        <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}" *ngIf="((toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId) && collapseAuthServers) || !collapseAuthServers">
+          <div class="col-sm">
+            <div class="row">
+              <div class="col-sm-1">
+                <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="!toolkit.selectedAuthServerId || authServer.id != toolkit.selectedAuthServerId">Select</button>
+                <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
+              </div>
+              <div class="col-sm-3">
+                <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.name}}</span>
+              </div>
+              <div class="col-sm-5">
+                <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.description}}</span>
+              </div>
+              <div class="col-sm-2">
+                <div class="input-group mb-3">
+                  <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.id}}</span>
+                </div>
+              </div>
+              <div class="col-sm-1">
+                <button class="btn btn-primary" id="metadataBtn{{authServer.id}}" (click)="metadataResponse ? metadataResponse = undefined : getAuthServerMetadata(authServer, true)">metadata</button>
               </div>
             </div>
-            <div class="col-sm-1">
-              <button class="btn btn-primary" id="metadataBtn{{authServer.id}}" (click)="metadataResponse ? metadataResponse = undefined : getAuthServerMetadata(authServer, true)">metadata</button>
-            </div>
-          </div>
-          <div class="row" *ngIf="toolkit.selectedAuthServerId && (authServer.id === toolkit.selectedAuthServerId)">
-            <div class="col-sm-1"></div>
-            <div class="col-sm">
-              <div class="btn-toolbar" role="group">
+            <div class="row" *ngIf="toolkit.selectedAuthServerId && (authServer.id === toolkit.selectedAuthServerId)">
+              <div class="col-sm-1"></div>
+              <div class="col-sm">
+                <div class="btn-toolbar" role="group">
                 <span *ngFor="let scope of toolkit.supportedScopes">
 
                   <button class="btn btn-sm btn-outline-info" *ngIf="toolkit.userScopes && toolkit.userScopes.includes(scope);" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
                   <button class="btn btn-sm btn-outline-secondary" *ngIf="!toolkit.userScopes || !toolkit.userScopes.includes(scope);" [ngClass]="{'active': toolkit.selectedScopes && toolkit.selectedScopes.includes(scope)}" (click)="selectScope(scope);">{{scope}}</button>
 
                 </span>
+                </div>
               </div>
             </div>
           </div>
@@ -73,7 +80,7 @@
 
 <div class="card bg-light" *ngIf="metadataResponse">
   <h5 class="card-header">Metadata Response</h5>
-  <div class="card-body">
+    <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
@@ -89,34 +96,47 @@
   </div>
 </div>
 
+<!-- OAuth Clients -->
+
 <div class="card text-light bg-dark">
-  <h5 class="card-header">OAuth Clients</h5>
+  <div class="card-header h5">
+    OAuth Clients
+    <span *ngIf="collapseOAuthClients" (click)="collapseOAuthClients = !collapseOAuthClients">[+]</span>
+    <span *ngIf="!collapseOAuthClients" (click)="collapseOAuthClients = !collapseOAuthClients">[-]</span>
+  </div>
+
   <div class="card-body">
     <form>
-      <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" *ngFor="let client of toolkit.oAuthClients">
-        <div class="col-sm">
-          <div class="row">
+      <div *ngFor="let client of toolkit.oAuthClients">
+        <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" *ngIf="((toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId) && collapseOAuthClients) || !collapseOAuthClients">
+
+            <!-- button column -->
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
-              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Get Profile</button>
-              <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Show Tokens</button>
+              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Edit</button>
+              <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Tokens</button>
             </div>
-            <div class="col-sm-3">
-              <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
-            </div>
-            <div class="col-sm-2">
-              <span class="list-item-bold" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.application_type}}</span>
-            </div>
-            <div class="col-sm-2">
-              <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_id}}</span>
-            </div>
+
+            <!-- data column -->
             <div class="col-sm">
-                <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-sm-1"></div>
-            <div class="col-sm-3">
+              <div class="row">
+                <div class="col-sm-3">
+                  <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_name}}</span>
+                </div>
+                <div class="col-sm-2">
+                  <span class="list-item-bold" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.application_type}}</span>
+                </div>
+                <div class="col-sm-2">
+                  <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_id}}</span>
+                </div>
+                <div class="col-sm">
+                  <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
+                </div>
+              </div>
+
+
+              <div class="row">
+                <div class="col-sm-3">
                   <div class="btn-toolbar" role="group">
                     <div class="row" *ngFor="let responseType of client.response_types">
                       <div class="col-sm">
@@ -126,80 +146,69 @@
                     </div>
                   </div>
                 </div>
-            <div class="col-sm-4">
-              <div class="btn-toolbar" role="group">
-                <div class="row" *ngFor="let grant of client.grant_types">
-                  <div class="col-sm">
-                    <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': toolkit.selectedGrantType && grant === toolkit.selectedGrantType}">{{grant}}</button>
-                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{grant}}</span>&nbsp;
+                <div class="col-sm-4">
+                  <div class="btn-toolbar" role="group">
+                    <div class="row" *ngFor="let grant of client.grant_types">
+                      <div class="col-sm">
+                        <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectGrantType(grant)" [ngClass]="{'active': toolkit.selectedGrantType && grant === toolkit.selectedGrantType}">{{grant}}</button>
+                        <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{grant}}</span>&nbsp;
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-sm" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType != 'client_credentials'">
+                  <div class="btn-toolbar" role="group">
+                    <div class="row" *ngFor="let uri of client.redirect_uris">
+                      <div class="col-sm">
+                        <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
+                        <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{uri}}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="col" *ngIf="client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedGrantType != 'client_credentials'">
-              <div class="btn-toolbar" role="group">
-                <div class="row" *ngFor="let uri of client.redirect_uris">
+
+              <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
+                <div class="col-sm-11">
+                  <json-editor class="editor-large" #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp) ? (this.toolkit.selectedApp) : undefined "></json-editor>
+                </div>
+              </div>
+              <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
+                <div class="col-sm">
+                  <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
+                </div>
+              </div>
+
+              <div *ngIf="showAuthClientTokens && client.client_id === toolkit.selectedOAuthClientId">
+                <div class="row">
                   <div class="col-sm">
-                    <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
-                    <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{uri}}</span>
+                    {{toolkit.selectedAuthClientTokens.length}} tokens. Expand token info with expand=scope &nbsp;<input type="checkbox" (change)="getTokens();" [(ngModel)]="toolkit.expand" name="expandRadio{{client.client_id}}" id="expandRadio{{client.client_id}}">
+                  </div>
+                </div>
+                <div class="row" *ngFor="let token of toolkit.selectedAuthClientTokens">
+                  <div class="col-sm-11">
+                    <div class="outlined">
+                      <pre class="small_black">{{token | json}}</pre>
+                    </div>
+                  </div>
+                  <div class="col-sm-1">
+                    <button class="btn btn-secondary" (click)="revokeTokenById(token);">Revoke</button>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
-            <div class="col-sm-1"></div>
-            <div class="col-sm-11">
-              <json-editor class="editor-large" #profileEditor name="appProfileEditor" id="appProfileEditor" [options]="profileConfigOptions" [data]="(this.toolkit.selectedApp) ? (this.toolkit.selectedApp) : undefined "></json-editor>
-            </div>
-          </div>
-          <div class="row" *ngIf="showAppProfile && client.client_id === toolkit.selectedOAuthClientId">
-            <div class="col-sm-1"></div>
-            <div class="col-sm">
-              <button class="btn btn-primary" (click)="updateAppProfile(client)">Update</button>
-            </div>
-          </div>
+            </div> <!-- end of second column-->
 
 
-          <div *ngIf="showClientTokens && client.client_id === toolkit.selectedOAuthClientId && !toolkit.selectedAuthClientTokens">
-            <div class="row">
-              <div class="col-sm-11">
-                <div class="outlined">
-                  <pre class="small">No Tokens for the selected Authorization Server and Client.</pre>
-                </div>
-              </div>
-              <div class="col-sm-1">
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="showAuthClientTokens && client.client_id === toolkit.selectedOAuthClientId">
-            <div class="row">
-              <div class="col-sm">
-                {{toolkit.selectedAuthClientTokens.length}} tokens:
-              </div>
-            </div>
-            <div class="row" *ngFor="let token of toolkit.selectedAuthClientTokens">
-              <div class="col-sm-11">
-                <div class="outlined">
-                  <pre class="small">{{token | json}}</pre>
-                </div>
-              </div>
-              <div class="col-sm-1">
-                <button class="btn btn-secondary" (click)="revokeTokenById(token);">Revoke</button>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
+
     </form>
 
   </div>
 </div>
 
 <div class="card text-light bg-dark">
-  <h5 class="card-header">Save to (or load from) cookie</h5>
+  <h5 class="card-header">Save current state to (or load from) cookie</h5>
   <div class="card-body">
     <form>
       <button class="btn btn-primary" (click)="saveConfig()">Save</button><button class="btn btn-primary" (click)="loadConfig()">Load</button>
@@ -208,18 +217,19 @@
 </div>
 
 <!-- <div class="form-group row" *ngIf="toolkit.currentUser"> -->
-<div class="form-group row" *ngIf="toolkit.currentUser">
-  <div class="col-sm">
-    <div class="alert alert-success">
-      <h5>Current User: {{toolkit.currentUser}}</h5><button class="btn btn-primary" (click)="logout()">Logout</button>
-    </div>
+<div class="card text-light bg-dark" *ngIf="toolkit.currentUser">
+  <h5 class="card-header">Current User: {{toolkit.currentUser}}</h5>
+  <div class="card-body">
+    <form>
+      <button class="btn btn-primary" (click)="logout()">Logout</button>
+    </form>
   </div>
 </div>
 
 
 <!-- Sign In Widget -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
-  <h5 class="card-header">Sign in Widget</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
+  <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -239,13 +249,13 @@
 </div>
 
 <!-- auth endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
-  <h5 class="card-header">Authorize Endpoint</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && toolkit.selectedGrantType !== 'client_credentials'">
+  <h5 class="card-header bg-info">Authorize Endpoint</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
-          <div><code>
+          <div class="json-display"><code>
             {{toolkit.authorizeUrl}}
           </code></div>
         </div>
@@ -262,20 +272,20 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card bg-light" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'client_credentials' || toolkit.refreshToken)">
-  <h5 class="card-header">Token Endpoint</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'client_credentials' || toolkit.refreshToken)">
+  <h5 class="card-header bg-info">Token Endpoint</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm">
-          <div><code>
+          <div class="json-display"><code>
             {{toolkit.tokenUrl}}
           </code></div>
         </div>
       </div>
       <div class="form-group row">
         <div class="col-sm">
-          <div><pre>{{toolkit.tokenPayload | json}}</pre></div>
+          <div class="json-display"><pre>{{toolkit.tokenPayload | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">
@@ -291,8 +301,8 @@
 </div>
 
 <!-- Access Token -->
-<div class="card bg-light" *ngIf="toolkit.accessToken">
-  <h5 class="card-header bg-info">Access Token</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.accessToken">
+  <h5 class="card-header bg-primary">Access Token</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -314,7 +324,7 @@
       </div>
       <div class="form-group row">
         <div class="col-sm">
-          <div><pre text-light>{{toolkit.decodedAccessToken | json}}</pre></div>
+          <div class="json-display"><pre text-light>{{toolkit.decodedAccessToken | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">
@@ -350,8 +360,8 @@
 </div>
 
 <!-- ID Token -->
-<div class="card bg-light" *ngIf="toolkit.idToken">
-  <h5 class="card-header bg-info">ID Token</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.idToken">
+  <h5 class="card-header bg-primary">ID Token</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -373,7 +383,7 @@
       </div>
       <div class="form-group row">
         <div class="col-sm">
-          <div><pre>{{toolkit.decodedIdToken | json}}</pre></div>
+          <div class="json-display"><pre>{{toolkit.decodedIdToken | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">
@@ -386,14 +396,6 @@
               {{'POST ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/introspect'}}
             </div>
           </div>
-          <div class="row">
-            <div class="col-sm-2">
-              <button class="btn btn-primary token-button" (click)="revokeToken(toolkit.idToken, 'id_token')">Revoke Token</button>
-            </div>
-            <div class="col">
-              {{'GET ' + this.toolkit.baseUrl + '/oauth2/' + this.toolkit.selectedAuthServerId + 'v1/revoke'}}
-            </div>
-          </div>
         </div>
       </div>
     </form>
@@ -401,8 +403,8 @@
 </div>
 
 <!-- Refresh Token -->
-<div class="card bg-light" *ngIf="toolkit.refreshToken">
-  <h5 class="card-header bg-info">Refresh Token</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.refreshToken">
+  <h5 class="card-header bg-primary">Refresh Token</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">

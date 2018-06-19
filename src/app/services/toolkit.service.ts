@@ -24,6 +24,7 @@ export class ToolkitService {
   accessTokenExp;
   idTokenExp;
   refreshTokenExp;
+  expand = false;
 
   authorizationServers;
   oAuthClients = [];
@@ -164,6 +165,25 @@ export class ToolkitService {
       this.widget.session.close();
     }
     this.currentUser = undefined;
+
+    this.http.delete('/demo/tokenstorage/access_token')
+      .subscribe(
+          access => {
+            console.log('Access Token deleted from cookie.');
+            this.http.delete('/demo/tokenstorage/id_token')
+              .subscribe(
+                id => {
+                  console.log('ID Token deleted from cookie');
+                  this.http.delete('/demo/tokenstorage/refresh_token')
+                    .subscribe(
+                      refresh => {
+                        console.log('Refresh Token deleted from cookie.');
+                      }
+                    );
+                }
+              );
+          }
+      );
   }
 
   /**

@@ -10,15 +10,30 @@
   color: #e6e6e6 !important;
 }
 
+.small_black {
+  color: black !important;
+}
+
 .outlined {
   padding-left: 10px;
-  background-color: #777;
+  background-color: #aaa;
   border-radius: 5px;
+  color: black !important;
 }
 
 .card {
   margin-bottom: 10px;
   border-radius: 5px;
+}
+
+.bg-grey {
+  background-color: #8a8a8a;
+}
+
+.json-display {
+  background-color: #cfcfcf;
+  border-radius: 5px;
+  padding: 5px;
 }
 
 .badge {
@@ -62,6 +77,8 @@
 
 .btn {
   line-height: 1;
+  margin: 3px;
+  min-width: 85px;
 }
 
 code {
@@ -112,13 +129,12 @@ code {
 }
 
 div.jsoneditor-outer {
-  height: 500px !important;
+  height: 400px !important;
 }
 
 json-editor>div {
   padding-top: 20px;
   padding-bottom: 10px;
-  height: 100%;
 }
 
 div.jsoneditor-tree {
@@ -126,7 +142,7 @@ div.jsoneditor-tree {
 }
 
 .token-button {
-  width: 100%;
+  width: 130px;
   margin-bottom: 2px;
 }
 
@@ -148,12 +164,17 @@ div.jsoneditor-tree {
 }
 
 .timer {
-  font-size: .75rem;
+  font-size: .9rem;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+.measurements {
+  color: white !important;
 }
 
 .countdown {
   width: 50%;
-  font-size: .75rem;
+  font-size: .9rem;
 }
 
 .countdown[_ngcontent-c3] {

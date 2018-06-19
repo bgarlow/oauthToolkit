@@ -458,11 +458,8 @@ router.delete('/tokens/:authServerId/:clientId/:tokenId', (req, res) => {
       return;
     }
     if (response) {
-      if (response.statusCode === 200) {
-        const tokenArray = JSON.parse(response.body);
-        res.json(response.body)
-      } else {
-        console.error(response.statusCode);
+      if (response.statusCode === 204) {
+        //const tokenArray = JSON.parse(response.body);
         res.json(response);
       }
     }
@@ -525,11 +522,18 @@ router.get('/tokens/:authServerId/:clientId', (req, res) => {
     return;
   }
 
+  const expand = req.query['expand'];
+
   const authServerId = req.params.authServerId;
   const clientId = req.params.clientId;
   const apiKey = req.cookies.state.unsafeApiKey;
   const baseUrl = req.cookies.state.baseUrl;
-  const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens`;
+  let endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens`;
+
+  if (expand === 'scope') {
+    endpoint += '?expand=scope';
+  }
+
   const options = {
     uri: endpoint,
     method: 'GET',
@@ -672,6 +676,9 @@ router.put('/tokenstorage', (req, res) => {
    res.status(200).send();
 });
 
+/*
+* return the specified token type from cookie
+*/
 router.get('/tokenstorage/:token_type', (req, res) => {
 
   const tokenType = req.params['token_type'];
@@ -688,13 +695,15 @@ router.get('/tokenstorage/:token_type', (req, res) => {
   }
 });
 
+/*
+ * delete specified token type from cookie
+ */
 router.delete('/tokenstorage/:token_type', (req, res) => {
 
   const tokenType = req.params.token_type;
 
   res.clearCookie(tokenType);
   res.status(200).send();
-
 });
 
 /**
