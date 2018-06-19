@@ -185,7 +185,7 @@
                     {{toolkit.selectedAuthClientTokens.length}} tokens. Expand token info with expand=scope &nbsp;<input type="checkbox" (change)="getTokens();" [(ngModel)]="toolkit.expand" name="expandRadio{{client.client_id}}" id="expandRadio{{client.client_id}}">
                   </div>
                   <div class="col-sm">
-                    <button class="btn btn-secondary" id="tokensBtn" (click)="revokeAllTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedAuthClientTokens.length > 0">Revoke All</button>
+                    <button class="btn btn-secondary float-right" id="tokensBtn" (click)="revokeAllTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedAuthClientTokens.length > 0">Revoke All</button>
                   </div>
                 </div>
                 <div class="row" *ngFor="let token of toolkit.selectedAuthClientTokens">
@@ -405,16 +405,16 @@
   </div>
 </div>
 <!-- Refresh Token -->
-<div class="card text-light bg-dark" *ngIf="toolkit.refreshToken && toolkit.refreshToken > 0">
-  <h5 class="card-header bg-primary">Refresh Token</h5>
+<div class="card text-light bg-dark" *ngIf="toolkit.refreshToken && toolkit.refreshToken.length > 0">
+  <h5 class="card-header bg-primary">Refresh Token {{toolkit.refreshTokenExp}}</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
         <div class="col-sm-8">
-          <span class="timer">Expires on: {{this.toolkit.refreshTokenExp| date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
+          <span *ngIf="toolkit.refreshTokenExp" class="timer">Expires on: {{this.toolkit.refreshTokenExp| date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
         </div>
         <div class="col-sm-4">
-          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.refreshTokenExp}}"></countdown>
+          <countdown *ngIf="toolkit.refreshTokenExp" class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.refreshTokenExp}}"></countdown>
         </div>
       </div>
       <div class="form-group row">

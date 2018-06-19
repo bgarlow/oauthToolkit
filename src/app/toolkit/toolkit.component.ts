@@ -748,8 +748,13 @@ export class ToolkitComponent implements OnInit {
             this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
               .subscribe(
                 data => {
+
                   const introspectResponse = JSON.parse(data);
-                  this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+                  if (introspectResponse.active === true) {
+                    this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+                  } else {
+                    this.toolkit.refreshTokenExp = undefined;
+                  }
                 }
               );
           }
