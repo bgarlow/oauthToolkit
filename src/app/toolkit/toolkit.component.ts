@@ -410,15 +410,30 @@ export class ToolkitComponent implements OnInit {
   }
 
   /*
-   * TODO: this should also be in toolkit service, not here
+  * TODO: this should also be in toolkit service, not here
    */
   revokeTokenById(token) {
 
-    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${token.id}`)
+    const tokenId = (token.id) ? token.id : token.uid;
+
+    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${tokenId}`)
       .subscribe(
         data => {
           if (data.statusCode === 204) {
             this.successMessage = 'Token revoked.';
+            this.getTokens();
+          }
+        }
+      );
+  }
+
+  revokeAllTokens() {
+
+    this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}`)
+      .subscribe(
+        data => {
+          if (data.statusCode === 204) {
+            this.successMessage = 'All tokens revoked.';
             this.getTokens();
           }
         }
@@ -682,6 +697,7 @@ export class ToolkitComponent implements OnInit {
   }
 
   loadCachedTokens() {
+
     this.toolkit.getCachedToken('id_token')
       .subscribe(
         cachedIdToken => {
@@ -727,7 +743,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getCachedToken('refresh_token')
       .subscribe(
         cachedRefreshToken => {
-          if (cachedRefreshToken) {
+          if (cachedRefreshToken && cachedRefreshToken != 'undefined') {
             this.toolkit.refreshToken = cachedRefreshToken;
             this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
               .subscribe(
@@ -739,7 +755,7 @@ export class ToolkitComponent implements OnInit {
           }
         },
         refreshTokenError => {
-          this.errorMessage = refreshTokenError;
+          //this.errorMessage = refreshTokenError;
         });
   }
 

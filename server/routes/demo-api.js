@@ -36,6 +36,10 @@ router.get('/oktaConfig', (req, res) => {
   res.json(demoConfig);
 });
 
+
+/*
+ * Call the /token endpoint
+ */
 router.post('/token', (req, res) => {
   if (!req.cookies.state.selectedOAuthClientId ) {
     console.log('Missing client ID from state cookie.');
@@ -75,47 +79,6 @@ router.post('/token', (req, res) => {
       }
     }
   });
-});
-
-
-/**
- * OLD VERSION all Okta /token endpoint with configuration info from demo toolkit (not the app itself)
- */
-router.post('/tokenx', (req, res) => {
-   //Instead of using Basic auth, we're going to pass client id and client secret (even if it's empty) as form parameters. That's how we can get a token from a SPA app (that doesn't have a client secret
-   const secret = new Buffer(`${req.body.clientId}:${req.body.clientSecret}`, 'utf8').toString('base64');
-   const authHeader = `Basic ${secret}`;
-
-  const payload = {
-    'grant_type': 'client_credentials',
-    'scope': req.body.scope
-  };
-
-  const options = {
-    url: req.body.endpoint,
-    method: 'POST',
-    headers: {
-      'Authorization': authHeader,
-      'Accept': 'application/json',
-      'Cache-Control': 'no-cache',
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    form: payload
-  };
-
-  request(options, function(error, response, body) {
-    if (error) {
-      console.error(`/token ${error}`);
-    }
-    if (response) {
-      if (response.statusCode === 200) {
-        res.json(response);
-      } else {
-        console.error(`/token ${response.statusCode}`);
-        res.send(response);
-      }
-    }
-  })
 });
 
 /**
@@ -438,10 +401,51 @@ router.delete('/tokens/:authServerId/:clientId/:tokenId', (req, res) => {
 
   const authServerId = req.params.authServerId;
   const clientId = req.params.clientId;
-  const tokenId = req.params.tokenId
+  const tokenId = req.params.tokenId;
   const apiKey = req.cookies.state.unsafeApiKey;
   const baseUrl = req.cookies.state.baseUrl;
   const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens/${tokenId}`;
+  const options = {
+    uri: endpoint,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 204) {
+        //const tokenArray = JSON.parse(response.body);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
+ * Revoke all tokens for auth server/client
+ */
+router.delete('/tokens/:authServerId/:clientId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const authServerId = req.params.authServerId;
+  const clientId = req.params.clientId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/authorizationServers/${authServerId}/clients/${clientId}/tokens`;
   const options = {
     uri: endpoint,
     method: 'DELETE',
@@ -687,13 +691,25 @@ router.get('/tokenstorage/:token_type', (req, res) => {
 
   switch(tokenType) {
     case 'access_token':
-      res.json(req.cookies.access_token);
+      if (req.cookies.access_token) {
+        res.json(req.cookies.access_token);
+      } else {
+        res.status(204).send();
+      }
       break;
     case 'id_token':
-      res.json(req.cookies.id_token);
+      if (req.cookies.id_token) {
+        res.json(req.cookies.id_token);
+      } else {
+        res.status(204).send();
+      }
       break;
     case 'refresh_token':
-      res.json(req.cookies.refresh_token);
+      if (req.cookies.refresh_token) {
+        res.json(req.cookies.refresh_token);
+      } else {
+        res.status(204).send();
+      }
   }
 });
 
@@ -856,7 +872,6 @@ router.get('/authorization-code/callback', (req, res) => {
 
    if (json.refresh_token) {
       res.cookie('refresh_token', json.refresh_token, { httpOnly : true, secure: false });
-     res.status(200).send();
     }
 
     if (json.access_token) {
@@ -885,7 +900,6 @@ router.get('/authorization-code/callback', (req, res) => {
           console.log(err);
           // a validation failed, inspect the error
           res.redirect(`/toolkit#error=${err}.`);
-          return;
         });
     }
 

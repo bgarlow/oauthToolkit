@@ -166,6 +166,9 @@ export class ToolkitService {
     }
     this.currentUser = undefined;
 
+    this.idToken = undefined;
+    this.idTokenExp = undefined;
+
     this.http.delete('/demo/tokenstorage/access_token')
       .subscribe(
           access => {
@@ -480,7 +483,7 @@ export class ToolkitService {
    */
   authenticate(): void {
     this.updateAuthorizeUrl();
-    // call authorize
+    // Redirect to Okta's login page
     window.location.href = this.authorizeUrl;
   }
 

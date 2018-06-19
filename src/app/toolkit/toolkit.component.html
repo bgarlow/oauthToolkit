@@ -184,6 +184,9 @@
                   <div class="col-sm">
                     {{toolkit.selectedAuthClientTokens.length}} tokens. Expand token info with expand=scope &nbsp;<input type="checkbox" (change)="getTokens();" [(ngModel)]="toolkit.expand" name="expandRadio{{client.client_id}}" id="expandRadio{{client.client_id}}">
                   </div>
+                  <div class="col-sm">
+                    <button class="btn btn-secondary" id="tokensBtn" (click)="revokeAllTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedAuthClientTokens.length > 0">Revoke All</button>
+                  </div>
                 </div>
                 <div class="row" *ngFor="let token of toolkit.selectedAuthClientTokens">
                   <div class="col-sm-11">
@@ -401,9 +404,8 @@
     </form>
   </div>
 </div>
-
 <!-- Refresh Token -->
-<div class="card text-light bg-dark" *ngIf="toolkit.refreshToken">
+<div class="card text-light bg-dark" *ngIf="toolkit.refreshToken && toolkit.refreshToken > 0">
   <h5 class="card-header bg-primary">Refresh Token</h5>
   <div class="card-body">
     <form>
