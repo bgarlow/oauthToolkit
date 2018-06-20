@@ -33,6 +33,28 @@ export class ToolkitComponent implements OnInit {
   @ViewChild('profileEditor') appProfileEditor: JsoneditorComponent;
   public profileConfigOptions: JsonEditorOptions;
 
+  /**
+   *
+   */
+  generatePkceStrings() {
+    this.toolkit.getCodeVerifier()
+      .subscribe(
+        data => {
+          this.toolkit.codeVerifier = data.verifier;
+          this.toolkit.getCodeChallenge(this.toolkit.codeVerifier)
+            .subscribe(
+              data => {
+                this.toolkit.codeChallenge = data.challenge;
+              }
+            );
+        }
+      );
+  }
+
+  /**
+   *
+   * @param token
+   */
   getUserInfo(token) {
     this.toolkit.getUserInfo(token)
       .subscribe(
@@ -153,7 +175,8 @@ export class ToolkitComponent implements OnInit {
                 decodedToken => {
                   this.toolkit.decodedAccessToken = decodedToken;
                   this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
-                  this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+                  //this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+                  this.updateUserScopes();
                   if (this.toolkit.supportedScopes) {
                     this.toolkit.getMaxScopeSet();
                   }
@@ -223,11 +246,42 @@ export class ToolkitComponent implements OnInit {
    * update the list of userScopes overlap with auth server scopes, to allow token enrichment
    */
   updateUserScopes() {
-    if (this.toolkit.decodedIdToken) {
-      this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
-    } else {
-      this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+
+    if (this.toolkit.scopesClaim) {
+
+      const scopeClaims = this.toolkit.scopesClaim.split(',');
+      const scopeArray = [];
+
+      for (let i = 0; i < scopeClaims.length; i++) {
+        let currentClaim = scopeClaims[i];
+        if (this.toolkit.decodedIdToken) {
+          let scopeSet = this.toolkit.decodedIdToken[currentClaim];
+        } else {
+          let scopeSet = this.toolkit.decodedAccessToken[currentClaim];
+        }
+        if (scopeSet) {
+          for (let i = 0; i < scopeSet.length; i++) {
+            let currentScope = scopeSet[i];
+            if (!scopeArray.includes(currentScope)) {
+              scopeArray.push(currentScope);
+            }
+          }
+        }
+      }
+
+      this.toolkit.userScopes = scopeArray;
+
+      /*
+      if (this.toolkit.decodedIdToken) {
+        this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+      } else {
+        this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
+      }
+      */
+
+
     }
+
   }
 
   /**
@@ -669,7 +723,8 @@ export class ToolkitComponent implements OnInit {
             this.errorMessage = refreshTokenError;
           });
 
-      this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+      //this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+      this.updateUserScopes();
     }
   }
 
@@ -956,9 +1011,10 @@ export class ToolkitComponent implements OnInit {
               if (fragment) {
                 this.extractTokensFromFragment(fragment);
               } else {
-                if (this.toolkit.decodedIdToken && this.toolkit.scopesClaim) {
-                  this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
-                }
+                //if (this.toolkit.decodedIdToken && this.toolkit.scopesClaim) {
+                //  this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
+                //}
+                this.updateUserScopes();
               }
             },
             fragmentError => {

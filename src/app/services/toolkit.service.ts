@@ -16,6 +16,8 @@ export class ToolkitService {
   scopesClaim;
   menuClaims;
   unsafeApiKey;
+  codeVerifier;
+  codeChallenge;
   accessToken;
   idToken;
   refreshToken;
@@ -141,6 +143,9 @@ export class ToolkitService {
 
   };
 
+  /**
+   *
+   */
   updateWidgetConfig() {
     if (this.widget) {
       this.widget.remove();
@@ -160,6 +165,9 @@ export class ToolkitService {
     this.widget = new OktaSignIn(this.updatedWidgetConfig);
   }
 
+  /**
+   *
+   */
   signout() {
     if (this.widget) {
       this.widget.session.close();
@@ -498,6 +506,22 @@ export class ToolkitService {
     this.updateAuthorizeUrl();
   }
 
+  /**
+   *
+   * @returns {Observable<Object>}
+   */
+  getCodeVerifier() {
+    return this.http.get('/demo/verifier');
+  }
+
+  /**
+   *
+   * @param verifier
+   * @returns {Observable<Object>}
+   */
+  getCodeChallenge(verifier) {
+    return this.http.get(`/demo/challenge/${verifier}`);
+  }
 
   /**
    * Constructor

@@ -5,6 +5,7 @@ const querystring = require('querystring');
 const config = require('../config.js');
 const jws = require('jws');
 const jwk2pem = require('pem-jwk').jwk2pem;
+const crypto = require('crypto');
 
 const cachedJwks = {};    // cache the JWK from Okta the first time, so we don't have to retrieve it on subsequent token validation
 
@@ -36,6 +37,25 @@ router.get('/oktaConfig', (req, res) => {
   res.json(demoConfig);
 });
 
+/**
+ *
+ */
+router.get('/verifier', (req, res) => {
+  const verifier = base64URLEncode(crypto.randomBytes(32));
+  res.json({"verifier": verifier});
+});
+
+/**
+ *
+ */
+router.get('/challenge/:verifier', (req, res) => {
+  const verifier = req.params.verifier;
+  if (verifier) {
+    const challenge = base64URLEncode(sha256(verifier));
+    res.json({"challenge": challenge});
+  }
+  res.json({"error": "missing verifier"});
+});
 
 /*
  * Call the /token endpoint
@@ -917,6 +937,26 @@ router.get('/authorization-code/callback', (req, res) => {
     }
    });
 });
+
+/**
+ *
+ * @param str
+ * @returns {string}
+ */
+function base64URLEncode(str) {
+  return str.toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+}
+
+/**
+ *
+ */
+function sha256(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest();
+}
+
 
 /**
  * Expose the API routes
