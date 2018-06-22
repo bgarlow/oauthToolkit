@@ -113,9 +113,9 @@
             <!-- button column -->
             <div class="col-sm-1">
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
-              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Edit</button>
+              <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile;getSelectedApp();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Edit</button>
               <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Tokens</button>
-              <button class="btn btn-secondary" id="verifierBtn" (click)="generatePkceStrings();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">PKCE</button>
+              <button class="btn btn-secondary" id="verifierBtn" (click)="generatePkceStrings();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">PKCE</button>
             </div>
 
             <!-- data column -->
@@ -170,7 +170,7 @@
               </div>
 
               <!-- PKCE -->
-              <div class="row" *ngIf="toolkit.codeVerifier && client.client_id === toolkit.selectedOAuthClientId">
+              <div class="row" *ngIf="toolkit.codeVerifier && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">
                 <div class="col-sm-3">
                   Code Verifier:
                 </div>
@@ -182,7 +182,7 @@
                   </div>
                 </div>
               </div>
-              <div class="row" *ngIf="toolkit.codeChallenge && client.client_id === toolkit.selectedOAuthClientId">
+              <div class="row" *ngIf="toolkit.codeChallenge && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">
                 <div class="col-sm-3">
                   Code Challenge:
                 </div>
@@ -259,7 +259,7 @@
 
 
 <!-- Sign In Widget -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE">
   <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -281,7 +281,10 @@
 
 <!-- auth endpoint -->
 <div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
-  <h5 class="card-header bg-info">Authorize Endpoint</h5>
+  <div class="card-header  bg-info">
+    <span style="display:inline" class="h5">Authorize Endpoint</span>
+    <span style="display:inline">Use PKCE flow? <input type="checkbox" (change)="toolkit.updateAuthorizeUrl();" [(ngModel)]="toolkit.usePKCE" name="pkceRadio" id="pkceRadio"></span>
+  </div>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -289,6 +292,12 @@
           <div class="json-display"><code>
             {{toolkit.authorizeUrl}}
           </code></div>
+        </div>
+      </div>
+      <div class="form-group row" *ngIf="toolkit.exchangePayload">
+        <div class="col-sm-2">Last Code Exchange</div>
+        <div class="col-sm">
+          <div class="json-display"><pre>{{toolkit.exchangePayload | json}}</pre></div>
         </div>
       </div>
       <div class="form-group row">

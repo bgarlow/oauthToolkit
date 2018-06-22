@@ -6,11 +6,11 @@ const config = require('../config.js');
 const jws = require('jws');
 const jwk2pem = require('pem-jwk').jwk2pem;
 const crypto = require('crypto');
-
 const cachedJwks = {};    // cache the JWK from Okta the first time, so we don't have to retrieve it on subsequent token validation
 
 const OktaJwtVerifier = require('@okta/jwt-verifier');
 
+let tokenPayload;
 
 /* GET api listing. */
 router.get('/', (req, res) => {
@@ -35,6 +35,13 @@ router.get('/oktaConfig', (req, res) => {
   };
 
   res.json(demoConfig);
+});
+
+/**
+ *
+ */
+router.get('/tokenpayload', (req, res) => {
+  res.json(tokenPayload);
 });
 
 /**
@@ -829,16 +836,34 @@ router.get('/authorization-code/callback', (req, res) => {
 
   // Build the token request
   const scopes = req.cookies.state.selectedScopes.join(' ');
-  const payload = {
-    grant_type: req.cookies.state.selectedGrantType,
-    code: req.query.code,
-    client_id: req.cookies.state.selectedOAuthClientId,
-    client_secret: req.cookies.state.unsafeSelectedClientSecret,
-    redirect_uri: req.cookies.state.selectedRedirectUri,
-    scopes: scopes,
-    state: req.cookies.state.state,
-    nonce: req.cookies.state.nonce
-  };
+
+  let payload;
+
+  if (req.cookies.state.usePKCE) {
+    payload = {
+      grant_type: req.cookies.state.selectedGrantType,
+      code: req.query.code,
+      code_verifier: req.cookies.state.codeVerifier,
+      client_id: req.cookies.state.selectedOAuthClientId,
+      redirect_uri: req.cookies.state.selectedRedirectUri,
+      scopes: scopes,
+      state: req.cookies.state.state,
+      nonce: req.cookies.state.nonce
+    };
+  } else {
+    payload = {
+      grant_type: req.cookies.state.selectedGrantType,
+      code: req.query.code,
+      client_id: req.cookies.state.selectedOAuthClientId,
+      client_secret: req.cookies.state.unsafeSelectedClientSecret,
+      redirect_uri: req.cookies.state.selectedRedirectUri,
+      scopes: scopes,
+      state: req.cookies.state.state,
+      nonce: req.cookies.state.nonce
+    };
+  }
+
+  tokenPayload = payload;
 
   const query = querystring.stringify(payload);
   const endpoint = `${req.cookies.state.baseUrl}/oauth2/${req.cookies.state.selectedAuthServerId}/v1/token`;
@@ -956,7 +981,6 @@ function base64URLEncode(str) {
 function sha256(buffer) {
   return crypto.createHash('sha256').update(buffer).digest();
 }
-
 
 /**
  * Expose the API routes

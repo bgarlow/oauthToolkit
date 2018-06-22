@@ -45,6 +45,7 @@ export class ToolkitComponent implements OnInit {
             .subscribe(
               data => {
                 this.toolkit.codeChallenge = data.challenge;
+                this.saveState();
               }
             );
         }
@@ -251,17 +252,19 @@ export class ToolkitComponent implements OnInit {
 
       const scopeClaims = this.toolkit.scopesClaim.split(',');
       const scopeArray = [];
+      let scopeSet;
+      let currentScope;
 
       for (let i = 0; i < scopeClaims.length; i++) {
         let currentClaim = scopeClaims[i];
         if (this.toolkit.decodedIdToken) {
-          let scopeSet = this.toolkit.decodedIdToken[currentClaim];
+          scopeSet = this.toolkit.decodedIdToken[currentClaim];
         } else {
-          let scopeSet = this.toolkit.decodedAccessToken[currentClaim];
+          scopeSet = this.toolkit.decodedAccessToken[currentClaim];
         }
         if (scopeSet) {
           for (let i = 0; i < scopeSet.length; i++) {
-            let currentScope = scopeSet[i];
+            currentScope = scopeSet[i];
             if (!scopeArray.includes(currentScope)) {
               scopeArray.push(currentScope);
             }
@@ -321,7 +324,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.selectedOAuthClient = oauthClient;
     this.getSelectedApp();
 
-    if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
+        if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
       this.toolkit.selectedGrantType = oauthClient.grant_types[0];
     }
 
@@ -420,6 +423,7 @@ export class ToolkitComponent implements OnInit {
         data => {
           if (data['statusCode'] === 200) {
             this.successMessage = data['body'];
+            this.toolkit.selectedApp = data['body'];
 
             this.http.get('/demo/clients/' + oauthClient.client_id)
               .subscribe(
@@ -430,7 +434,7 @@ export class ToolkitComponent implements OnInit {
                   this.toolkit.getClients()
                     .subscribe(
                       clients => {
-                        this.toolkit.oAuthClients = JSON.parse(clients.toString());
+                        this.toolkit.oAuthClients = JSON.parse(clients.body);
                         this.saveState();
                       }
                     );
@@ -577,7 +581,10 @@ export class ToolkitComponent implements OnInit {
         refreshToken: this.toolkit.refreshToken,
         decodedIdToken: this.toolkit.decodedIdToken,
         decodedAccessToken: this.toolkit.decodedAccessToken,
-        refreshTokenExp: this.toolkit.refreshTokenExp
+        refreshTokenExp: this.toolkit.refreshTokenExp,
+        codeVerifier: this.toolkit.codeVerifier,
+        codeChallenge: this.toolkit.codeChallenge,
+        usePKCE: this.toolkit.usePKCE
       }
     };
 
@@ -605,6 +612,9 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
+          this.toolkit.usePKCE = (data['usePKCE']) ? data['usePKCE'] : undefined;
+          this.toolkit.codeVerifier = (data['codeVerifier']) ? data['codeVerifier'] : undefined;
+          this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
@@ -995,7 +1005,6 @@ export class ToolkitComponent implements OnInit {
 
     this.loadState();
     this.loadCachedTokens();
-
     this.toolkit.getAuthorizationServers()
       .subscribe(
         authServers => {
@@ -1045,6 +1054,12 @@ export class ToolkitComponent implements OnInit {
                       this.mapSelectedOAuthClient();
                       this.getSelectedApp();
                       this.toolkit.updateAuthorizeUrl();
+                      this.toolkit.getTokenPayload()
+                        .subscribe(
+                          payload => {
+                            this.toolkit.exchangePayload = payload;
+                          }
+                        );
                     },
                     cacheError => {
                       this.errorMessage = cacheError;

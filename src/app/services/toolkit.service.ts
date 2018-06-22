@@ -27,6 +27,8 @@ export class ToolkitService {
   idTokenExp;
   refreshTokenExp;
   expand = false;
+  usePKCE = false;
+  exchangePayload;
 
   authorizationServers;
   oAuthClients = [];
@@ -408,9 +410,9 @@ export class ToolkitService {
     this.tokenUrlValid = false;
     this.authorizeUrl = '';
     this.tokenUrl = '';
-
     this.state = 'mystate';
     this.nonce = 'mynonce';
+    this.exchangePayload = undefined;
 
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
@@ -434,6 +436,10 @@ export class ToolkitService {
       + this.selectedOAuthClientId
       + '&response_type=' + responseTypes + '&scope=' + scopes + '&redirect_uri=' + this.selectedRedirectUri
       + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
+
+    if (this.usePKCE) {
+      this.authorizeUrl += `&code_challenge_method=S256&code_challenge=${this.codeChallenge}`;
+    }
 
     this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
 
@@ -514,13 +520,17 @@ export class ToolkitService {
     return this.http.get('/demo/verifier');
   }
 
-  /**
+    /**
    *
    * @param verifier
    * @returns {Observable<Object>}
    */
   getCodeChallenge(verifier) {
     return this.http.get(`/demo/challenge/${verifier}`);
+  }
+
+  getTokenPayload() {
+    return this.http.get('/demo/tokenpayload');
   }
 
   /**
