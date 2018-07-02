@@ -420,13 +420,24 @@ export class ToolkitService {
     this.authUrlValid = ((this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined) && this.selectedGrantType !== 'client_credentials';
     this.tokenUrlValid = ((this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined) && (this.selectedGrantType === 'client_credentials' || this.selectedGrantType === 'refresh_token');
 
-    this.tokenPayload = {
-      scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',
-      grant_type: this.selectedGrantType,
-      redirect_uri: this.selectedRedirectUri,
-      client_id: this.selectedOAuthClientId,
-      client_secret: this.selectedOAuthClient.client_secret
-    };
+    if (this.usePKCE) {
+      this.tokenPayload = {
+        scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',
+        grant_type: this.selectedGrantType,
+        redirect_uri: this.selectedRedirectUri,
+        client_id: this.selectedOAuthClientId,
+        code_challenge: this.codeChallenge,
+        code_verifier: this.codeVerifier
+      };
+    } else {
+      this.tokenPayload = {
+        scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',
+        grant_type: this.selectedGrantType,
+        redirect_uri: this.selectedRedirectUri,
+        client_id: this.selectedOAuthClientId,
+        client_secret: this.selectedOAuthClient.client_secret
+      };
+    }
 
     if (this.selectedGrantType === 'refresh_token') {
       this.tokenPayload.refresh_token = this.refreshToken;

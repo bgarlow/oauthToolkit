@@ -10,6 +10,7 @@ export class JsoneditorComponent implements OnInit {
 
   public editorOptions: JsonEditorOptions;
   public data: any;
+  public editor: any;
 
   constructor() {
     this.editorOptions = new JsonEditorOptions();

@@ -269,7 +269,7 @@
         </div>
       </div>
       <div class="form-group row">
-        <div class="col-sm">
+        <div class="col-sm-6">
           <!-- <pre name="widgetConfig">{{toolkit.liveWidgetConfig | json}}</pre> -->
           <json-editor #widgetEditor name="widgetConfigEditor" id="widgetConfigEditor" [options]="widgetConfigOptions" [data]="this.toolkit.liveWidgetConfig"></json-editor>
           <div><button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="resetWidget()">Reset Widget</button></div>
@@ -283,7 +283,7 @@
 <div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
   <div class="card-header  bg-info">
     <span style="display:inline" class="h5">Authorize Endpoint</span>
-    <span style="display:inline">Use PKCE flow? <input type="checkbox" (change)="toolkit.updateAuthorizeUrl();" [(ngModel)]="toolkit.usePKCE" name="pkceRadio" id="pkceRadio"></span>
+    <span style="display:inline">Use PKCE flow? <input type="checkbox" [disabled]="!toolkit.codeVerifier || !toolkit.codeChallenge" (change)="toolkit.updateAuthorizeUrl();" [(ngModel)]="toolkit.usePKCE" name="pkceRadio" id="pkceRadio"></span>
   </div>
   <div class="card-body">
     <form>

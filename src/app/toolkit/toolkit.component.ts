@@ -40,11 +40,11 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getCodeVerifier()
       .subscribe(
         data => {
-          this.toolkit.codeVerifier = data.verifier;
+          this.toolkit.codeVerifier = data['verifier'];
           this.toolkit.getCodeChallenge(this.toolkit.codeVerifier)
             .subscribe(
               data => {
-                this.toolkit.codeChallenge = data.challenge;
+                this.toolkit.codeChallenge = data['challenge'];
                 this.saveState();
               }
             );
@@ -62,7 +62,7 @@ export class ToolkitComponent implements OnInit {
         data => {
           if (data['statusCode'] === 200) {
             this.responseMessage = JSON.parse(data.body.toString());
-            this.responseMessageTitle = "Response from /userinfo endpoint"
+            this.responseMessageTitle = 'Response from /userinfo endpoint';
           } else {
             this.errorMessage = data;
           }
@@ -82,7 +82,7 @@ export class ToolkitComponent implements OnInit {
   revokeToken(token, tokenType) {
     this.toolkit.revokeToken(token, tokenType)
       .subscribe(
-        data => {
+        response => {
           this.toolkit.clearCachedToken(tokenType)
             .subscribe(
               data => {
@@ -118,7 +118,7 @@ export class ToolkitComponent implements OnInit {
               error => {
                 this.errorMessage = error;
               }
-            )
+            );
         },
         error => {
           this.errorMessage = error;
@@ -176,7 +176,6 @@ export class ToolkitComponent implements OnInit {
                 decodedToken => {
                   this.toolkit.decodedAccessToken = decodedToken;
                   this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
-                  //this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
                   this.updateUserScopes();
                   if (this.toolkit.supportedScopes) {
                     this.toolkit.getMaxScopeSet();
@@ -196,7 +195,7 @@ export class ToolkitComponent implements OnInit {
                 });
           } else {
             console.log(data);
-            this.errorMessage = JSON.parse(data['body']);;
+            this.errorMessage = JSON.parse(data['body']);
           }
         }
       );
@@ -273,18 +272,7 @@ export class ToolkitComponent implements OnInit {
       }
 
       this.toolkit.userScopes = scopeArray;
-
-      /*
-      if (this.toolkit.decodedIdToken) {
-        this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
-      } else {
-        this.toolkit.userScopes = (this.toolkit.decodedAccessToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedAccessToken[this.toolkit.scopesClaim] : undefined;
-      }
-      */
-
-
     }
-
   }
 
   /**
@@ -477,7 +465,7 @@ export class ToolkitComponent implements OnInit {
     this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${tokenId}`)
       .subscribe(
         data => {
-          if (data.statusCode === 204) {
+          if (data['statusCode'] === 204) {
             this.successMessage = 'Token revoked.';
             this.getTokens();
           }
@@ -490,7 +478,7 @@ export class ToolkitComponent implements OnInit {
     this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}`)
       .subscribe(
         data => {
-          if (data.statusCode === 204) {
+          if (data['statusCode'] === 204) {
             this.successMessage = 'All tokens revoked.';
             this.getTokens();
           }
@@ -584,7 +572,9 @@ export class ToolkitComponent implements OnInit {
         refreshTokenExp: this.toolkit.refreshTokenExp,
         codeVerifier: this.toolkit.codeVerifier,
         codeChallenge: this.toolkit.codeChallenge,
-        usePKCE: this.toolkit.usePKCE
+        usePKCE: this.toolkit.usePKCE,
+        collapseOAuthClients: this.collapseOAuthClients,
+        collapseAuthServers: this.collapseAuthServers
       }
     };
 
@@ -613,6 +603,8 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
           this.toolkit.usePKCE = (data['usePKCE']) ? data['usePKCE'] : undefined;
+          this.collapseOAuthClients = (data['collapseOAuthClients']) ? data['collapseOAuthClients'] : false;
+          this.collapseAuthServers = (data['collapseAuthServers']) ? data['collapseAuthServers'] : false;
           this.toolkit.codeVerifier = (data['codeVerifier']) ? data['codeVerifier'] : undefined;
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
