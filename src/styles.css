@@ -125,11 +125,11 @@ code {
 .widget-container {
   position: relative;
   float: left;
-  width: 100%;
+  width: 50%;
 }
 
 #okta-sign-in.auth-container.main-container {
-  width: 100%;
+  width: 25%;
 }
 
 div.jsoneditor-outer {

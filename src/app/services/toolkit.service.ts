@@ -174,8 +174,8 @@ export class ToolkitService {
     if (this.widget) {
       this.widget.session.close();
     }
-    this.currentUser = undefined;
 
+    this.currentUser = undefined;
     this.idToken = undefined;
     this.idTokenExp = undefined;
 
@@ -191,6 +191,13 @@ export class ToolkitService {
                     .subscribe(
                       refresh => {
                         console.log('Refresh Token deleted from cookie.');
+                        this.http.get('/demo/clearcookies')
+                          .subscribe(
+                            response => {
+                              console.log(response);
+                              console.log('state and nonce cookies deleted');
+                            }
+                          );
                       }
                     );
                 }
@@ -410,12 +417,21 @@ export class ToolkitService {
     this.tokenUrlValid = false;
     this.authorizeUrl = '';
     this.tokenUrl = '';
-    this.state = 'mystate';
-    this.nonce = 'mynonce';
     this.exchangePayload = undefined;
+
+    if (!this.state) {
+      this.state = `youdidntgivemeastatevalue`;
+    }
+
+    if (!this.nonce) {
+      this.nonce = Date.now();
+    }
+
 
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
+
+    const sessionToken = '';
 
     this.authUrlValid = ((this.baseUrl && this.selectedAuthServerId && this.selectedOAuthClientId && responseTypes && scopes && this.selectedRedirectUri && this.state && this.nonce) !== undefined) && this.selectedGrantType !== 'client_credentials';
     this.tokenUrlValid = ((this.baseUrl && this.selectedAuthServerId && responseTypes && scopes && this.state && this.nonce && this.selectedOAuthClient && this.selectedOAuthClient.client_secret) !== undefined) && (this.selectedGrantType === 'client_credentials' || this.selectedGrantType === 'refresh_token');
@@ -435,7 +451,7 @@ export class ToolkitService {
         grant_type: this.selectedGrantType,
         redirect_uri: this.selectedRedirectUri,
         client_id: this.selectedOAuthClientId,
-        client_secret: this.selectedOAuthClient.client_secret
+        client_secret: (this.selectedOAuthClient && this.selectedOAuthClient.client_secret) ? this.selectedOAuthClient.client_secret : undefined
       };
     }
 
@@ -446,7 +462,8 @@ export class ToolkitService {
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId
       + '&response_type=' + responseTypes + '&scope=' + scopes + '&redirect_uri=' + this.selectedRedirectUri
-      + '&state=' + this.state + '&nonce=' + this.nonce; // + '&sessionToken=' + this.sessionToken;
+      + '&state=' + this.state
+      + '&nonce=' + this.nonce;
 
     if (this.usePKCE) {
       this.authorizeUrl += `&code_challenge_method=S256&code_challenge=${this.codeChallenge}`;
@@ -478,15 +495,15 @@ export class ToolkitService {
     if (this.authUrlValid) {
       this.updateWidgetConfig();
     }
-
   }
+
+
 
   /**
    *  Clear out response messages
    *  TODO: rename this method
    */
   clearLocalTokens() {
-    //this.userInfo = undefined;
     this.userScopes = undefined;
   }
 

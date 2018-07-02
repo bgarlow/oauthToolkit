@@ -18,9 +18,9 @@
         <div class="col-sm-1">SCP claim(s)</div>
         <div class="col-sm-2"><textarea class="form-control copy-area" type="text" name="scopesClaim" [(ngModel)]="toolkit.scopesClaim" (blur)="updateUserScopes()" placeholder="Name of claim identifying scopes"></textarea></div>
         <div class="col-sm-1">State</div>
-        <div class="col-sm-2"><input class="form-control" type="text" name="thestate" [(ngModel)]="toolkit.state" placeholder="state"></div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="thestate" [(ngModel)]="toolkit.state" placeholder="state" (change)="updateOauthCookies();"></div>
         <div class="col-sm-1">Nonce</div>
-        <div class="col-sm-2"><input class="form-control" type="text" name="nonce" [(ngModel)]="toolkit.nonce" placeholder="nonce"></div>
+        <div class="col-sm-2"><input class="form-control" type="text" name="nonce" [(ngModel)]="toolkit.nonce" placeholder="nonce" (change)="updateOauthCookies();"></div>
       </div>
     </form>
   </div>
@@ -106,7 +106,7 @@
   </div>
 
   <div class="card-body">
-    <form>
+    <form id="oauthClientForm" name="oauthClientForm">
       <div *ngFor="let client of toolkit.oAuthClients">
         <div class="form-group row unselected-row" [ngClass]="{'current-selection-row': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" *ngIf="((toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId) && collapseOAuthClients) || !collapseOAuthClients">
 
@@ -134,7 +134,6 @@
                   <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
                 </div>
               </div>
-
 
               <div class="row">
                 <div class="col-sm-3">

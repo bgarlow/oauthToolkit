@@ -45,6 +45,7 @@ export class ToolkitComponent implements OnInit {
             .subscribe(
               data => {
                 this.toolkit.codeChallenge = data['challenge'];
+                this.toolkit.usePKCE = true;
                 this.saveState();
               }
             );
@@ -312,7 +313,7 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.selectedOAuthClient = oauthClient;
     this.getSelectedApp();
 
-        if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
+    if (!this.toolkit.selectedGrantType || !oauthClient.grant_types.includes(this.toolkit.selectedGrantType)) {
       this.toolkit.selectedGrantType = oauthClient.grant_types[0];
     }
 
@@ -327,6 +328,8 @@ export class ToolkitComponent implements OnInit {
         selected: true
       });
     }
+
+    this.toolkit.usePKCE = (this.toolkit.selectedOAuthClient.application_type === 'native') ? true : false;
 
     this.toolkit.unsafeSelectedClientSecret = oauthClient.client_secret;
 
@@ -512,7 +515,12 @@ export class ToolkitComponent implements OnInit {
    * Set the app and app profile based on the App that corrresponds with the selected OAuth client
    */
   getSelectedApp() {
-    this.toolkit.getSelectedApp()
+
+    if (!this.toolkit.selectedOAuthClient) {
+      return undefined;
+    }
+
+   this.toolkit.getSelectedApp()
       .subscribe(
         data => {
           this.toolkit.selectedApp = JSON.parse(data['body'].toString());
@@ -588,8 +596,11 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/state')
       .subscribe(
         data => {
-          if (data === null) return;
+          if (data === null) { return };
 
+          this.toolkit.state = (data['state']) ? data['state'] : undefined;
+          this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
+          this.updateOauthCookies();
           this.toolkit.baseUrl = (data['baseUrl']) ? data['baseUrl'] : undefined;
           this.toolkit.unsafeApiKey = (data['unsafeApiKey']) ? data['unsafeApiKey'] : undefined;
           this.toolkit.selectedAuthServerId = (data['selectedAuthServerId']) ? data['selectedAuthServerId'] : undefined; // this.toolkit.authorizationServers[0];
@@ -599,8 +610,6 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.selectedGrantType = (data['selectedGrantType']) ? data['selectedGrantType'] : undefined; // this.toolkit.oAuthClients[0].grant_types[0];
           this.toolkit.selectedResponseType = (data['selectedResponseType']) ? data['selectedResponseType'] : undefined; // this.toolkit.oAuthClients[0].response_types[0];
           this.toolkit.selectedRedirectUri = (data['selectedRedirectUri']) ? data['selectedRedirectUri'] : undefined; // this.toolkit.oAuthClients[0].redirect_uris[0];
-          this.toolkit.state = (data['state']) ? data['state'] : undefined;
-          this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
           this.toolkit.scopesClaim = (data['scopesClaim']) ? data['scopesClaim'] : undefined;
           this.toolkit.usePKCE = (data['usePKCE']) ? data['usePKCE'] : undefined;
           this.collapseOAuthClients = (data['collapseOAuthClients']) ? data['collapseOAuthClients'] : false;
@@ -630,17 +639,38 @@ export class ToolkitComponent implements OnInit {
 
   // Utility functions
 
+  /**
+   *
+   */
+  updateOauthCookies() {
+    this.http.put('/demo/oauthstate', {'state': this.toolkit.state})
+      .subscribe(
+        stateResponse => {
+          this.http.put('/demo/oauthnonce', {'nonce': this.toolkit.nonce})
+            .subscribe(
+              nonceResponse => {
+                this.toolkit.updateAuthorizeUrl();
+              }
+            );
+        }
+      );
+  }
+
+  /**
+   *
+   */
   authenticate() {
     this.errorMessage = undefined;
+    this.updateOauthCookies();
     this.saveState()
       .subscribe(
         data => {
           this.toolkit.authenticate();
         },
-      error => {
+        error => {
           this.errorMessage = error;
-      });
-  }
+        });
+   }
 
   /**
    * Extract tokens from URL fragment on redirect from Okta
@@ -1068,6 +1098,7 @@ export class ToolkitComponent implements OnInit {
                     this.toolkit.widget.session.get((response) => {
                       if (response.status !== 'INACTIVE') {
                         this.toolkit.currentUser = response.login;
+
                         //this.toolkit.widget.getWithoutPrompt();
                         this.showLogin();
                         // get out tokens?

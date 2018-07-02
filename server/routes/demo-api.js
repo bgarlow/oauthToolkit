@@ -111,7 +111,18 @@ router.post('/token', (req, res) => {
 /**
  * Call the /logout endpoint of the selected auth server
  */
-router.post('/logout', (req, res) => {
+router.get('/logout', (req, res) => {
+
+});
+
+/**
+ * Clear the state and nonce cookies from the /authorize endpoint response
+ */
+router.get('/clearcookies', (req, res) => {
+  res.clearCookie('okta-oauth-state');
+  res.clearCookie('okta-oauth-nonce');
+  res.clearCookie('okta-oauth-redirect-params');
+  res.status(200).send();
 });
 
 /**
@@ -695,6 +706,26 @@ router.get('/clients', (req, res) => {
       }
     }
   });
+});
+
+/**
+ * Set okta-oauth-state cookie if not using Okta sign-in-widget
+ */
+router.put('/oauthstate', (req, res) => {
+  const state = req.body.state;
+
+  res.cookie('okta-oauth-state', state, { httpOnly : true, secure: false });
+  res.status(200).send();
+});
+
+/**
+ * Set okta-oauth-nonce cookie if not using Okta sign-in-widget
+ */
+router.put('/oauthnonce', (req, res) => {
+  const nonce = req.body.nonce;
+
+  res.cookie('okta-oauth-nonce', nonce, { httpOnly : true, secure: false });
+  res.status(200).send();
 });
 
 /**
