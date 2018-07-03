@@ -336,7 +336,8 @@ export class ToolkitComponent implements OnInit {
     this.saveState()
       .subscribe(
         data => {
-          this.toolkit.updateAuthorizeUrl();
+          this.updateAuthConfig();
+          //this.toolkit.updateAuthorizeUrl();
         },
         error => {
           this.errorMessage = error;
@@ -524,7 +525,6 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           this.toolkit.selectedApp = JSON.parse(data['body'].toString());
-          //this.toolkit.selectedAppProfile = this.toolkit.selectedApp.profile ? JSON.stringify(this.toolkit.selectedApp.profile, undefined, 2) : JSON.stringify({}, undefined, 2);
           if (this.appProfileEditor) {
             this.appProfileEditor.data = this.toolkit.selectedApp;
           }
@@ -535,6 +535,9 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  /**
+   *
+   */
   saveConfig() {
     this.saveState()
       .subscribe(

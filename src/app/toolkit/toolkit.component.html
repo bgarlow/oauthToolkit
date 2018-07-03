@@ -41,7 +41,7 @@
             <div class="row">
               <div class="col-sm-1">
                 <button class="btn btn-primary" (click)="selectAuthServer(authServer)" *ngIf="!toolkit.selectedAuthServerId || authServer.id != toolkit.selectedAuthServerId">Select</button>
-                <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
+                <button class="btn btn-primary" (click)="this.toolkit.selectedScopes = undefined; this.toolkit.userScopes = undefined;" *ngIf="toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId">clr scp</button>
               </div>
               <div class="col-sm-3">
                 <span class="list-item-subject" [ngClass]="{'current-selection': toolkit.selectedAuthServerId && authServer.id === toolkit.selectedAuthServerId}">{{authServer.name}}</span>
@@ -258,7 +258,7 @@
 
 
 <!-- Sign In Widget -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && toolkit.selectedGrantType != 'client_credentials'">
   <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -269,7 +269,6 @@
       </div>
       <div class="form-group row">
         <div class="col-sm-6">
-          <!-- <pre name="widgetConfig">{{toolkit.liveWidgetConfig | json}}</pre> -->
           <json-editor #widgetEditor name="widgetConfigEditor" id="widgetConfigEditor" [options]="widgetConfigOptions" [data]="this.toolkit.liveWidgetConfig"></json-editor>
           <div><button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="updateWidget()">Update Widget</button><button class="btn btn-primary" (click)="resetWidget()">Reset Widget</button></div>
         </div>
@@ -295,6 +294,7 @@
       </div>
       <div class="form-group row" *ngIf="toolkit.exchangePayload">
         <div class="col-sm-2">Last Code Exchange</div>
+        <div class="col-sm-1"><button class="btn btn-secondary" (click)="toolkit.exchangePayload = undefined">Clear</button></div>
         <div class="col-sm">
           <div class="json-display"><pre>{{toolkit.exchangePayload | json}}</pre></div>
         </div>
@@ -311,7 +311,7 @@
   </div>
 </div>
 <!-- token endpoint -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'client_credentials' || toolkit.selectedGrantType === 'refresh_token')">
   <h5 class="card-header bg-info">Token Endpoint</h5>
   <div class="card-body">
     <form>
@@ -491,7 +491,7 @@
       <div><pre>{{successMessage | json}}</pre></div>
     </div>
     <div>
-      <button class="btn btn-primary" (click)="successMessage = undefined">Clear</button>
+      <button class="btn btn-primary" (click)="saveState();successMessage = undefined;">Clear</button>
     </div>
   </div>
 </div>

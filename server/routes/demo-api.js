@@ -3,8 +3,8 @@ const router = express.Router();
 const request = require('request');
 const querystring = require('querystring');
 const config = require('../config.js');
-const jws = require('jws');
-const jwk2pem = require('pem-jwk').jwk2pem;
+//const jws = require('jws');
+//const jwk2pem = require('pem-jwk').jwk2pem;
 const crypto = require('crypto');
 const cachedJwks = {};    // cache the JWK from Okta the first time, so we don't have to retrieve it on subsequent token validation
 
