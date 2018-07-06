@@ -329,7 +329,7 @@ export class ToolkitComponent implements OnInit {
       });
     }
 
-    this.toolkit.usePKCE = (this.toolkit.selectedOAuthClient.application_type === 'native') ? true : false;
+    this.toolkit.usePKCE = (this.toolkit.selectedOAuthClient.application_type === 'native' && this.toolkit.selectedGrantType === 'code') ? true : false;
 
     this.toolkit.unsafeSelectedClientSecret = oauthClient.client_secret;
 
@@ -659,6 +659,95 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  getTokenFromProxy() {
+
+    this.toolkit.getTokenFromProxy()
+      .subscribe(
+        response => {
+          if (response.statusCode === 200) {
+            this.toolkit.getProxyPayload()
+              .subscribe(
+                payload => {
+                  this.toolkit.proxyPayload = payload;
+                }
+              );
+            const body = JSON.parse(response.body);
+
+            if (body.id_token) {
+              this.toolkit.idToken = body.id_token;
+
+              this.toolkit.parseJwt(this.toolkit.idToken)
+                .subscribe(
+                  decodedToken => {
+                    this.toolkit.decodedIdToken = decodedToken;
+                    this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
+                    this.toolkit.idTokenExp = new Date(this.toolkit.decodedIdToken.exp * 1000);
+                  },
+                  error => {
+                    this.errorMessage = error;
+                  });
+
+              this.toolkit.cacheToken(this.toolkit.idToken, 'id_token')
+                .subscribe(
+                  cachedIDToken => {
+                    this.successMessage = 'ID Token cached. ';
+                  },
+                  idTokenError => {
+                    this.errorMessage = idTokenError;
+                  });
+            }
+
+            if (body.access_token) {
+              this.toolkit.accessToken = body.access_token;
+
+              this.toolkit.parseJwt(this.toolkit.accessToken)
+                .subscribe(
+                  decodedToken => {
+                    this.toolkit.decodedAccessToken = decodedToken;
+                    this.toolkit.accessTokenExp = new Date(this.toolkit.decodedAccessToken.exp * 1000);
+                  },
+                  error => {
+                    this.errorMessage = error;
+                  });
+
+              this.toolkit.cacheToken(this.toolkit.accessToken, 'access_token')
+                .subscribe(
+                  cachedAccesstoken => {
+                    this.successMessage += 'Access Token cached. ';
+                  },
+                  accessTokenError => {
+                    this.errorMessage = accessTokenError;
+                  });
+
+              if (body.refresh_token) {
+                this.toolkit.refreshToken = body.refresh_token;
+                this.toolkit.introspectToken(this.toolkit.refreshToken, 'refresh_token')
+                  .subscribe(
+                    data => {
+                      const introspectResponse = JSON.parse(data);
+                      this.toolkit.refreshTokenExp = new Date(introspectResponse.exp * 1000);
+                    }
+                  );
+              }
+
+              this.toolkit.cacheToken(this.toolkit.refreshToken, 'refresh_token')
+                .subscribe(
+                  cachedRefreshToken => {
+                    this.successMessage += 'Refresh Token cached. ';
+                  },
+                  refreshTokenError => {
+                    this.errorMessage = refreshTokenError;
+                  });
+
+              this.updateUserScopes();
+            }
+
+          } else {
+            this.errorMessage = response.body;
+          }
+        });
+  }
+
   /**
    *
    */
@@ -758,7 +847,6 @@ export class ToolkitComponent implements OnInit {
             this.errorMessage = refreshTokenError;
           });
 
-      //this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
       this.updateUserScopes();
     }
   }

@@ -29,6 +29,8 @@ export class ToolkitService {
   expand = false;
   usePKCE = false;
   exchangePayload;
+  username;
+  password;
 
   authorizationServers;
   oAuthClients = [];
@@ -36,6 +38,8 @@ export class ToolkitService {
   metadataEndpoint;
   authorizeUrl;
   tokenUrl;
+  proxyUrl;
+  proxyPayload;
   tokenPayload;
   authUrlValid;
   tokenUrlValid;
@@ -497,8 +501,6 @@ export class ToolkitService {
     }
   }
 
-
-
   /**
    *  Clear out response messages
    *  TODO: rename this method
@@ -530,12 +532,30 @@ export class ToolkitService {
   }
 
   /**
+   *
+   */
+  getTokenFromProxy(): Observable<any> {
+
+    const payload = {
+      username: this.username,
+      password: this.password,
+      scope: (this.selectedScopes) ? this.selectedScopes.join(' ') : '',
+      grant_type: this.selectedGrantType,
+      client_id: this.selectedOAuthClientId,
+    };
+
+    if (this.selectedGrantType === 'refresh_token') {
+      payload['refresh_token'] = this.refreshToken;
+    }
+
+    return this.http.post('/demo/tokenproxy', payload);
+  }
+
+  /**
    * Request a new access token with expanded scopes
    */
   rescopeToken(): void {
     this.getMaxScopeSet();
-    //const newScopes = this.selectedScopes.concat(this.maxScopeSet);
-    //this.selectedScopes = Array.from(new Set(newScopes));
     this.selectedScopes = this.maxScopeSet;
     this.updateAuthorizeUrl();
   }
@@ -559,6 +579,10 @@ export class ToolkitService {
 
   getTokenPayload() {
     return this.http.get('/demo/tokenpayload');
+  }
+
+  getProxyPayload() {
+    return this.http.get('/demo/proxypayload');
   }
 
   /**

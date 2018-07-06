@@ -11,6 +11,7 @@ const cachedJwks = {};    // cache the JWK from Okta the first time, so we don't
 const OktaJwtVerifier = require('@okta/jwt-verifier');
 
 let tokenPayload;
+let proxyPayload;
 
 /* GET api listing. */
 router.get('/', (req, res) => {
@@ -44,6 +45,10 @@ router.get('/tokenpayload', (req, res) => {
   res.json(tokenPayload);
 });
 
+router.get('/proxypayload', (req, res) => {
+  res.json(proxyPayload);
+});
+
 /**
  *
  */
@@ -63,6 +68,7 @@ router.get('/challenge/:verifier', (req, res) => {
   }
   res.json({"error": "missing verifier"});
 });
+
 
 /*
  * Call the /token endpoint
@@ -99,6 +105,57 @@ router.post('/token', (req, res) => {
     }
     if (response) {
       if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+
+/*
+ * Proxy the call to the /token endpoint
+ */
+router.post('/tokenproxy', (req, res) => {
+
+  if (!req.cookies.state.selectedOAuthClientId ) {
+    console.log('Missing client ID from state cookie.');
+    res.status(500).send('Missing client ID from state cookie.');
+    return;
+  }
+
+  if (!req.cookies.state.selectedAuthServerId) {
+    console.log('Missing Auth Server ID.');
+    res.status(500).send('Missing Auth Server ID.');
+    return;
+  }
+
+  const payload = req.body;
+
+  payload['client_secret'] = 'x-AZu0lO5egXdl7Qa_kgNow9_KAxZJUvErYm-M4A';
+
+  proxyPayload = payload;
+
+  const options = {
+    uri: req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1/token',
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        // TODO: need to validate the ID token here
         res.json(response);
       } else {
         console.error(response.statusCode);

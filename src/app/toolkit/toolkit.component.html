@@ -115,7 +115,7 @@
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
               <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile;getSelectedApp();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Edit</button>
               <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Tokens</button>
-              <button class="btn btn-secondary" id="verifierBtn" (click)="generatePkceStrings();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">PKCE</button>
+              <button class="btn btn-secondary" id="verifierBtn" (click)="generatePkceStrings();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native' && toolkit.selectedGrantType != 'password'">PKCE</button>
             </div>
 
             <!-- data column -->
@@ -140,7 +140,7 @@
                   <div class="btn-toolbar" role="group">
                     <div class="row" *ngFor="let responseType of client.response_types">
                       <div class="col-sm">
-                        <button class="btn btn-sm btn-outline-secondary" *ngIf="client.client_id === toolkit.selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
+                        <button class="btn btn-sm btn-outline-secondary" [disabled]="toolkit.selectedGrantType === 'password'" *ngIf="client.client_id === toolkit.selectedOAuthClientId" [ngClass]="{'active': isSelectedType(responseType)}" (click)="selectResponseType(responseType.toString())">{{responseType}}</button>
                         <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{responseType}}</span>
                       </div>
                     </div>
@@ -160,7 +160,7 @@
                   <div class="btn-toolbar" role="group">
                     <div class="row" *ngFor="let uri of client.redirect_uris">
                       <div class="col-sm">
-                        <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
+                        <button *ngIf="client.client_id === toolkit.selectedOAuthClientId" [disabled]="toolkit.selectedGrantType === 'password'" class="btn btn-sm btn-outline-secondary" (click)="selectRedirectUri(uri)" [ngClass]="{'active': toolkit.selectedRedirectUri && uri === toolkit.selectedRedirectUri}">{{uri}}</button>
                         <span class="small" *ngIf="client.client_id != toolkit.selectedOAuthClientId">{{uri}}</span>
                       </div>
                     </div>
@@ -169,7 +169,7 @@
               </div>
 
               <!-- PKCE -->
-              <div class="row" *ngIf="toolkit.codeVerifier && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">
+              <div class="row" *ngIf="toolkit.codeVerifier && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native' && toolkit.selectedGrantType != 'password'">
                 <div class="col-sm-3">
                   Code Verifier:
                 </div>
@@ -181,7 +181,7 @@
                   </div>
                 </div>
               </div>
-              <div class="row" *ngIf="toolkit.codeChallenge && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native'">
+              <div class="row" *ngIf="toolkit.codeChallenge && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native' && toolkit.selectedGrantType != 'password'">
                 <div class="col-sm-3">
                   Code Challenge:
                 </div>
@@ -256,9 +256,8 @@
   </div>
 </div>
 
-
 <!-- Sign In Widget -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && toolkit.selectedGrantType != 'client_credentials'">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && (toolkit.selectedGrantType != 'client_credentials' && toolkit.selectedGrantType != 'password')">
   <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -332,6 +331,37 @@
           <div class="btn-group" role="group">
             <button class="btn btn-primary" [disabled]="!toolkit.tokenUrlValid" (click)="getToken();" [ngClass]="{'btn-danger': !toolkit.tokenUrlValid}">Get Token</button>
             <button class="btn btn-primary" [disabled]="!toolkit.tokenUrlValid || !toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.tokenUrlValid || !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Resource Owner Password -->
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && (toolkit.selectedGrantType === 'password' || toolkit.selectedGrantType === 'refresh_token')">
+  <h5 class="card-header bg-info">Resource Owner Password Grant (through Proxy)</h5><small>Note: the sample proxy should validate the ID token</small>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm-1">Username:</div>
+        <div class="col-sm-2"><input type="text" class="form-control" name="username" [(ngModel)]="toolkit.username" placeholder="Username"></div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-1">Password:</div>
+        <div class="col-sm-2"><input type="text" class="form-control" name="username" [(ngModel)]="toolkit.password" placeholder="Password"></div>
+      </div>
+      <div class="form-group row" *ngIf="toolkit.proxyPayload">
+        <div class="col-sm-2">Last Proxy Payload</div>
+        <div class="col-sm-1"><button class="btn btn-secondary" (click)="toolkit.proxyPayload = undefined">Clear</button></div>
+        <div class="col-sm">
+          <div class="json-display"><pre>{{toolkit.proxyPayload | json}}</pre></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          <div class="btn-group" role="group">
+            <button class="btn btn-primary" [disabled]="toolkit.selectedGrantType != 'password'" (click)="getTokenFromProxy();" [ngClass]="{'btn-danger': toolkit.selectedGrantType != 'password'}">Get Token (Proxy)</button>
+            <button class="btn btn-primary" [disabled]="toolkit.selectedGrantType != 'password' || !toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
           </div>
         </div>
       </div>
