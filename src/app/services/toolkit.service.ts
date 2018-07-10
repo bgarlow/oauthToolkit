@@ -172,42 +172,54 @@ export class ToolkitService {
   }
 
   /**
-   *
+   * Clear out our token cookie cache
    */
-  signout() {
+  clearCache() {
+
+    // TODO Today: move this
     if (this.widget) {
       this.widget.session.close();
     }
 
-    this.currentUser = undefined;
-    this.idToken = undefined;
-    this.idTokenExp = undefined;
-
     this.http.delete('/demo/tokenstorage/access_token')
       .subscribe(
-          access => {
-            console.log('Access Token deleted from cookie.');
-            this.http.delete('/demo/tokenstorage/id_token')
-              .subscribe(
-                id => {
-                  console.log('ID Token deleted from cookie');
-                  this.http.delete('/demo/tokenstorage/refresh_token')
-                    .subscribe(
-                      refresh => {
-                        console.log('Refresh Token deleted from cookie.');
-                        this.http.get('/demo/clearcookies')
-                          .subscribe(
-                            response => {
-                              console.log(response);
-                              console.log('state and nonce cookies deleted');
-                            }
-                          );
-                      }
-                    );
-                }
-              );
-          }
+        access => {
+          console.log('Access Token deleted from cookie.');
+          this.http.delete('/demo/tokenstorage/id_token')
+            .subscribe(
+              id => {
+                console.log('ID Token deleted from cookie');
+                this.http.delete('/demo/tokenstorage/refresh_token')
+                  .subscribe(
+                    refresh => {
+                      console.log('Refresh Token deleted from cookie.');
+                      this.http.get('/demo/clearcookies')
+                        .subscribe(
+                          response => {
+                            console.log(response);
+                            console.log('state and nonce cookies deleted');
+                            this.currentUser = undefined;
+                            this.idToken = undefined;
+                            this.idTokenExp = undefined;
+                          }
+                        );
+                    }
+                  );
+              }
+            );
+        }
       );
+  }
+
+  /**
+   *
+   */
+  signout(): Observable<any> {
+
+    const payload = {
+      idToken: this.idToken
+    };
+    return this.http.post('/demo/logout/', payload);
   }
 
   /**

@@ -1019,9 +1019,15 @@ export class ToolkitComponent implements OnInit {
    * close widget session
    */
   logout() {
-    this.revokeToken(this.toolkit.accessToken, 'access_token');
-    this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
-    this.toolkit.signout();
+    this.toolkit.signout()
+      .subscribe(
+          signoutResponse => {
+            console.log('signoutResponse:');
+            console.log(signoutResponse);
+            this.revokeToken(this.toolkit.accessToken, 'access_token');
+            this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
+            this.toolkit.clearCache();
+          });
   }
 
   /**

@@ -257,7 +257,7 @@
 </div>
 
 <!-- Sign In Widget -->
-<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && (toolkit.selectedGrantType != 'client_credentials' && toolkit.selectedGrantType != 'password')">
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && toolkit.selectedOAuthClient.application_type != 'native' && (toolkit.selectedGrantType != 'client_credentials' && toolkit.selectedGrantType != 'password')">
   <h5 class="card-header bg-info">Sign in Widget</h5>
   <div class="card-body">
     <form>
@@ -360,8 +360,8 @@
       <div class="form-group row">
         <div class="col-sm">
           <div class="btn-group" role="group">
-            <button class="btn btn-primary" [disabled]="toolkit.selectedGrantType != 'password'" (click)="getTokenFromProxy();" [ngClass]="{'btn-danger': toolkit.selectedGrantType != 'password'}">Get Token (Proxy)</button>
-            <button class="btn btn-primary" [disabled]="toolkit.selectedGrantType != 'password' || !toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
+            <button class="btn btn-primary" [disabled]="(toolkit.selectedGrantType != 'password' && toolkit.selectedGrantType != 'refresh_token')" (click)="getTokenFromProxy();toolkit.password = undefined;" [ngClass]="{'btn-danger': (toolkit.selectedGrantType != 'password' && toolkit.selectedGrantType != 'refresh_token')}">Get Token (Proxy)</button>
+            <!--<button class="btn btn-primary" [disabled]="toolkit.selectedGrantType != 'password' || !toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button> -->
           </div>
         </div>
       </div>

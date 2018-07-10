@@ -168,8 +168,30 @@ router.post('/tokenproxy', (req, res) => {
 /**
  * Call the /logout endpoint of the selected auth server
  */
-router.get('/logout', (req, res) => {
+router.post('/logout', (req, res) => {
 
+  const baseUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1';
+  const idToken = req.body.idToken;
+  const endpoint = `${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=http://localhost:4200`;
+
+  const options = {
+    uri: endpoint,
+    method: 'GET'
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
 });
 
 /**
