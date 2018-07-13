@@ -160,7 +160,8 @@ export class ToolkitService {
     /* TODO: update the rest of the config stuff */
     this.updatedWidgetConfig = this.liveWidgetConfig;
     this.selectedScopes = this.liveWidgetConfig.authParams.scopes;
-    this.selectedAuthServerId = this.liveWidgetConfig.authParams.issuer;
+    let issuer = this.liveWidgetConfig.authParams.issuer;
+    this.selectedAuthServerId = issuer.substring(issuer.lastIndexOf('/') + 1, issuer.length);
     this.selectedOAuthClientId = this.liveWidgetConfig.clientId;
     this.initWidget();
   }
@@ -490,7 +491,7 @@ export class ToolkitService {
     this.updatedWidgetConfig.baseUrl = this.baseUrl;
     this.updatedWidgetConfig.clientId = this.selectedOAuthClientId;
     this.updatedWidgetConfig.redirectUri = this.selectedRedirectUri;
-    this.updatedWidgetConfig.authParams.issuer = this.selectedAuthServerId;
+    this.updatedWidgetConfig.authParams.issuer = `${this.baseUrl}/oauth2/${this.selectedAuthServerId}`; // this.selectedAuthServerId; ** Change
     this.updatedWidgetConfig.authParams.responseType = this.getResponseTypeIdentifiers();
     this.updatedWidgetConfig.authParams.scopes = this.selectedScopes;
     this.updatedWidgetConfig.authParams.state = this.state;

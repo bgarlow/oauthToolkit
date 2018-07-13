@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const request = require('request');
+//const request = require('request');
+
+const request = require('request').defaults({
+  strictSSL: true,
+  rejectUnauthorized: true
+});
+
 const querystring = require('querystring');
 const config = require('../config.js');
 //const jws = require('jws');
@@ -1029,6 +1035,19 @@ router.get('/authorization-code/callback', (req, res) => {
       res.cookie('refresh_token', json.refresh_token, { httpOnly : true, secure: false });
     }
 
+    // This block is temporary, until I fix the invalid leaf problem //
+    /*
+    if (json.access_token) {
+      res.cookie('access_token', json.access_token, {httpOnly: true, secure: false});
+    }
+    if (json.id_token) {
+      res.cookie('id_token', json.id_token, { httpOnly : true, secure: false });
+    }
+    res.redirect(302, '/toolkit');
+    // end temporary block
+    */
+
+
     if (json.access_token) {
       oktaAccessTokenVerifier.verifyAccessToken(json.access_token)
         .then(jwt => {
@@ -1070,6 +1089,7 @@ router.get('/authorization-code/callback', (req, res) => {
           res.redirect(`/toolkit#error=${err}.`);
         });
     }
+
    });
 });
 
