@@ -1,5 +1,6 @@
 const dotenv = require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 
@@ -19,7 +20,15 @@ let  config = {};
 
 console.log(`Okta tenant:  ${process.env.OKTA_TENANT}`);
 
+// Point static path to dist
+app.use(express.static(path.join(__dirname, 'dist')));
+
 app.use('/api', api);
 app.use('/demo', demoApi);
+
+// Catch all other routes and return the index file
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist/index.html'));
+});
 
 app.listen(3000, () => console.log('Example app running on port 3000'));

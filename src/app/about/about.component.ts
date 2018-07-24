@@ -11,7 +11,7 @@ import { ActivatedRoute } from '@angular/router';
 export class AboutComponent implements OnInit {
 
   baseUrl = 'https://btgapi.okta.com';
-  redirectUri = 'http://localhost:4200/about';
+  redirectUri = 'http://localhost:3000/about';
   state = 'mystate';
   nonce = 'mynonce';
   selectedAuthServer;
