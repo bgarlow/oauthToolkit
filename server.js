@@ -31,4 +31,10 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
-app.listen(3000, () => console.log('Example app running on port 3000'));
+/**
+ * Get port from environment and store in Express.
+ */
+const port = process.env.PORT || '3000';
+app.set('port', port);
+
+app.listen(port, () => console.log(`Example app running on port  ${port}`));

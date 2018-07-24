@@ -12,6 +12,12 @@
     "APP_NAME": {
       "description": "Name of the application.",
       "value": "OAuthToolkit"
+    },
+    "APP_URL": {
+      "description": "e.g http://localhost:8000 or https://goofy.herokuapp.com"
+    },
+    "PORT": {
+      "description": "Port the app is running on"
     }
   }
 }
