@@ -1,8 +1,6 @@
 const oktaTenant = process.env.OKTA_TENANT;
 const oktaDomain = process.env.OKTA_DOMAIN;
 const oktaApiKey = process.env.OKTA_API_KEY;
-const port = process.env.PORT;
-const appUrl = process.env.appUrl;
 
 // Expose configuration to the app
 module.exports = {
@@ -15,11 +13,6 @@ module.exports = {
   oktaConfig: {
     oktaTenant: oktaTenant,
     oktaDomain: oktaDomain
-  },
-
-  appConfig: {
-    appUrl: appUrl,
-    port: port
   }
-
+  
 };
