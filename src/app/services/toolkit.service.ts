@@ -57,6 +57,7 @@ export class ToolkitService {
   selectedRedirectUri;
   selectedScopes;
   supportedScopes;
+  selectedIdp;
 
   authServerUri;
   userScopes;
@@ -447,6 +448,7 @@ export class ToolkitService {
 
     const scopes =  this.selectedScopes ? this.selectedScopes.join(' ') : undefined;
     const responseTypes = this.selectedResponseType ? this.getResponseTypeIdentifiers().join(' ') : undefined;
+    const idp = this.selectedIdp ? `&idp=${this.selectedIdp}` : '';
 
     const sessionToken = '';
 
@@ -479,6 +481,7 @@ export class ToolkitService {
     this.authorizeUrl =  this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/authorize' + '?client_id='
       + this.selectedOAuthClientId
       + '&response_type=' + responseTypes + '&scope=' + scopes + '&redirect_uri=' + this.selectedRedirectUri
+      + idp
       + '&state=' + this.state
       + '&nonce=' + this.nonce;
 

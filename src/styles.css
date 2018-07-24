@@ -117,6 +117,12 @@ code {
   overflow: scroll;
 }
 
+.edit-area-large {
+  min-width: 100%;
+  min-height: 200px;
+  overflow: scroll;
+}
+
 .edit-area-widget {
   min-width: 100%;
   min-height: 200px;

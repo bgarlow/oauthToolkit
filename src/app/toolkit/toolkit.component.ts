@@ -585,7 +585,8 @@ export class ToolkitComponent implements OnInit {
         codeChallenge: this.toolkit.codeChallenge,
         usePKCE: this.toolkit.usePKCE,
         collapseOAuthClients: this.collapseOAuthClients,
-        collapseAuthServers: this.collapseAuthServers
+        collapseAuthServers: this.collapseAuthServers,
+        selectedIdp: this.toolkit.selectedIdp
       }
     };
 
@@ -617,6 +618,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.usePKCE = (data['usePKCE']) ? data['usePKCE'] : undefined;
           this.collapseOAuthClients = (data['collapseOAuthClients']) ? data['collapseOAuthClients'] : false;
           this.collapseAuthServers = (data['collapseAuthServers']) ? data['collapseAuthServers'] : false;
+          this.toolkit.selectedIdp = (data['selectedIdp']) ? data['selectedIdp'] : undefined;
           this.toolkit.codeVerifier = (data['codeVerifier']) ? data['codeVerifier'] : undefined;
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
@@ -1127,7 +1129,6 @@ export class ToolkitComponent implements OnInit {
     this.toolkit.getAuthorizationServers()
       .subscribe(
         authServers => {
-
           // something went wrong, probably used the wrong API key
           if (authServers.statusCode !== 200) {
             this.errorMessage = JSON.parse(authServers.body);
@@ -1200,11 +1201,14 @@ export class ToolkitComponent implements OnInit {
                         this.showLogin();
                         // get out tokens?
                       } else {
-                        this.toolkit.currentUser = undefined;
+                        //this.toolkit.currentUser = undefined;
                         this.showLogin();
                       }
                     });
                   }
+                }
+                if (this.toolkit.authUrlValid && (!this.toolkit.decodedIdToken || !this.toolkit.decodedAccessToken)) {
+                  //this.authenticate();
                 }
               });
         },
