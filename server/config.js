@@ -14,5 +14,5 @@ module.exports = {
     oktaTenant: oktaTenant,
     oktaDomain: oktaDomain
   }
-  
+
 };

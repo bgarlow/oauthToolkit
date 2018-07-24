@@ -178,7 +178,7 @@ router.post('/logout', (req, res) => {
 
   const baseUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1';
   const idToken = req.body.idToken;
-  const endpoint = `${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=http://localhost:3000`;
+  const endpoint = `${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=https://oauthtoolkit.herokuapp.com`; //`${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=http://localhost:3000`;
 
   const options = {
     uri: endpoint,

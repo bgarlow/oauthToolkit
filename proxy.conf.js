@@ -4,9 +4,9 @@ const PROXY_CONFIG = [
       "/api",
       "/demo"
     ],
-    target: "http://localhost:3000",
+    target: "https://oauthtoolkit.herokuapp.com", //"http://localhost:3000",
     secure: false
   }
-]
+];
 
 module.exports = PROXY_CONFIG;
