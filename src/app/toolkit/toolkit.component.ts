@@ -586,7 +586,8 @@ export class ToolkitComponent implements OnInit {
         usePKCE: this.toolkit.usePKCE,
         collapseOAuthClients: this.collapseOAuthClients,
         collapseAuthServers: this.collapseAuthServers,
-        selectedIdp: this.toolkit.selectedIdp
+        selectedIdp: this.toolkit.selectedIdp,
+        widgetConfig: this.toolkit.liveWidgetConfig
       }
     };
 
@@ -621,6 +622,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.selectedIdp = (data['selectedIdp']) ? data['selectedIdp'] : undefined;
           this.toolkit.codeVerifier = (data['codeVerifier']) ? data['codeVerifier'] : undefined;
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
+          this.toolkit.liveWidgetConfig = (data['widgetConfig']) ? data['widgetConfig'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
@@ -987,6 +989,12 @@ export class ToolkitComponent implements OnInit {
   showLogin() {
     this.toolkit.widget.renderEl({el: '#okta-login-container'},
       response => {
+
+        if (response.status === 'IDP_DISCOVERY') {
+          response.idpDiscovery.redirectToIdp(this.toolkit.liveWidgetConfig.idpDiscovery.requestContext);
+          console.log('Need to redirectWithoutPrompt or call /authorize again with prompt=none');
+        }
+
         if (response.status === 'SUCCESS') {
           //this.toolkit.currentUser = (response[0].claims.name) ? response[0].claims.name : response[0].claims.sub;
 
@@ -1037,6 +1045,8 @@ export class ToolkitComponent implements OnInit {
    */
   resetWidget() {
     this.toolkit.updatedWidgetConfig = this.toolkit.originalWidgetConfig;
+    this.toolkit.updateAuthorizeUrl();
+    this.updateAuthConfig();
     this.toolkit.updateWidgetConfig();
     this.showLogin();
   }

@@ -65,6 +65,8 @@ export class ToolkitService {
 
   oAuthConfig = {};
   oktaAuthJsConfig = {};
+
+  // *** Original Widget Config - for undo/revert ***
   originalWidgetConfig = {
     baseUrl: '',
     logo: './assets/Okta_Logo_BrightBlue_Medium.png',
@@ -85,6 +87,9 @@ export class ToolkitService {
         onSuccess(response);
       }
     },
+    idpDiscovery: {
+      requestContext: '/home/bookmark/0oa84iwuaea9Zp6CQ1t7/2557'
+    },
     authParams: {
       issuer: '',
       responseType: [],
@@ -95,7 +100,8 @@ export class ToolkitService {
     },
     features: {
       router: true,
-      registration: false,
+      registration: true,
+      idpDiscovery: true,
       securityImage: false,
       autoPush: true
     },
@@ -106,7 +112,7 @@ export class ToolkitService {
     i18n: {
       // Overriding English properties
       'en': {
-        'primaryauth.title': 'Sign in to the Toolkit',
+        'primaryauth.title': 'Sign in to the OAuth Toolkit',
         'primaryauth.username.placeholder': 'Your username'
       }
     },
@@ -510,7 +516,7 @@ export class ToolkitService {
       }
     };
 
-    this.updatedWidgetConfig.customButtons[0] = sessionButton;
+    //this.updatedWidgetConfig.customButtons[0] = sessionButton;
 
     if (this.authUrlValid) {
       this.updateWidgetConfig();

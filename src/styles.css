@@ -139,6 +139,25 @@ code {
   width: 25%;
 }
 
+#okta-sign-in .auth-org-logo {
+  display: block;
+  margin: 0 auto;
+  max-width: 200px;
+  max-height: 40px;
+}
+
+#okta-sign-in.auth-container .okta-sign-in-header {
+  border-bottom: none;
+  background-color: white;
+}
+
+
+
+#okta-sign-in.auth-container .button-primary {
+
+}
+
+
 div.jsoneditor-outer {
   height: 400px !important;
 }
