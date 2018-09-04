@@ -587,7 +587,9 @@ export class ToolkitComponent implements OnInit {
         collapseOAuthClients: this.collapseOAuthClients,
         collapseAuthServers: this.collapseAuthServers,
         selectedIdp: this.toolkit.selectedIdp,
-        widgetConfig: this.toolkit.liveWidgetConfig
+        widgetConfig: this.toolkit.liveWidgetConfig,
+        fromIdpDisco: this.toolkit.fromIdpDisco,
+        prompt: this.toolkit.prompt
       }
     };
 
@@ -601,7 +603,7 @@ export class ToolkitComponent implements OnInit {
     this.http.get('/demo/state')
       .subscribe(
         data => {
-          if (data === null) { return };
+          if (data === null) { return; }
 
           this.toolkit.state = (data['state']) ? data['state'] : undefined;
           this.toolkit.nonce = (data['nonce']) ? data['nonce'] : undefined;
@@ -624,6 +626,8 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.liveWidgetConfig = (data['widgetConfig']) ? data['widgetConfig'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
+          this.toolkit.fromIdpDisco = (data['fromIdpDisco']) ? data['fromIdpDisco'] : undefined;
+          this.toolkit.prompt = (data['prompt']) ? data['prompt'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
           } else {
@@ -991,11 +995,18 @@ export class ToolkitComponent implements OnInit {
       response => {
 
         if (response.status === 'IDP_DISCOVERY') {
-          response.idpDiscovery.redirectToIdp(this.toolkit.liveWidgetConfig.idpDiscovery.requestContext);
-          console.log('Need to redirectWithoutPrompt or call /authorize again with prompt=none');
+          this.toolkit.fromIdpDisco = true;
+          this.saveState()
+            .subscribe(
+              saveResponse => {
+                response.idpDiscovery.redirectToIdp(this.toolkit.liveWidgetConfig.idpDiscovery.requestContext);
+                return;
+              }
+            );
         }
 
         if (response.status === 'SUCCESS') {
+          console.log(response.body);
           //this.toolkit.currentUser = (response[0].claims.name) ? response[0].claims.name : response[0].claims.sub;
 
           // Normally, we would use token.hasTokensInUrl() and token.parseTokensFromUrl() to extract our tokens. I'm already doing that in the onInit()
@@ -1034,6 +1045,9 @@ export class ToolkitComponent implements OnInit {
           signoutResponse => {
             console.log('signoutResponse:');
             console.log(signoutResponse);
+            this.toolkit.currentUser = undefined;
+            this.toolkit.decodedAccessToken = undefined;
+            this.toolkit.decodedIdToken = undefined;
             this.revokeToken(this.toolkit.accessToken, 'access_token');
             this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
             this.toolkit.clearCache();
@@ -1134,7 +1148,9 @@ export class ToolkitComponent implements OnInit {
    */
   ngOnInit() {
 
+    this.toolkit.currentUser = undefined;
     this.loadState();
+
     this.loadCachedTokens();
     this.toolkit.getAuthorizationServers()
       .subscribe(
@@ -1200,25 +1216,33 @@ export class ToolkitComponent implements OnInit {
                 this.appProfileEditor = new JsoneditorComponent();
                 this.widgetConfigEditor.data = {};
 
-                if (this.toolkit.widget) {
+                 console.log(`2) this.toolkit.widget is ${this.toolkit.widget}`);
+                 console.log(this.toolkit.widget);
+                 if (this.toolkit.widget) {
                   if (this.toolkit.authUrlValid) {
-                    this.toolkit.widget.remove();
+                    //this.toolkit.widget.remove();
                     this.toolkit.widget.session.get((response) => {
+                      console.log(`widget session === ${response.status}`);
+                      console.log(response);
                       if (response.status !== 'INACTIVE') {
                         this.toolkit.currentUser = response.login;
-
-                        //this.toolkit.widget.getWithoutPrompt();
+                        if (this.toolkit.fromIdpDisco) {
+                          this.toolkit.fromIdpDisco = false;
+                          this.toolkit.prompt = 'none';
+                          this.saveState()
+                            .subscribe(
+                              saveResponse => {
+                                this.authenticate();
+                              }
+                            );
+                        }
                         this.showLogin();
                         // get out tokens?
                       } else {
-                        //this.toolkit.currentUser = undefined;
                         this.showLogin();
                       }
                     });
                   }
-                }
-                if (this.toolkit.authUrlValid && (!this.toolkit.decodedIdToken || !this.toolkit.decodedAccessToken)) {
-                  //this.authenticate();
                 }
               });
         },

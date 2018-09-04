@@ -178,18 +178,24 @@ router.post('/logout', (req, res) => {
 
   const baseUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1';
   const idToken = req.body.idToken;
-  const endpoint = `${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=https://oauthtoolkit.herokuapp.com`; //`${baseUrl}/logout?id_token_hint=${idToken}&post_logout_redirect_uri=http://localhost:3000`;
+  let endpoint = `${baseUrl}/logout?post_logout_redirect_uri=http://localhost:4200/toolkit`;
+  if (idToken) {
+    endpoint = endpoint + `&id_token_hint=${idToken}`;
+  }
 
   const options = {
     uri: endpoint,
     method: 'GET'
   };
 
+  console.log(`Logout request: ${endpoint}`);
+
   request(options, function(error, response, body) {
     if (error) {
       console.error(error);
     }
     if (response) {
+      console.log(response.body);
       if (response.statusCode === 200) {
         res.json(response);
       } else {
@@ -766,7 +772,7 @@ router.get('/clients', (req, res) => {
 
   const apiKey = req.cookies.state.unsafeApiKey;
   const baseUrl = req.cookies.state.baseUrl;
-  const endpoint = `${baseUrl}/oauth2/v1/clients`;
+  const endpoint = `${baseUrl}/oauth2/v1/clients?limit=100`;
   const options = {
     uri: endpoint,
     method: 'GET',

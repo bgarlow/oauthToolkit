@@ -388,13 +388,13 @@
   <h5 class="card-header bg-primary">Access Token</h5>
   <div class="card-body">
     <form>
-      <div class="form-group row">
+      <div class="form-group row" *ngIf="this.toolkit.decodedAccessToken">
         <div class="col-sm-8">
           <span class="timer">Lifetime: {{(this.toolkit.decodedAccessToken.exp - this.toolkit.decodedAccessToken.iat)/60}} minutes.</span>
           <span class="timer">Minted on: {{this.toolkit.decodedAccessToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
           <span class="timer">Expires on: {{this.toolkit.decodedAccessToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-4" *ngIf="this.toolkit.accessTokenExp">
           <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}" (click)="this.toolkit.accessTokenExp = 0"></countdown>
         </div>
       </div>
@@ -447,7 +447,7 @@
   <h5 class="card-header bg-primary">ID Token</h5>
   <div class="card-body">
     <form>
-      <div class="form-group row">
+      <div class="form-group row" *ngIf="this.toolkit.decodedIdToken">
         <div class="col-sm-8">
           <span class="timer">Lifetime: {{(this.toolkit.decodedIdToken.exp - this.toolkit.decodedIdToken.iat)/60}} minutes.</span>
           <span class="timer">Minted on: {{this.toolkit.decodedIdToken.iat * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>

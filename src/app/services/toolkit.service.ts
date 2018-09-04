@@ -31,6 +31,8 @@ export class ToolkitService {
   exchangePayload;
   username;
   password;
+  fromIdpDisco;
+  prompt;
 
   authorizationServers;
   oAuthClients = [];
@@ -88,7 +90,10 @@ export class ToolkitService {
       }
     },
     idpDiscovery: {
-      requestContext: '/home/bookmark/0oa84iwuaea9Zp6CQ1t7/2557'
+      //requestContext: '/home/bookmark/0oa84iwuaea9Zp6CQ1t7/2557'
+      //requestContext: '/home/bookmark/0oa6ej7tidSILBmE31t7/2557'
+      //requestContext: 'home/oidc_client/0oa6chkvmvcvZjtcw1t7/alntwmdyyUB5fs8d50g4'
+      requestContext: '/home/oidc_client/0oa85rseydOnStvGX1t7/alntwmdyyUB5fs8d50g4'
     },
     authParams: {
       issuer: '',
@@ -491,6 +496,10 @@ export class ToolkitService {
       + '&state=' + this.state
       + '&nonce=' + this.nonce;
 
+      if (this.prompt !== undefined) {
+        this.authorizeUrl += '&prompt=' + this.prompt;
+      }
+
     if (this.usePKCE) {
       this.authorizeUrl += `&code_challenge_method=S256&code_challenge=${this.codeChallenge}`;
     }
@@ -611,6 +620,8 @@ export class ToolkitService {
    * Constructor
    * @param {HttpClient} http
    */
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    console.log(`Widget in ToolkitService ${this.widget}`);
+  }
 
 }
