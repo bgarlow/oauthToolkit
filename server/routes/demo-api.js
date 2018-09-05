@@ -24,6 +24,29 @@ router.get('/', (req, res) => {
   res.send('DEMO API. Need to update this with endpoint listing.');
 });
 
+
+/* return HTML version of README.md markdown */
+router.get('/readme', (req, res) => {
+
+  const fs = require('fs');
+  const doAsync = require('doasync');
+
+  doAsync(fs).readFile('README.md', 'utf8')
+    .then((data) => {
+      var showdown  = require('showdown'),
+        converter = new showdown.Converter(),
+        text = data,
+        html= converter.makeHtml(text);
+
+      jsonResponse = {
+        html: html
+      };
+
+      res.json(jsonResponse);
+
+    });
+});
+
 router.post('/config', (req, res) => {
   let demoConfig = req.body('config');
   res.cookie('demo-config', demoConfig, { httpOnly : true, secure: false });
