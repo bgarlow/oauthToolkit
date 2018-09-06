@@ -53,18 +53,17 @@ npm start
 ```
 ---
 ##Configure the Toolkit for your Okta Org
-![Okta Config](src/assets/okta_config.png)
+![Okta Config](https://github.com/bgarlow/demo6/raw/master/src/assets/okta_config.png)
+
 1. Enter the base URL of your Okta tenant (https://myorg.okta.com)
 2. Enter an API key from your Okta tenant
 3. Click on the __Load__ button
 
-This should load your authorization servers...
+This should load your authorization servers..
 
-![Auth Servers](src/assets/auth_servers.png)
-
-... and OAuth clients.
-
-![OAuth Clients](src/assets/oauth_clients.png)
+![Auth Servers](https://github.com/bgarlow/demo6/raw/master/src/assets/auth_servers.png)
+.. and OAuth clients.
+![OAuth Clients](https://github.com/bgarlow/demo6/raw/master/src/assets/oauth_clients.png)
 
 __Note:__ The toolkit app is using the following Okta API endpoints to load this data:
 
@@ -80,5 +79,5 @@ __Note:__ The Applications API will not return the client secret, so you will ne
 ___
 ###Select an Authorization Server and Client
 Select the authorization server and client you want to work with. The authorization server will display the scopes it supports, which you can select/deselect by clicking on the the chicklets. The list of scopes is pulled from the public metadata for the authorization server (https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server). Only scopes marked for "Metadata Publish" in Okta will appear in the list.
-![Auth Server and Client](src/assets/server_client.png)
+![Auth Server and Client](https://github.com/bgarlow/demo6/raw/master/src/assets/server_client.png)
 
