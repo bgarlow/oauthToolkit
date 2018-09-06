@@ -626,7 +626,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.liveWidgetConfig = (data['widgetConfig']) ? data['widgetConfig'] : undefined;
           this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
-          this.toolkit.fromIdpDisco = (data['fromIdpDisco']) ? data['fromIdpDisco'] : undefined;
+          this.toolkit.fromIdpDisco = (data['fromIdpDisco']) ? data['fromIdpDisco'] : false;
           this.toolkit.prompt = (data['prompt']) ? data['prompt'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;

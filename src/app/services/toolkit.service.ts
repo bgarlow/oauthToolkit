@@ -31,7 +31,7 @@ export class ToolkitService {
   exchangePayload;
   username;
   password;
-  fromIdpDisco;
+  fromIdpDisco = false;
   prompt;
 
   authorizationServers;

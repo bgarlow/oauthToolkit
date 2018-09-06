@@ -52,9 +52,33 @@ This will build the project and run the server:
 npm start
 ```
 ---
-##Configure and Use the Application
+##Configure the Toolkit for your Okta Org
+![Okta Config](src/assets/okta_config.png)
 1. Enter the base URL of your Okta tenant (https://myorg.okta.com)
 2. Enter an API key from your Okta tenant
 3. Click on the __Load__ button
 
-This should load your authorization servers and OAuth clients
+This should load your authorization servers...
+
+![Auth Servers](src/assets/auth_servers.png)
+
+... and OAuth clients.
+
+![OAuth Clients](src/assets/oauth_clients.png)
+
+__Note:__ The toolkit app is using the following Okta API endpoints to load this data:
+
+__GET__ [/api/v1/authorizationServers](https://developer.okta.com/docs/api/resources/authorization-servers#create-authorization-server)
+
+__GET__ [/api/v1/authorizationServers/${authServerId}](https://developer.okta.com/docs/api/resources/authorization-servers#get-authorization-server)
+
+__GET__ [/api/v1/authorizationServers/${authorizationServerId}/clients](https://developer.okta.com/docs/api/resources/authorization-servers#list-client-resources-for-an-authorization-server)
+
+__GET__ [/api/v1/apps/${applicationId}](https://developer.okta.com/docs/api/resources/apps#get-application)
+
+__Note:__ The Applications API will not return the client secret, so you will need to copy and paste the client secret from Okta for any OAuth clients you want to use with authorization code or client credentials grant type.
+___
+###Select an Authorization Server and Client
+Select the authorization server and client you want to work with. The authorization server will display the scopes it supports, which you can select/deselect by clicking on the the chicklets. The list of scopes is pulled from the public metadata for the authorization server (https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server). Only scopes marked for "Metadata Publish" in Okta will appear in the list.
+![Auth Server and Client](src/assets/server_client.png)
+

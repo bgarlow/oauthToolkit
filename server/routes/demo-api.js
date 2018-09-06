@@ -1025,6 +1025,7 @@ router.get('/authorization-code/callback', (req, res) => {
   };
 
   console.log('Callback token url: ' + options.url);
+  console.log(options);
 
   // Request token(s)
   request(options, (err, tokenRes, json) => {

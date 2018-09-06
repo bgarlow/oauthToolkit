@@ -1,5 +1,5 @@
 <div class="jumbotron">
-  <h1 class="display-6">OAuth 2.0/OpenID Connect Toolkit</h1>
+  <h1 class="display-4">OAuth 2.0/OpenID Connect Toolkit</h1>
 </div>
 <div class="card text-light bg-dark">
   <h5 class="card-header">Okta config</h5>
@@ -131,7 +131,7 @@
                   <span class="list-item" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}">{{client.client_id}}</span>
                 </div>
                 <div class="col-sm">
-                  <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
+                  <input type="password" class="form-control" [ngClass]="{'current-selection': toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId}" (change)="toolkit.unsafeSelectedClientSecret = client.client_secret; saveConfig();"  [(ngModel)]="client.client_secret" name="secret{{client.client_id}}">
                 </div>
               </div>
 
