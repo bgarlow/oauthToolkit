@@ -18,6 +18,7 @@ const OktaJwtVerifier = require('@okta/jwt-verifier');
 
 let tokenPayload;
 let proxyPayload;
+let sessionPayload;
 
 let baseUrl;
 let authServerId;
@@ -87,6 +88,10 @@ router.get('/tokenpayload', (req, res) => {
 
 router.get('/proxypayload', (req, res) => {
   res.json(proxyPayload);
+});
+
+router.get('/sessionexchangepayload', (req, res) => {
+  res.json(sessionPayload);
 });
 
 /**
@@ -961,6 +966,7 @@ router.get('/cookies', (req, res) => {
   res.json(req.cookies);
 });
 
+
 /**
  *
  */
@@ -1029,6 +1035,8 @@ router.post('/authn', (req, res) => {
           }
         };
 
+        sessionPayload = authenticateEndpoint;
+
         request(authorizeOptions, function(authError, authResponse, authBody) {
           if (authError) {
             console.error(authError);
@@ -1055,7 +1063,7 @@ router.post('/authn', (req, res) => {
                 statusCode: 200,
                 status: 'ok',
                 body: {
-                  msg: 'Hi there'
+                  msg: 'Successfully exchanged session token for access token'
                 }
               };
 

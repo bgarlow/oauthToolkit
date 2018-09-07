@@ -814,6 +814,7 @@ export class ToolkitComponent implements OnInit {
    */
   authenticate() {
     this.errorMessage = undefined;
+    this.toolkit.exchangePayload = undefined;
     this.updateOauthCookies();
     this.saveState()
       .subscribe(
@@ -827,6 +828,7 @@ export class ToolkitComponent implements OnInit {
 
    authn() {
     this.errorMessage = undefined;
+    this.toolkit.sessionExchangePayload = undefined;
     this.saveState()
       .subscribe(
         data => {
@@ -835,6 +837,12 @@ export class ToolkitComponent implements OnInit {
               response => {
                 if (response.statusCode === 200) {
                   this.loadCachedTokens();
+                  this.toolkit.getSessionExchangePayload()
+                    .subscribe(
+                      sessionPayload => {
+                        this.toolkit.sessionExchangePayload = sessionPayload;
+                      }
+                    );
                 } else {
                   this.errorMessage = response.body;
                 }
@@ -1235,6 +1243,7 @@ export class ToolkitComponent implements OnInit {
   ngOnInit() {
 
     this.toolkit.currentUser = undefined;
+
     this.loadState();
     this.loadDecodedTokens();
 
@@ -1291,6 +1300,12 @@ export class ToolkitComponent implements OnInit {
                         .subscribe(
                           payload => {
                             this.toolkit.exchangePayload = payload;
+                          }
+                        );
+                      this.toolkit.getSessionExchangePayload()
+                        .subscribe(
+                          sessionPayload => {
+                            this.toolkit.sessionExchangePayload = sessionPayload;
                           }
                         );
                     },

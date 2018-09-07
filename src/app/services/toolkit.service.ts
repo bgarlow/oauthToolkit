@@ -29,6 +29,7 @@ export class ToolkitService {
   expand = false;
   usePKCE = false;
   exchangePayload;
+  sessionExchangePayload;
   username;
   password;
   fromIdpDisco = false;
@@ -450,6 +451,7 @@ export class ToolkitService {
     this.authorizeUrl = '';
     this.tokenUrl = '';
     this.exchangePayload = undefined;
+    this.sessionExchangePayload = undefined;
 
     if (!this.state) {
       this.state = `youdidntgivemeastatevalue`;
@@ -627,6 +629,10 @@ export class ToolkitService {
 
   getTokenPayload() {
     return this.http.get('/demo/tokenpayload');
+  }
+
+  getSessionExchangePayload() {
+    return this.http.get('/demo/sessionexchangepayload');
   }
 
   getProxyPayload() {
