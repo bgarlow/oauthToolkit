@@ -19,6 +19,17 @@ const OktaJwtVerifier = require('@okta/jwt-verifier');
 let tokenPayload;
 let proxyPayload;
 
+let baseUrl;
+let authServerId;
+let clientId;
+let clientSecret;
+let scope;
+let grantType;
+let responseType;
+let zredirectUri;
+let state;
+let nonce;
+
 /* GET api listing. */
 router.get('/', (req, res) => {
   res.send('DEMO API. Need to update this with endpoint listing.');
@@ -201,7 +212,7 @@ router.post('/logout', (req, res) => {
 
   const baseUrl = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId + '/v1';
   const idToken = req.body.idToken;
-  let endpoint = `${baseUrl}/logout?post_logout_redirect_uri=http://localhost:4200/toolkit`;
+  let endpoint = `${baseUrl}/logout?post_logout_redirect_uri=http://localhost:3000/toolkit`;
   if (idToken) {
     endpoint = endpoint + `&id_token_hint=${idToken}`;
   }
@@ -924,10 +935,202 @@ router.delete('/state', (req, res) => {
 });
 
 /**
+ *
+ */
+router.put('/decodedtokens', (req, res) => {
+  if (!req.body.tokens) {
+    res.state(500).send('Tokens variable not found in request body.');
+    return;
+  }
+  res.cookie('decodedtokens', req.body.tokens, { httpOnly : true, secure: false });
+  res.status(200).send();
+});
+
+router.get('/decodedtokens', (req, res) => {
+  res.json(req.cookies.decodedtokens);
+});
+
+router.delete('/decodedtokens', (req, res) => {
+  res.clearCookie('decodedtokens');
+  res.status(200).send();
+});
+/**
  * Return a list of cookies
  */
 router.get('/cookies', (req, res) => {
   res.json(req.cookies);
+});
+
+/**
+ *
+ */
+router.post('/authn', (req, res) => {
+
+  const username = req.body.username;
+  const password = req.body.password;
+  const relayState = (req.body.relayState) ? req.body.relayState : undefined;
+  const endpoint = `${req.cookies.state.baseUrl}/api/v1/authn`;
+
+  this.baseUrl = req.cookies.state.baseUrl;
+  this.authServerId = req.cookies.state.selectedAuthServerId;
+  this.clientId = req.cookies.state.selectedOAuthClientId;
+  this.clientSecret = req.cookies.state.unsafeSelectedClientSecret;
+  this.zRedirectUri = req.cookies.state.selectedRedirectUri;
+  this.scope = req.cookies.state.selectedScopes.join(' ');
+  let responseTypes = [];
+  for (let rt of req.cookies.state.selectedResponseType) {
+    if (rt.selected === true) {
+      responseTypes.push(rt.type);
+    }
+  }
+  this.responseType = responseTypes.join(' ');
+  this.grantType = req.cookies.state.selectedGrantType;
+  this.state = req.cookies.state.state;
+  this.nonce = req.cookies.state.nonce;
+
+  const payload = {
+    username: username,
+    password: password,
+    options: {
+      multiOptionalFactorEnroll: false,
+      warnBeforePasswordExpired: false
+    }
+  };
+
+  const options = {
+    url: endpoint,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+    },
+    json: payload
+  };
+
+  request(options, (error, response, body) => {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        const sessionToken = response.body.sessionToken;
+
+        // exchange sessionToken for authorization code
+        //https://btgapi.okta.com/oauth2/aus11dko07fCEDKnV2p7/v1/authorize?client_id=0oa11dnd8y99yf2Te2p7&response_type=code&scope=profile openid&redirect_uri=http://localhost:port/demo/authorization-code/callback&state=youdidntgivemeastatevalue&nonce=1536330360190
+        const authenticateEndpoint = `${this.baseUrl}/oauth2/${this.authServerId}/v1/authorize?sessionToken=${sessionToken}&client_id=${this.clientId}&response_type=${this.responseType}&scope=${this.scope}&redirect_uri=${this.zRedirectUri}&state=abracadabra&nonce=bracacrabra&prompt=none`;
+        const authorizeOptions = {
+          uri: authenticateEndpoint,
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache',
+          }
+        };
+
+        request(authorizeOptions, function(authError, authResponse, authBody) {
+          if (authError) {
+            console.error(authError);
+          }
+          if (authResponse) {
+            if (authResponse.statusCode === 200) {
+              if (typeof authBody === 'string') {
+                json = JSON.parse(authBody);
+              }
+
+              if (json.id_token) {
+                res.cookie('id_token', json.id_token, { httpOnly : true, secure: false });
+              }
+
+              if (json.access_token) {
+                res.cookie('access_token', json.access_token, { httpOnly : true, secure: false });
+              }
+
+              if (json.refresh_token) {
+                res.cookie('refresh_token', json.refresh_token, { httpOnly : true, secure: false });
+              }
+
+              let authnResponse = {
+                statusCode: 200,
+                status: 'ok',
+                body: {
+                  msg: 'Hi there'
+                }
+              };
+
+              res.json(authnResponse);
+            } else {
+              console.error(authResponse.statusCode);
+              res.send(authResponse);
+            }
+          }
+        });
+
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
+/**
+ *
+ */
+router.get('/authn/callback', (req, res) => {
+
+  if (!req.query.code) {
+    console.log(`/toolkit#error=Authorization Code Missing`);
+  }
+
+  // Build the token request
+   let payload;
+
+    payload = {
+      grant_type: this.grantType,
+      code: req.query.code,
+      client_id: this.clientId,
+      client_secret: this.clientSecret,
+      redirect_uri: this.zRedirectUri,
+      scopes: this.scope,
+      state: this.state,
+      nonce: this.nonce
+    };
+
+  tokenPayload = payload;
+
+  const query = querystring.stringify(payload);
+  const endpoint = `${this.baseUrl}/oauth2/${this.authServerId}/v1/token`;
+
+  const options = {
+    url: endpoint,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Cache-Control': 'no-cache',
+    },
+    form: payload
+  };
+
+  // Request token(s)
+  request(options, (err, tokenRes, json) => {
+    if (err) {
+      res.status(500).send(err);
+      return;
+    }
+    if (typeof json === 'string') {
+      json = JSON.parse(json);
+    }
+    if (json.error) {
+      console.log(`${json.error}: ${json.error_description}`);
+      return;
+    }
+
+    res.json(json);
+
+  });
 });
 
 /**

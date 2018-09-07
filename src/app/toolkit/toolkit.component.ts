@@ -190,6 +190,15 @@ export class ToolkitComponent implements OnInit {
                         this.errorMessage = error;
                       }
                     );
+                  this.saveDecodedTokens()
+                    .subscribe(
+                      tokenResponse => {
+                        console.log('Saved decoded tokens()');
+                      },
+                      error => {
+                        this.errorMessage = error;
+                      }
+                    );
                 },
                 error => {
                   this.errorMessage = error;
@@ -382,7 +391,11 @@ export class ToolkitComponent implements OnInit {
 
   selectRedirectUri(redirectUri) {
     this.toolkit.selectedRedirectUri = redirectUri;
-    this.toolkit.updateAuthorizeUrl();
+    this.saveState()
+      .subscribe(
+        response => {
+          this.toolkit.updateAuthorizeUrl();
+        });
   }
 
   selectScope(scope) {
@@ -577,10 +590,6 @@ export class ToolkitComponent implements OnInit {
         state: this.toolkit.state,
         scopesClaim: this.toolkit.scopesClaim,
         selectedRedirectUri: this.toolkit.selectedRedirectUri,
-        refreshToken: this.toolkit.refreshToken,
-        decodedIdToken: this.toolkit.decodedIdToken,
-        decodedAccessToken: this.toolkit.decodedAccessToken,
-        refreshTokenExp: this.toolkit.refreshTokenExp,
         codeVerifier: this.toolkit.codeVerifier,
         codeChallenge: this.toolkit.codeChallenge,
         usePKCE: this.toolkit.usePKCE,
@@ -589,7 +598,11 @@ export class ToolkitComponent implements OnInit {
         selectedIdp: this.toolkit.selectedIdp,
         widgetConfig: this.toolkit.liveWidgetConfig,
         fromIdpDisco: this.toolkit.fromIdpDisco,
-        prompt: this.toolkit.prompt
+        prompt: this.toolkit.prompt,
+        username: this.toolkit.username,
+        password: this.toolkit.password,
+        refreshToken: this.toolkit.refreshToken,
+        refreshTokenExp: this.toolkit.refreshTokenExp
       }
     };
 
@@ -597,9 +610,31 @@ export class ToolkitComponent implements OnInit {
   }
 
   /**
+   *
+   * @returns {Observable<any>}
+   */
+  saveDecodedTokens(): Observable<any> {
+
+    const payload = {
+      tokens: {
+        decodedIdToken: this.toolkit.decodedIdToken,
+        decodedAccessToken: this.toolkit.decodedAccessToken,
+      }
+    };
+
+   //return this.http.put('/demo/decodedtokens', payload);
+
+    return of(true);
+
+  }
+
+  /**
    * Retrieve toolkit state from cookie
    */
   loadState() {
+
+    this.loadDecodedTokens();
+
     this.http.get('/demo/state')
       .subscribe(
         data => {
@@ -625,15 +660,15 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.codeVerifier = (data['codeVerifier']) ? data['codeVerifier'] : undefined;
           this.toolkit.codeChallenge = (data['codeChallenge']) ? data['codeChallenge'] : undefined;
           this.toolkit.liveWidgetConfig = (data['widgetConfig']) ? data['widgetConfig'] : undefined;
-          this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
           this.toolkit.fromIdpDisco = (data['fromIdpDisco']) ? data['fromIdpDisco'] : false;
           this.toolkit.prompt = (data['prompt']) ? data['prompt'] : undefined;
+          this.toolkit.username = (data['username']) ? data['username'] : undefined;
+          this.toolkit.password = (data['password']) ? data['password'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
           } else {
             this.toolkit.currentUser = undefined;
           }
-          this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
           this.toolkit.accessTokenExp = (this.toolkit.decodedAccessToken) ? new Date(this.toolkit.decodedAccessToken.exp * 1000) : undefined;
           this.toolkit.idTokenExp = (this.toolkit.decodedIdToken) ? new Date(this.toolkit.decodedIdToken.exp * 1000) : undefined;
           this.toolkit.refreshTokenExp = (data['refreshTokenExp']) ? data['refreshTokenExp'] : undefined;
@@ -644,6 +679,17 @@ export class ToolkitComponent implements OnInit {
         },
         error => {
           console.log('No state cookie found.');
+        }
+      );
+  }
+
+  loadDecodedTokens() {
+    this.http.get('/demo/decodedtokens')
+      .subscribe(
+        data => {
+          if (data === null) { return; }
+          this.toolkit.decodedIdToken =  (data['decodedIdToken']) ? data['decodedIdToken'] : undefined;
+          this.toolkit.decodedAccessToken =  (data['decodedAccessToken']) ? data['decodedAccessToken'] : undefined;
         }
       );
   }
@@ -750,6 +796,13 @@ export class ToolkitComponent implements OnInit {
               this.updateUserScopes();
             }
 
+            this.saveDecodedTokens()
+              .subscribe(
+                data => {
+                  console.log('Saved decoded tokens in getTokensFromProxy()');
+                }
+              );
+
           } else {
             this.errorMessage = response.body;
           }
@@ -766,6 +819,27 @@ export class ToolkitComponent implements OnInit {
       .subscribe(
         data => {
           this.toolkit.authenticate();
+        },
+        error => {
+          this.errorMessage = error;
+        });
+   }
+
+   authn() {
+    this.errorMessage = undefined;
+    this.saveState()
+      .subscribe(
+        data => {
+          this.toolkit.authn()
+            .subscribe(
+              response => {
+                if (response.statusCode === 200) {
+                  this.loadCachedTokens();
+                } else {
+                  this.errorMessage = response.body;
+                }
+              }
+            );
         },
         error => {
           this.errorMessage = error;
@@ -895,6 +969,12 @@ export class ToolkitComponent implements OnInit {
                   this.toolkit.decodedIdToken = decodedToken;
                   this.toolkit.idTokenExp = new Date(decodedToken.exp * 1000);
                   this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
+                  this.saveDecodedTokens()
+                    .subscribe(
+                      data => {
+                        console.log('Saved decoded tokens in getCachedTokens()');
+                      }
+                    );
                 },
                 error => {
                   this.errorMessage = error;
@@ -915,6 +995,12 @@ export class ToolkitComponent implements OnInit {
                 decodedToken => {
                   this.toolkit.decodedAccessToken = decodedToken;
                   this.toolkit.accessTokenExp = new Date(decodedToken.exp * 1000);
+                  this.saveDecodedTokens()
+                    .subscribe(
+                      data => {
+                        console.log('Saved decoded tokens in getCachedTokens()');
+                      }
+                    );
 
                 },
                 error => {
@@ -1150,6 +1236,7 @@ export class ToolkitComponent implements OnInit {
 
     this.toolkit.currentUser = undefined;
     this.loadState();
+    this.loadDecodedTokens();
 
     this.loadCachedTokens();
     this.toolkit.getAuthorizationServers()

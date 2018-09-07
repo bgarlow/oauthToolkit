@@ -39,6 +39,7 @@ export class ToolkitService {
   cachedClients = [];
   metadataEndpoint;
   authorizeUrl;
+  authnUrl;
   tokenUrl;
   proxyUrl;
   proxyPayload;
@@ -193,6 +194,8 @@ export class ToolkitService {
     if (this.widget) {
       this.widget.session.close();
     }
+
+    this.http.delete('/demo/decodedtokens');
 
     this.http.delete('/demo/tokenstorage/access_token')
       .subscribe(
@@ -504,6 +507,8 @@ export class ToolkitService {
       this.authorizeUrl += `&code_challenge_method=S256&code_challenge=${this.codeChallenge}`;
     }
 
+    this.authnUrl = this.baseUrl + '/api/v1/authn';
+
     this.tokenUrl = this.baseUrl + '/oauth2/' + this.selectedAuthServerId + '/v1/token';
 
     this.updatedWidgetConfig.baseUrl = this.baseUrl;
@@ -552,7 +557,7 @@ export class ToolkitService {
     return of(decodedJSON);
   }
 
-  // auth
+  // authorize
   /**
    * Log in using auth endpoint
    */
@@ -561,6 +566,18 @@ export class ToolkitService {
     // Redirect to Okta's login page
     window.location.href = this.authorizeUrl;
   }
+
+  // authn
+  authn(): Observable<any> {
+
+    const payload = {
+      username: this.username,
+      password: this.password
+    };
+
+    return this.http.post('/demo/authn', payload);
+  }
+
 
   /**
    *

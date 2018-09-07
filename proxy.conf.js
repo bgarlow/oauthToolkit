@@ -5,7 +5,8 @@ const PROXY_CONFIG = [
       "/demo"
     ],
     target: "http://localhost:3000",
-    secure: false
+    secure: false,
+    changeOrigin: true
   }
 ];
 

@@ -269,7 +269,7 @@
 
 <!-- Sign In Widget -->
 <div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && toolkit.selectedOAuthClient.application_type != 'native' && (toolkit.selectedGrantType != 'client_credentials' && toolkit.selectedGrantType != 'password')">
-  <h5 class="card-header bg-info">Sign in Widget</h5>
+  <h5 class="card-header bg-info">Sign in using the Okta Sign-in Widget</h5>
   <div class="card-body">
     <form>
       <div class="form-group row">
@@ -287,10 +287,49 @@
   </div>
 </div>
 
+<!-- Custom sign in with authn/authorize flow -->
+<div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient && !toolkit.usePKCE && toolkit.selectedOAuthClient.application_type != 'native' && (toolkit.selectedGrantType != 'client_credentials' && toolkit.selectedGrantType != 'password')">
+  <h5 class="card-header bg-info">Sign in using a custom login form and Authentication API (/authn)</h5>
+  <div class="card-body">
+    <form>
+      <div class="form-group row">
+        <div class="col-sm">
+
+          <div class="json-display"><code>
+            {{toolkit.authnUrl}}
+          </code></div>
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          Username:
+        </div>
+        <div class="col-sm">
+          <input class="form-control" type="text" name="username" [(ngModel)]="toolkit.username" placeholder="username">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm">
+          Password:
+        </div>
+        <div class="col-sm">
+          <input class="form-control" type="password" name="password" [(ngModel)]="toolkit.password" placeholder="password">
+        </div>
+      </div>
+      <div class="form-group row">
+        <div class="col-sm-12">
+          <div><button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="authn();">Login</button></div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 <!-- auth endpoint -->
 <div class="card text-light bg-dark" *ngIf="toolkit.selectedOAuthClient">
   <div class="card-header  bg-info">
-    <span style="display:inline" class="h5">Authorize Endpoint</span>
+    <span style="display:inline" class="h5">Sign in using redirect to the OAuth 2.0 /authorize endpoint</span>&nbsp;
     <span style="display:inline">Use PKCE flow? <input type="checkbox" [disabled]="!toolkit.codeVerifier || !toolkit.codeChallenge" (change)="toolkit.updateAuthorizeUrl();" [(ngModel)]="toolkit.usePKCE" name="pkceRadio" id="pkceRadio"></span>
   </div>
   <div class="card-body">
@@ -315,7 +354,7 @@
       <div class="form-group row">
         <div class="col-sm">
           <div class="btn-group" role="group">
-            <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="authenticate();">Authenticate</button>
+            <button class="btn btn-primary" [disabled]="!toolkit.authUrlValid" [ngClass]="{'btn-danger': !toolkit.authUrlValid}" (click)="authenticate();">Login</button>
             <button class="btn btn-primary" [disabled]="!toolkit.userScopes || !toolkit.scopesClaim" (click)="toolkit.rescopeToken();" [ngClass]="{'btn-danger': !toolkit.userScopes || !toolkit.scopesClaim}">Re-Scope Token</button>
           </div>
         </div>
