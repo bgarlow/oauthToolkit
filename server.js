@@ -28,12 +28,10 @@ app.use('/demo', demoApi);
 
 // Catch all other routes and return the index file
 app.get('*', (req, res) => {
+  console.log(`Routing other routes to ${path.join(__dirname, 'dist/index.html')}`);
   res.sendFile(path.join(__dirname, 'dist/index.html'));
 });
 
-/**
- * Get port from environment and store in Express.
- */
 const port = process.env.PORT || '3000';
 app.set('port', port);
 

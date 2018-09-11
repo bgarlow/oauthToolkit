@@ -58,6 +58,7 @@ export class ToolkitService {
   selectedGrantType;
   selectedResponseType = [];
   selectedAuthClientTokens = [];
+  selectedUserClientGrants = [];
   selectedRedirectUri;
   selectedScopes;
   supportedScopes;
@@ -569,6 +570,7 @@ export class ToolkitService {
     window.location.href = this.authorizeUrl;
   }
 
+/*
   // authn
   authn(): Observable<any> {
 
@@ -579,7 +581,44 @@ export class ToolkitService {
 
     return this.http.post('/demo/authn', payload);
   }
+ */
 
+  /**
+   *
+   * @returns {Observable<any>}
+   */
+  getSessionToken(): Observable<any> {
+
+    const payload = {
+      username: this.username,
+      password: this.password,
+      options: {
+        multiOptionalFactorEnroll: false,
+        warnBeforePasswordExpired: false
+      }
+    };
+
+    return this.http.post(this.authnUrl, payload);
+  }
+
+  exchangeSessionToken(sessionToken) {
+    console.log(this.authorizeUrl);
+    this.sessionExchangePayload = this.authorizeUrl + '&prompt=none&sessionToken=' + sessionToken;
+
+    window.location.href = this.sessionExchangePayload;
+  }
+
+  /**
+   *
+   */
+  authn() {
+    this.getSessionToken()
+      .subscribe(
+        sessionToken => {
+          console.log(sessionToken);
+          this.exchangeSessionToken(sessionToken.sessionToken);
+        });
+  }
 
   /**
    *

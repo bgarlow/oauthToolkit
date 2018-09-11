@@ -5,8 +5,8 @@
   "scripts": {
     "ng": "ng",
     "postinstall": "ng build",
-    "startproxy": "ng serve --proxy-config proxy.conf.js",
-    "start": "nodemon server.js",
+    "start": "ng serve --proxy-config proxy.conf.js",
+    "startx": "nodemon server.js",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

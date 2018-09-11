@@ -19,6 +19,7 @@ export class ToolkitComponent implements OnInit {
   toolkit: ToolkitService;
   showAppProfile = false;
   showAuthClientTokens = false;
+  showGrants = false;
   errorMessage;
   successMessage;
   metadataResponse;
@@ -474,9 +475,61 @@ export class ToolkitComponent implements OnInit {
 
   /*
   * TODO: this should also be in toolkit service, not here
+  *  All of the token and grant stuff should move to toolkit service
    */
-  revokeTokenById(token) {
 
+  /**
+   *
+   * @param grant
+   */
+  revokeGrantById(grant) {
+
+    const grantId = (grant.id) ? grant.id : grant.uid;
+
+    this.http.delete(`/demo/grants/${this.toolkit.decodedIdToken.sub}/${grantId}`)
+      .subscribe(
+        data => {
+          if (data['statusCode'] === 204) {
+            this.successMessage = `Grant ${grantId} ${grant._links.scope.title} revoked.`;
+            this.getGrants();
+          }
+        }
+      );
+  }
+
+  /**
+   *
+   */
+  revokeAllGrants() {
+
+    this.http.delete(`/demo/allgrants/${this.toolkit.decodedIdToken.sub}/${this.toolkit.selectedOAuthClientId}`)
+      .subscribe(
+        data => {
+          if (data['statusCode'] === 204) {
+            this.successMessage = 'All grants revoked.';
+            this.getGrants();
+          }
+        }
+      );
+  }
+
+
+  getGrantById(grant) {
+    return this.http.get(`/demo/grants/${this.toolkit.decodedIdToken.sub}/${this.toolkit.selectedOAuthClientId}/${grant.id}`);
+  }
+
+   getGrants() {
+    let endpoint = `/demo/grants/${this.toolkit.decodedIdToken.sub}/${this.toolkit.selectedOAuthClientId}`;
+
+    this.http.get(endpoint)
+      .subscribe(
+        data => {
+          this.toolkit.selectedUserClientGrants = JSON.parse(data.toString());
+        }
+      );
+  }
+
+  revokeTokenById(token) {
     const tokenId = (token.id) ? token.id : token.uid;
 
     this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}/${tokenId}`)
@@ -490,6 +543,9 @@ export class ToolkitComponent implements OnInit {
       );
   }
 
+  /**
+   *
+   */
   revokeAllTokens() {
 
     this.http.delete(`/demo/tokens/${this.toolkit.selectedAuthServerId}/${this.toolkit.selectedOAuthClientId}`)
@@ -827,6 +883,22 @@ export class ToolkitComponent implements OnInit {
    }
 
    authn() {
+     this.toolkit.updateAuthorizeUrl();
+     this.errorMessage = undefined;
+    this.toolkit.sessionExchangePayload = undefined;
+     this.updateOauthCookies();
+     this.saveState()
+      .subscribe(
+        data => {
+          this.toolkit.authn();
+        },
+        error => {
+          this.errorMessage = error;
+        });
+   }
+
+  /*
+  authn() {
     this.errorMessage = undefined;
     this.toolkit.sessionExchangePayload = undefined;
     this.saveState()
@@ -852,7 +924,8 @@ export class ToolkitComponent implements OnInit {
         error => {
           this.errorMessage = error;
         });
-   }
+  }
+  */
 
   /**
    * Extract tokens from URL fragment on redirect from Okta
@@ -1142,6 +1215,8 @@ export class ToolkitComponent implements OnInit {
             this.toolkit.currentUser = undefined;
             this.toolkit.decodedAccessToken = undefined;
             this.toolkit.decodedIdToken = undefined;
+            this.toolkit.exchangePayload = undefined;
+            this.toolkit.sessionExchangePayload = undefined;
             this.revokeToken(this.toolkit.accessToken, 'access_token');
             this.revokeToken(this.toolkit.refreshToken, 'refresh_token');
             this.toolkit.clearCache();

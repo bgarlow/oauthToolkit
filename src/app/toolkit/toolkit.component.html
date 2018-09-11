@@ -115,6 +115,7 @@
               <button class="btn btn-primary" (click)="selectOAuthClient(client)" *ngIf="!toolkit.selectedOAuthClientId || client.client_id != toolkit.selectedOAuthClientId">Select</button>
               <button class="btn btn-secondary" id="profileBtn" (click)="showAppProfile = !showAppProfile;getSelectedApp();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Edit</button>
               <button class="btn btn-secondary" id="tokensBtn" (click)="getTokens();showAuthClientTokens = !showAuthClientTokens" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Tokens</button>
+              <button class="btn btn-secondary" id="grantsBtn" (click)="getGrants();showGrants = !showGrants" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId">Grants</button>
               <button class="btn btn-secondary" id="verifierBtn" (click)="generatePkceStrings();" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && client.application_type === 'native' && toolkit.selectedGrantType != 'password'">PKCE</button>
             </div>
 
@@ -206,6 +207,7 @@
                 </div>
               </div>
 
+              <!-- refresh tokens -->
               <div *ngIf="showAuthClientTokens && client.client_id === toolkit.selectedOAuthClientId">
                 <div class="row">
                   <div class="col-sm">
@@ -226,6 +228,31 @@
                   </div>
                 </div>
               </div>
+
+              <!-- grants -->
+              <div *ngIf="showGrants && client.client_id === toolkit.selectedOAuthClientId">
+                <div class="row">
+                  <div class="col-sm">
+                    {{toolkit.selectedUserClientGrants.length}} grants.
+                  </div>
+                  <div class="col-sm">
+                    <button class="btn btn-secondary float-right" id="grantsBtn" (click)="revokeAllGrants();showGrants = !showGrants" *ngIf="toolkit.selectedOAuthClientId && client.client_id === toolkit.selectedOAuthClientId && toolkit.selectedUserClientGrants.length > 0">Revoke All</button>
+                  </div>
+                </div>
+                <div class="row" *ngFor="let grant of toolkit.selectedUserClientGrants">
+                  <div class="col-sm-11">
+                    <div class="outlined">
+                      <pre class="small_black">{{grant | json}}</pre>
+                    </div>
+                  </div>
+                  <div class="col-sm-1">
+                    <button class="btn btn-secondary" (click)="revokeGrantById(grant);">Revoke</button>
+                  </div>
+                </div>
+              </div>
+
+
+
             </div> <!-- end of second column-->
 
 
@@ -303,7 +330,7 @@
         <div class="col-sm-2">Last Session Token Exchange</div>
         <div class="col-sm-1"><button class="btn btn-secondary" (click)="toolkit.sessionExchangePayload = undefined">Clear</button></div>
         <div class="col-sm">
-          <div class="json-display"><pre>{{toolkit.sessionExchangePayload | json}}</pre></div>
+          <div class="json-display"><code>{{toolkit.sessionExchangePayload | json}}</code></div>
         </div>
       </div>
       <div class="form-group row">

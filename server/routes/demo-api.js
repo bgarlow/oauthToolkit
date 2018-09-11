@@ -599,6 +599,136 @@ router.delete('/tokens/:authServerId/:clientId/:tokenId', (req, res) => {
   });
 });
 
+/*** consent grants *** /
+
+ /**
+ * Revoke grant by ID
+ *  /api/v1/users/${userId}/grants/${grantId}
+ */
+router.delete('/grants/:userId/:grantId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const userId = req.params.userId;
+  const grantId = req.params.grantId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/users/${userId}/grants/${grantId}`;
+  const options = {
+    uri: endpoint,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 204) {
+        res.json(response);
+      }
+    }
+  });
+});
+
+
+ /**
+ * Revoke all grants for auth server/client
+ *  /api/v1/users/${userId}/clients/${clientId}/grants
+ */
+router.delete('/allgrants/:userId/:clientId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const userId = req.params.userId;
+  const clientId = req.params.clientId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  const endpoint = `${baseUrl}/api/v1/users/${userId}/clients/${clientId}/grants`;
+  const options = {
+    uri: endpoint,
+    method: 'DELETE',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 204) {
+        res.json(response);
+      }
+    }
+  });
+});
+
+ /**
+ * Get a list of grants for an User & Client
+ *  /api/v1/users/${userId}/clients/${clientId}/grants
+ */
+router.get('/grants/:userId/:clientId', (req, res) => {
+
+  if (!req.cookies.state) {
+    res.status(422).send('No Cookie');
+    return;
+  }
+
+  const userId = req.params.userId;
+  const clientId = req.params.clientId;
+  const apiKey = req.cookies.state.unsafeApiKey;
+  const baseUrl = req.cookies.state.baseUrl;
+  let endpoint = `${baseUrl}/api/v1/users/${userId}/clients/${clientId}/grants`;
+
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+      'Authorization': 'SSWS ' + apiKey
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+      res.status(500).send(error);
+      return;
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response.body)
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+});
+
 /**
  * Revoke all tokens for auth server/client
  */
@@ -1042,6 +1172,11 @@ router.post('/authn', (req, res) => {
             console.error(authError);
           }
           if (authResponse) {
+            if (authResponse.statusCode !== 200) {
+              res.send(authResponse);
+              return;
+            }
+
             if (authResponse.statusCode === 200) {
               if (typeof authBody === 'string') {
                 json = JSON.parse(authBody);
@@ -1128,6 +1263,10 @@ router.get('/authn/callback', (req, res) => {
       res.status(500).send(err);
       return;
     }
+    if (tokenRes.statusCode !== 200) {
+      res.status(500).send(json);
+      return;
+    }
     if (typeof json === 'string') {
       json = JSON.parse(json);
     }
@@ -1136,8 +1275,9 @@ router.get('/authn/callback', (req, res) => {
       return;
     }
 
-    res.json(json);
-
+    //res.json(json);
+    res.cookie('id_token', json.id_token, { httpOnly : true, secure: false });
+    res.redirect(302, '/toolkit');
   });
 });
 
