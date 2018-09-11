@@ -14,7 +14,7 @@ This is a utility app that allows you to interact with the various Authorization
 - Supports authorization code flow with PKCE for demo purposes
 - Allows you to directly edit an application's metadata using a JSON editor. Handy for adding redirect URI or profile JSON attribute data
 - Supports IDP Discovery
-- Supports advanced scoping techniques such as 'right-scoping' user and client credential access tokens __TODO: add links to docs here__
+- Supports advanced scoping techniques such as 'right-scoping' user and client credential access tokens. __TODO__ I'll add a link to the repo with instructions for advanced scoping techniques here.
 ## How does it work?
 
 ---
@@ -28,7 +28,7 @@ Tokens are stored in HTTP-only cookies managed by the Node backend.
 ---
 The Toolkit app requires Node Express and Angular. It was written in Node 8.9.1, Express 4.15.5 and Angular CLI 1.7.2, Angular 5.2.7.
 
-Clone this Github repository [bgarlow/demo6](https://github.com/bgarlow/demo6) _TODO: Rename the repo__
+Clone this Github repository [bgarlow/demo6](https://github.com/bgarlow/demo6) _TODO: I'll rename the repo once we settle on a name for the app...
 
 Run this command in a terminal window to install the application:
 ```
@@ -80,4 +80,33 @@ ___
 ###Select an Authorization Server and Client
 Select the authorization server and client you want to work with. The authorization server will display the scopes it supports, which you can select/deselect by clicking on the the chicklets. The list of scopes is pulled from the public metadata for the authorization server (https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server). Only scopes marked for "Metadata Publish" in Okta will appear in the list.
 ![Auth Server and Client](https://github.com/bgarlow/demo6/raw/master/src/assets/server_client.png)
+###Authenticate and Retrieve Tokens
+The toolkit provides several ways to authenticate, depending on the selected client and grant type. For flows that involve an end-user (authorization code, authorization code with PKCE, implicit and resource owner password) the following are supported
+
+__Note:__ Most of the UX controls in the toolkit are 2-way bound to the underlying data model. So, if you were to select a new scope by clicking on the chicklet in the authorization server section, that scope will automatically be added to the the OAuth /authorize endpoint wherever else it is used (in the sign-in widget, the redirect to Okta, etc.). 
+
+####Okta Sign-In Widget
+
+![Sign-In Widget](https://github.com/bgarlow/demo6/raw/master/src/assets/widget_config.png)
+
+This is the Okta Sign-In widget available at <https://github.com/okta/okta-signin-widget>. The JSON editor <https://github.com/josdejong/jsoneditor> component below the Sign-In Widget shows the current configuration of the widget, which is dynamically updated as other controls (selected scopes, selected clients, etc.) are updated. You can use the JSON editor to change the overall configuration of the widget, to do things like turning on features (self service registration, IDP discovery, etc.). CSS changes are not currently supported.
+
+If the widget isn't visible, click the __Update Widget__ button to refresh it. If you mess up the configuration and want to revert to the original widget configuration, click the __Reset Widget__ button. 
+
+####Redirect to Okta Sign In
+
+![Auth Server and Client](https://github.com/bgarlow/demo6/raw/master/src/assets/redirect.png)
+
+This will redirect you to the sign in page of the configured Okta org, where you will sign in and be redirected back to the selected redirectUri. The redirect goes to the /authorize endpoint of the Okta org <https://developer.okta.com/docs/api/resources/oidc#authorize>. If you are using authorization code flow, affter logging in the __Last Code Exchange__field will display the POST message payload used to exchange the authorization code for tokens on the back end. 
+
+__Note:__ This flow supports PKCE. If you click the __PKCE__ button in a client application, a code challenge and code verifier will be generated for the request. This allows you to demonstrate authorization code flow with PCKE without having to use a mobile app.
+
+####Okta Authentication API
+
+![Authentication API](https://github.com/bgarlow/demo6/raw/master/src/assets/authn.png)
+
+This flow is typical of a custom login page that doesn't use the Okta Auth Javascript SDK <https://github.com/okta/okta-auth-js>. The custom form collects the username and password, and calls the Okta Authentication API
+
+
+
 
