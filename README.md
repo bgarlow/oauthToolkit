@@ -45,8 +45,7 @@ npm install
 ```
 ## Start the Application
 
-__TODO: add screen shots
-__TODO: remove proxy.conf.js so that this all runs on a single port
+__TODO: I'll remove proxy.conf.js so that this all runs on a single port instead of NG and Node on separate ports
 
 While it is under development, the application is configured to run on two separate ports. The Angular app runs on port 4200, and the Node Express app runs on port 3000. This makes development and testing more efficient because you don't have to build the entire Angular project each time you make a change. 
 
