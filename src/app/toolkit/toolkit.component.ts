@@ -149,7 +149,7 @@ export class ToolkitComponent implements OnInit {
   }
 
   /**
-   * Get token from token endpoing
+   * Get token from token endpoint
    */
   getToken() {
     //this.clearLocalTokens();
@@ -658,7 +658,8 @@ export class ToolkitComponent implements OnInit {
         username: this.toolkit.username,
         password: this.toolkit.password,
         refreshToken: this.toolkit.refreshToken,
-        refreshTokenExp: this.toolkit.refreshTokenExp
+        refreshTokenExp: this.toolkit.refreshTokenExp,
+        sessionExchangePayload: this.toolkit.sessionExchangePayload
       }
     };
 
@@ -720,6 +721,7 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.prompt = (data['prompt']) ? data['prompt'] : undefined;
           this.toolkit.username = (data['username']) ? data['username'] : undefined;
           this.toolkit.password = (data['password']) ? data['password'] : undefined;
+          this.toolkit.sessionExchangePayload = (data['sessionExchangePayload']) ? data['sessionExchangePayload'] : undefined;
           if (this.toolkit.decodedIdToken) {
             this.toolkit.currentUser = (this.toolkit.decodedIdToken.preferred_username) ? this.toolkit.decodedIdToken.preferred_username : this.toolkit.decodedIdToken.sub;
           } else {
@@ -883,18 +885,25 @@ export class ToolkitComponent implements OnInit {
    }
 
    authn() {
+     this.updateOauthCookies();
+     this.saveState();
      this.toolkit.updateAuthorizeUrl();
      this.errorMessage = undefined;
-    this.toolkit.sessionExchangePayload = undefined;
-     this.updateOauthCookies();
-     this.saveState()
-      .subscribe(
-        data => {
-          this.toolkit.authn();
-        },
-        error => {
-          this.errorMessage = error;
-        });
+      this.toolkit.sessionExchangePayload = undefined;
+
+      this.toolkit.authn()
+        .then(
+          res => {
+            console.log(res);
+            this.toolkit.sessionExchangePayload = res;
+            this.saveState()
+              .subscribe(
+                save => {
+                  window.location.href = this.toolkit.sessionExchangePayload;
+                }
+              );
+          }
+        );
    }
 
   /*
@@ -1375,12 +1384,6 @@ export class ToolkitComponent implements OnInit {
                         .subscribe(
                           payload => {
                             this.toolkit.exchangePayload = payload;
-                          }
-                        );
-                      this.toolkit.getSessionExchangePayload()
-                        .subscribe(
-                          sessionPayload => {
-                            this.toolkit.sessionExchangePayload = sessionPayload;
                           }
                         );
                     },

@@ -452,7 +452,7 @@ export class ToolkitService {
     this.authorizeUrl = '';
     this.tokenUrl = '';
     this.exchangePayload = undefined;
-    this.sessionExchangePayload = undefined;
+    //this.sessionExchangePayload = undefined;
 
     if (!this.state) {
       this.state = `youdidntgivemeastatevalue`;
@@ -570,19 +570,6 @@ export class ToolkitService {
     window.location.href = this.authorizeUrl;
   }
 
-/*
-  // authn
-  authn(): Observable<any> {
-
-    const payload = {
-      username: this.username,
-      password: this.password
-    };
-
-    return this.http.post('/demo/authn', payload);
-  }
- */
-
   /**
    *
    * @returns {Observable<any>}
@@ -601,23 +588,32 @@ export class ToolkitService {
     return this.http.post(this.authnUrl, payload);
   }
 
+  /**
+   *
+   * @param sessionToken
+   */
   exchangeSessionToken(sessionToken) {
     console.log(this.authorizeUrl);
     this.sessionExchangePayload = this.authorizeUrl + '&prompt=none&sessionToken=' + sessionToken;
-
-    window.location.href = this.sessionExchangePayload;
   }
 
   /**
    *
    */
   authn() {
-    this.getSessionToken()
-      .subscribe(
-        sessionToken => {
-          console.log(sessionToken);
-          this.exchangeSessionToken(sessionToken.sessionToken);
-        });
+
+    let promise = new Promise((resolve) => {
+      this.getSessionToken()
+        .toPromise()
+        .then(
+          sessionToken => {
+            console.log(sessionToken);
+            this.exchangeSessionToken(sessionToken.sessionToken);
+            resolve(this.sessionExchangePayload);
+          });
+    });
+
+    return promise;
   }
 
   /**
@@ -668,10 +664,6 @@ export class ToolkitService {
 
   getTokenPayload() {
     return this.http.get('/demo/tokenpayload');
-  }
-
-  getSessionExchangePayload() {
-    return this.http.get('/demo/sessionexchangepayload');
   }
 
   getProxyPayload() {
