@@ -4,7 +4,7 @@ setup:
 	npm install -g @angular/cli
 
 build:
-	echo "nothing to build, this Node, but thank you for thinking of me"
+	ng build
 
 run:
 	node server.js
