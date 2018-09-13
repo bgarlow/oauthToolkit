@@ -1,12 +1,13 @@
 
 setup:
-	npm install http
+	npm install 
+	npm install -g @angular/cli
 
 build:
 	echo "nothing to build, this Node, but thank you for thinking of me"
 
 run:
-  node server.js
+	node server.js
 	npm start
 
 dockertest:
