@@ -6,7 +6,7 @@ build:
 	echo "nothing to build, this Node, but thank you for thinking of me"
 
 run:
-	node index.js
+	npm start
 
 dockertest:
 	make setup
