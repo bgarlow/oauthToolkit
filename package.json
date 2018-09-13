@@ -6,7 +6,7 @@
     "ng": "ng",
     "postinstall": "ng build",
     "start": "ng serve --proxy-config proxy.conf.js",
-    "startx": "nodemon server.js",
+    "startnode": "node server.js",
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",

@@ -6,8 +6,8 @@ build:
 	echo "nothing to build, this Node, but thank you for thinking of me"
 
 run:
+  npm start
   node server.js
-	npm start
 
 dockertest:
 	make setup
