@@ -3,12 +3,11 @@ This is a utility app that allows you to interact with the various Authorization
 
 ## What does it do?
 
----
 - Uses the Okta APIs to gather information about your Okta tenant, including: all authorization servers and the list of supported scopes that are listed in the public metadata for the auth server (.well-known/oauth-authorization-server) and all OAuth clients and the list of grant types, response types, and redirect URIs they support.
 - Allows you to select any combination of authorization server and client and associated options (with easy to use graphical UI) to test or demonstrate authentication use cases.
 - Allows you to use the Okta Sign-In Widget (configurable) or redirect using the /authorize and/or /token endpoints
 - Displays and decodes the resulting JWTs and includes a TTL timer for each token
-- Performs local token validation on the server side for authorization code grant requests using Okta JWT Verifier for Node.JS <https://github.com/okta/okta-oidc-js/tree/master/packages/jwt-verifier>.
+- Performs local token validation on the server side for authorization code grant requests using [Okta JWT Verifier](https://github.com/okta/okta-oidc-js/tree/master/packages/jwt-verifier) for Node.JS.
 - Allows you to invoke the /introspect endpoint to view token status
 - Displays all (and allows you to revoke) tokens for the selected client
 - Supports authorization code flow with PKCE for demo purposes
@@ -16,7 +15,7 @@ This is a utility app that allows you to interact with the various Authorization
 - Supports IDP Discovery
 - Supports advanced scoping techniques such as 'right-scoping' user and client credential access tokens. __TODO__ I'll add a link to the repo with instructions for advanced scoping techniques here.
 
-__NOTES__
+__Notes__
 
 - This app is designed to make it easy to demonstrate Okta's functionality wrt OAuth 2.0 and OIDC. As such, it does a lot of things you would never do in a real production app, such as displaying client secrets, displaying tokens in the client, exposing /demo APIs that give access to tokens, secrets, API keys, etc.  
 - The overall state of the application is maintained in a cookie called "state". If things get weird, consider deleting that cookie and reloading your tenant and API key.
@@ -26,41 +25,46 @@ __NOTES__
 
 ## How does it work?
 
----
 The app requires an Okta API key in order to make various API calls (get the list of auth servers and clients, update application metadata, etc.). The current state of the application--the selected authorization server and client, the selected grant type, redirect URI, etc. are all stored in a cookie called "state". Any time you select a new option, the state of the application is updated in that cookie. You can always click "save" to save the current state as well.
 
 You'll need to configure your apps with the redirect URI of the Toolkit application. You can add the redirect URI to the application in Okta, or you can click on the _Edit_ button for the selected app, and add the redirect URI directly to the application's JSON definition. By default, implicit flow should redirect to http://localhost:4200/tookit, and authorization code flow should redirect to the Node backend on http://localhost:4200/demo/authorization-code/callback.
 
 Tokens are stored in HTTP-only cookies managed by the Node backend. 
+
 ## Installation
 
----
 The Toolkit app requires Node Express and Angular. It was written in Node 8.9.1, Express 4.15.5 and Angular CLI 1.7.2, Angular 5.2.7.
 
-Clone this Github repository [bgarlow/demo6](https://github.com/bgarlow/demo6) _TODO: I'll rename the repo once we settle on a name for the app...
+Clone this Github repository [bgarlow/oauthToolkit](https://github.com/bgarlow/oauthToolkit) 
 
 Run this command in a terminal window to install the application:
 ```
 npm install
+
 ```
+
 ## Start the Application
 
-__TODO: I'll remove proxy.conf.js so that this all runs on a single port instead of NG and Node on separate ports
+__TODO__: I'll remove proxy.conf.js so that this all runs on a single port instead of NG and Node on separate ports
 
 While it is under development, the application is configured to run on two separate ports. The Angular app runs on port 4200, and the Node Express app runs on port 3000. This makes development and testing more efficient because you don't have to build the entire Angular project each time you make a change. 
 
 ##### Run the Node server
+
 ```
 node server.js
 ```
 
 ##### In a separate terminal window, run the Angular server
+
 This will build the project and run the server:
+
 ```
 npm start
 ```
----
+
 ## Configure the Toolkit for your Okta Org
+
 ![Okta Config](https://github.com/bgarlow/demo6/raw/master/src/assets/okta_config.png)
 
 1. Enter the base URL of your Okta tenant (https://myorg.okta.com)
@@ -70,7 +74,9 @@ npm start
 This should load your authorization servers..
 
 ![Auth Servers](https://github.com/bgarlow/demo6/raw/master/src/assets/auth_servers.png)
+
 .. and OAuth clients.
+
 ![OAuth Clients](https://github.com/bgarlow/demo6/raw/master/src/assets/oauth_clients.png)
 
 __Note:__ The toolkit app is using the following Okta API endpoints to load this data:
@@ -84,34 +90,42 @@ __GET__ [/api/v1/authorizationServers/${authorizationServerId}/clients](https://
 __GET__ [/api/v1/apps/${applicationId}](https://developer.okta.com/docs/api/resources/apps#get-application)
 
 __Note:__ The Applications API will not return the client secret, so you will need to copy and paste the client secret from Okta for any OAuth clients you want to use with authorization code or client credentials grant type.
-___
+
 ### Select an Authorization Server and Client
+
 Select the authorization server and client you want to work with. The authorization server will display the scopes it supports, which you can select/deselect by clicking on the the chicklets. The list of scopes is pulled from the public metadata for the authorization server (https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server). Only scopes marked for "Metadata Publish" in Okta will appear in the list.
+
 ![Auth Server and Client](https://github.com/bgarlow/demo6/raw/master/src/assets/server_client.png)
 
 #### Authorization Server
+
 This panel displays the Authorization Server name, description and ID. The __Metadata__ button will call the selected auth server's metadata URI and display the JSON response in a panel at the bottom of the page. You may have to scroll down to see it. 
 
 You can select/deselect scopes by clicking on the corresponding chicklet. The __clr scp__ button will de-select all scopes. If already have an access token, the scopes contained in that token will appear highlighted. You can request a new access token with different scopes by simply clicking on the new scopes you want and clicking on the button to call the /authorize endpoint again. The new request (and Sign-in Widget configuration) are automatically updated when you click on scope chicklets.
 
 #### OAuth Client
+
 This panel displays the client name, application type, and ID. It also displays the grant types, response types, and redirect URIs supported by the client. You can select any valid combination of these to build a new auth request.
 
 __Note:__ 
+
 - If you want to use authorization code flow, you need to configure the client to redirect to the callback handler of the toolkit app, e.g. <http://localhost:4200/toolkit/authorization-code/callback>
-_ Otherwise configure your app to redirect to the toolkit's front-end <http://localhost:4200/toolkit>, which will retrieve tokens from the URL fragment.
+- Otherwise configure your app to redirect to the toolkit's front-end <http://localhost:4200/toolkit>, which will retrieve tokens from the URL fragment.
 - You can add the redirect URI to the app in Okta, or you can click the __Edit__ button and manually add the new redirect_uri parameter using the JSON editor.
 
 __Note:__ The Okta API that is used to populate the OAuth Client panel with information about the client does not return the client secret (if applicable). You will need to manually copy and paste the client secret into the client secret field and click the "Save" button to store the client secret in the __cachedClients__ cookie, which is used by the toolkit app to maintain a list of OAuth client with their secrets.
 
 The __Tokens__ button will display a list of all refresh tokens for this client. You can revoke all tokens, or select individual tokens to revoke. This is useful for demonstrating various token lifecycle operations and refresh token flows. Clicking on the __Expand token info with expand=scope__ checkbox will display the scopes associated with the token.
+
 ![Tokens](https://github.com/bgarlow/demo6/raw/master/src/assets/tokens.png)
 
 The __Grants__ button will display a list of all scope grants the end user has consented to during authorization. You can revoke all grants, or individually revoke grants. This can be useful for demonstrating how user consent works with API Access Management.
+
 ![Grants](https://github.com/bgarlow/demo6/raw/master/src/assets/grants.png)
 
 
 ### Authenticate and Retrieve Tokens
+
 The toolkit provides several ways to authenticate, depending on the selected client and grant type. For flows that involve an end-user (authorization code, authorization code with PKCE, implicit and resource owner password) the following are supported
 
 __Note:__ Most of the UX controls in the toolkit are 2-way bound to the underlying data model. So, if you were to select a new scope by clicking on the chicklet in the authorization server section, that scope will automatically be added to the the OAuth /authorize endpoint wherever else it is used (in the sign-in widget, the redirect to Okta, etc.). 

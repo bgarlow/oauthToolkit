@@ -1,7 +1,7 @@
 {
   "name": "OAuth Toolkit",
   "description": "OAuth/OIDC Toolkit.",
-  "repository": "https://github.com/bgarlow/demo6.git",
+  "repository": "https://github.com/bgarlow/oauthToolkit.git",
   "keywords": [
     "Okta",
     "API Access Management",

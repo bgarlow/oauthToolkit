@@ -1,6 +1,6 @@
 import { AppPage } from './app.po';
 
-describe('demo6 App', () => {
+describe('oauthToolkit App', () => {
   let page: AppPage;
 
   beforeEach(() => {

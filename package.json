@@ -73,7 +73,7 @@
   "main": "server.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bgarlow/demo6.git"
+    "url": "git+https://github.com/bgarlow/oauthToolkit.git"
   },
   "keywords": [
     "Okta",
@@ -82,7 +82,7 @@
   ],
   "author": "Brent Garlow",
   "bugs": {
-    "url": "https://github.com/bgarlow/demo6/issues"
+    "url": "https://github.com/bgarlow/oauthToolkit/issues"
   },
-  "homepage": "https://github.com/bgarlow/demo6#readme"
+  "homepage": "https://github.com/bgarlow/oauthToolkit#readme"
 }
