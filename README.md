@@ -60,7 +60,7 @@ This will build the project and run the server:
 npm start
 ```
 ---
-##Configure the Toolkit for your Okta Org
+## Configure the Toolkit for your Okta Org
 ![Okta Config](https://github.com/bgarlow/demo6/raw/master/src/assets/okta_config.png)
 
 1. Enter the base URL of your Okta tenant (https://myorg.okta.com)
@@ -85,16 +85,16 @@ __GET__ [/api/v1/apps/${applicationId}](https://developer.okta.com/docs/api/reso
 
 __Note:__ The Applications API will not return the client secret, so you will need to copy and paste the client secret from Okta for any OAuth clients you want to use with authorization code or client credentials grant type.
 ___
-###Select an Authorization Server and Client
+### Select an Authorization Server and Client
 Select the authorization server and client you want to work with. The authorization server will display the scopes it supports, which you can select/deselect by clicking on the the chicklets. The list of scopes is pulled from the public metadata for the authorization server (https://{yourOktaDomain}/oauth2/${authServerId}/.well-known/oauth-authorization-server). Only scopes marked for "Metadata Publish" in Okta will appear in the list.
 ![Auth Server and Client](https://github.com/bgarlow/demo6/raw/master/src/assets/server_client.png)
 
-####Authorization Server
+#### Authorization Server
 This panel displays the Authorization Server name, description and ID. The __Metadata__ button will call the selected auth server's metadata URI and display the JSON response in a panel at the bottom of the page. You may have to scroll down to see it. 
 
 You can select/deselect scopes by clicking on the corresponding chicklet. The __clr scp__ button will de-select all scopes. If already have an access token, the scopes contained in that token will appear highlighted. You can request a new access token with different scopes by simply clicking on the new scopes you want and clicking on the button to call the /authorize endpoint again. The new request (and Sign-in Widget configuration) are automatically updated when you click on scope chicklets.
 
-####OAuth Client
+#### OAuth Client
 This panel displays the client name, application type, and ID. It also displays the grant types, response types, and redirect URIs supported by the client. You can select any valid combination of these to build a new auth request.
 
 __Note:__ 
@@ -111,12 +111,12 @@ The __Grants__ button will display a list of all scope grants the end user has c
 ![Grants](https://github.com/bgarlow/demo6/raw/master/src/assets/grants.png)
 
 
-###Authenticate and Retrieve Tokens
+### Authenticate and Retrieve Tokens
 The toolkit provides several ways to authenticate, depending on the selected client and grant type. For flows that involve an end-user (authorization code, authorization code with PKCE, implicit and resource owner password) the following are supported
 
 __Note:__ Most of the UX controls in the toolkit are 2-way bound to the underlying data model. So, if you were to select a new scope by clicking on the chicklet in the authorization server section, that scope will automatically be added to the the OAuth /authorize endpoint wherever else it is used (in the sign-in widget, the redirect to Okta, etc.). 
 
-####Okta Sign-In Widget
+#### Okta Sign-In Widget
 
 ![Sign-In Widget](https://github.com/bgarlow/demo6/raw/master/src/assets/widget_config.png)
 
@@ -124,7 +124,7 @@ This is the Okta Sign-In widget available at <https://github.com/okta/okta-signi
 
 If the widget isn't visible, click the __Update Widget__ button to refresh it. If you mess up the configuration and want to revert to the original widget configuration, click the __Reset Widget__ button. 
 
-####Redirect to Okta Sign In
+#### Redirect to Okta Sign In
 
 ![Redirect to Okta](https://github.com/bgarlow/demo6/raw/master/src/assets/redirect.png)
 
@@ -134,7 +134,7 @@ This will redirect you to the sign in page of the configured Okta org, where you
 
 __Note:__ This flow supports PKCE. If you click the __PKCE__ button in a client application, a code challenge and code verifier will be generated for the request. This allows you to demonstrate authorization code flow with PCKE without having to use a mobile app.
 
-####Okta Authentication API
+#### Okta Authentication API
 
 ![Authentication API](https://github.com/bgarlow/demo6/raw/master/src/assets/authn.png)
 
@@ -142,7 +142,7 @@ This flow is typical of a custom login page that doesn't use the Okta Auth Javas
 
 ![Last Session Token Exchange](https://github.com/bgarlow/demo6/raw/master/src/assets/lastsession.png)
 
-####Token Endpoint
+#### Token Endpoint
 
 If you have selected client credential grant type, the Token Endpoint panel will be displayed, allowing you to retrieve tokens via the /token endpoint. __Note__ the toolkit app is current configured to send client_id and client_secret as request parameters, rather than in the Basic Authorization header as a combined hash value. 
 
