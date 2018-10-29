@@ -36,7 +36,7 @@ Tokens are stored in HTTP-only cookies managed by the Node backend.
 ### Install to Docker (easy)
 
 ```
-docker run -it -e github='https://github.com/bgarlow/demo6.git' -p 3000:3000 oktaadmin/dockertest
+docker run -it -e github='https://github.com/bgarlow/oauthToolkit.git' -p 3000:3000 oktaadmin/dockertest
 ```
 
 ### Install locally
