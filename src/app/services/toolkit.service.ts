@@ -109,7 +109,7 @@ export class ToolkitService {
     features: {
       router: true,
       registration: true,
-      idpDiscovery: true,
+      idpDiscovery: false,
       securityImage: false,
       autoPush: true
     },

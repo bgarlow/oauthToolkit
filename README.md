@@ -33,6 +33,14 @@ Tokens are stored in HTTP-only cookies managed by the Node backend.
 
 ## Installation
 
+### Install to Docker (easy)
+
+```
+docker run -it -e github='https://github.com/bgarlow/demo6.git' -p 3000:3000 oktaadmin/dockertest
+```
+
+### Install locally
+
 The Toolkit app requires Node Express and Angular. It was written in Node 8.9.1, Express 4.15.5 and Angular CLI 1.7.2, Angular 5.2.7.
 
 Clone this Github repository [bgarlow/oauthToolkit](https://github.com/bgarlow/oauthToolkit) 
