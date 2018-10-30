@@ -6,7 +6,6 @@ import {ActivatedRoute} from '@angular/router';
 import {ToolkitService} from '../services/toolkit.service';
 import {JsoneditorComponent} from '../jsoneditor/jsoneditor.component';
 import {JsonEditorOptions} from 'ang-jsoneditor';
-import {CountDown} from 'ng4-date-countdown-timer';
 
 @Component({
   selector: 'app-toolkit',

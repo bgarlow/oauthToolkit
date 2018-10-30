@@ -14,7 +14,6 @@ import { ToolkitComponent } from './toolkit/toolkit.component';
 import { ConfigService } from './config.service';
 import { NgJsonEditorModule } from 'ang-jsoneditor';
 import { JsoneditorComponent } from './jsoneditor/jsoneditor.component';
-import { CountDown } from 'ng4-date-countdown-timer';
 
 @NgModule({
   declarations: [
@@ -25,8 +24,7 @@ import { CountDown } from 'ng4-date-countdown-timer';
     LoginComponent,
     ProfileComponent,
     ToolkitComponent,
-    JsoneditorComponent,
-    CountDown
+    JsoneditorComponent
   ],
   imports: [
     BrowserModule,

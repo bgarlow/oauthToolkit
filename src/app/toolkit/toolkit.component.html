@@ -467,7 +467,7 @@
           <span class="timer">Expires on: {{this.toolkit.decodedAccessToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
         </div>
         <div class="col-sm-4" *ngIf="this.toolkit.accessTokenExp">
-          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}" (click)="this.toolkit.accessTokenExp = 0"></countdown>
+          <!-- <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.accessTokenExp}}" (click)="this.toolkit.accessTokenExp = 0"></countdown> -->
         </div>
       </div>
       <div class="form-group row">
@@ -526,7 +526,7 @@
           <span class="timer">Expires on: {{this.toolkit.decodedIdToken.exp * 1000 | date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
         </div>
         <div class="col-sm-4">
-          <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.idTokenExp}}"></countdown>
+          <!-- <countdown class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.idTokenExp}}"></countdown> -->
         </div>
       </div>
       <div class="form-group row">
@@ -566,7 +566,7 @@
           <span *ngIf="toolkit.refreshTokenExp" class="timer">Expires on: {{this.toolkit.refreshTokenExp| date: 'M/dd/yyyy @ h:mma' : '-0600'}}</span>
         </div>
         <div class="col-sm-4">
-          <countdown *ngIf="toolkit.refreshTokenExp" class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.refreshTokenExp}}"></countdown>
+          <!-- <countdown *ngIf="toolkit.refreshTokenExp" class="float-right" units="Year | Month | Days | Hours | Minutes | Seconds"  end="{{this.toolkit.refreshTokenExp}}"></countdown> -->
         </div>
       </div>
       <div class="form-group row">
