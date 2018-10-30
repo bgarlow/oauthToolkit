@@ -27,7 +27,18 @@ __Notes__
 
 The app requires an Okta API key in order to make various API calls (get the list of auth servers and clients, update application metadata, etc.). The current state of the application--the selected authorization server and client, the selected grant type, redirect URI, etc. are all stored in a cookie called "state". Any time you select a new option, the state of the application is updated in that cookie. You can always click "save" to save the current state as well.
 
-You'll need to configure your apps with the redirect URI of the Toolkit application. You can add the redirect URI to the application in Okta, or you can click on the _Edit_ button for the selected app, and add the redirect URI directly to the application's JSON definition. By default, implicit flow should redirect to http://localhost:4200/tookit, and authorization code flow should redirect to the Node backend on http://localhost:4200/demo/authorization-code/callback.
+You'll need to configure your apps with the redirect URI of the Toolkit application. You can add the redirect URI to the application in Okta, or you can click on the _Edit_ button for the selected app, and add the redirect URI directly to the application's JSON definition. 
+
+By default, implicit flow should redirect to:
+ 
+ ```angular2html
+ http://localhost:3000/tookit
+ ```
+ ...and authorization code flow should redirect to the Node backend on:
+ 
+ ```angular2html
+ http://localhost:3000/demo/authorization-code/callback.
+``` 
 
 Tokens are stored in HTTP-only cookies managed by the Node backend. 
 
