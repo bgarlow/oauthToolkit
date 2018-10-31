@@ -46,25 +46,63 @@ Tokens are stored in HTTP-only cookies managed by the Node backend.
 
 ### Install to Docker (easy)
 
+__Prerequisite:__ You'll need to have Docker and Docker CLI installed locally.
+
+
+Run the following command to install and run the OAuth Toolkit app inside a docker image by Patrick McDowell.
+
+```bash
+docker run -it --rm -e github='https://github.com/bgarlow/oauthToolkit.git' --name toolkitcontainer -p 3000:3000 oktaadmin/dockertest
 ```
-docker run -it -e github='https://github.com/bgarlow/oauthToolkit.git' -p 3000:3000 oktaadmin/dockertest
+
+This will build the Docker image in a container called "toolkitcontainer", which will be deleted when the image is stopped. You can change the first port number if you need to have the app exposed on a different local port.
+
+You can take a 'snapshot' of the Docker image, so that in the future you can just restart from the snapshot instead of having to use the command above (which is a little slow since it's building a Docker container for you). 
+
+First, open another terminal window, then run:
+
+```bash
+docker container ls
 ```
+
+...to verify that the container is still running. Then:
+
+```bash
+docker commit toolkitcontainer [REPOSITORY[:TAG]]
+```
+
+For example, to create a local snapshot:
+
+```bash
+docker commit toolkitcontainer toolkit_snapshot
+```
+
+To stop the running container (and delete it), run:
+
+```bash
+docker stop toolkitcontainer
+```
+
+To "restart" the app, you can just start up the snapshot withe the following command:
+
+```bash
+docker run --name toolkitcontainer -it --rm -p 3000:3000 toolkit_snapshot /bin/bash -c "cd github/oauthToolkit && make run"
+```
+
+This will start up the image in a container called 'toolkitcontainer' (which will be removed when you stop the container). Once the image is running, it will switch directories into the source code directory of the app and run it.
 
 ### Install locally
 
-The Toolkit app requires Node Express and Angular. It was written in Node 8.9.1, Express 4.15.5 and Angular CLI 1.7.2, Angular 5.2.7.
+The Toolkit app requires Node Express and Angular. It was written in Node 8.9.1, Express 4.15.5 and Angular CLI 7.0.3, Angular 7.0.1.
 
 Clone this Github repository [bgarlow/oauthToolkit](https://github.com/bgarlow/oauthToolkit) 
 
 Run this command in a terminal window to install the application:
 ```
 npm install
-
 ```
 
 ## Start the Application
-
-__TODO__: I'll remove proxy.conf.js so that this all runs on a single port instead of NG and Node on separate ports
 
 While it is under development, the application is configured to run on two separate ports. The Angular app runs on port 4200, and the Node Express app runs on port 3000. This makes development and testing more efficient because you don't have to build the entire Angular project each time you make a change. 
 
