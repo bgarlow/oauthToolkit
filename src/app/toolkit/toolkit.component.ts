@@ -1325,6 +1325,8 @@ export class ToolkitComponent implements OnInit {
    */
   ngOnInit() {
 
+    this.toolkit.clearOAuthCookies();
+
     this.toolkit.currentUser = undefined;
 
     this.loadState();

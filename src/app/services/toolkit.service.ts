@@ -230,6 +230,15 @@ export class ToolkitService {
   }
 
   /**
+   * Clear the OAuth cookies containing state and nonce (simulated widget cookies)
+   * @returns {Observable<Object>}
+   */
+  clearOAuthCookies() {
+    return this.http.get('/demo/clearcookies');
+  }
+
+
+  /**
    *
    */
   signout(): Observable<any> {
