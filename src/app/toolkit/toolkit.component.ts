@@ -43,8 +43,8 @@ export class ToolkitComponent implements OnInit {
           this.toolkit.codeVerifier = data['verifier'];
           this.toolkit.getCodeChallenge(this.toolkit.codeVerifier)
             .subscribe(
-              data => {
-                this.toolkit.codeChallenge = data['challenge'];
+              challengeData => {
+                this.toolkit.codeChallenge = challengeData['challenge'];
                 this.toolkit.usePKCE = true;
                 this.saveState();
               }
@@ -1325,8 +1325,6 @@ export class ToolkitComponent implements OnInit {
    */
   ngOnInit() {
 
-    this.toolkit.clearOAuthCookies();
-
     this.toolkit.currentUser = undefined;
 
     this.loadState();
@@ -1347,7 +1345,7 @@ export class ToolkitComponent implements OnInit {
               if (fragment) {
                 this.extractTokensFromFragment(fragment);
               } else {
-                //if (this.toolkit.decodedIdToken && this.toolkit.scopesClaim) {
+                // if (this.toolkit.decodedIdToken && this.toolkit.scopesClaim) {
                 //  this.toolkit.userScopes = (this.toolkit.decodedIdToken[this.toolkit.scopesClaim]) ? this.toolkit.decodedIdToken[this.toolkit.scopesClaim] : undefined;
                 //}
                 this.updateUserScopes();

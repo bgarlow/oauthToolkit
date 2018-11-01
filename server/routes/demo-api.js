@@ -1399,20 +1399,21 @@ router.get('/authorization-code/callback', (req, res) => {
 
     const issuer = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId;
 
+    console.log(`selectedOauthClientId: ${req.cookies.state.selectedOAuthClientId}`);
+    console.log(req.cookies.state.selectedAuthServer);
+    console.log(`instantiating access token verifier`);
     const oktaAccessTokenVerifier = new OktaJwtVerifier({
       issuer: issuer,
-      assertClaims: {
-        cid: req.cookies.state.selectedOAuthClientId
-      }
+      clientId: req.cookies.state.selectedOAuthClientId
     });
 
+    console.log(`instantiating id token verifier`);
     const oktaIdTokenVerifier = new OktaJwtVerifier({
       issuer: issuer,
-      assertClaims: {
-      }
+      clientId: req.cookies.state.selectedOAuthClientId
     });
 
-   if (json.refresh_token) {
+    if (json.refresh_token) {
       res.cookie('refresh_token', json.refresh_token, { httpOnly : true, secure: false });
     }
 

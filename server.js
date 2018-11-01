@@ -18,8 +18,6 @@ const demoApi = require('./server/routes/demo-api');
 
 let  config = {};
 
-console.log(`Okta tenant:  ${process.env.OKTA_TENANT}`);
-
 // Point static path to dist
 app.use(express.static(path.join(__dirname, 'dist')));
 
