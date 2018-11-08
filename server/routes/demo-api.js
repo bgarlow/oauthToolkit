@@ -519,7 +519,6 @@ router.post('/introspect', (req, res) => {
  */
 router.get('/authorizationServers', (req, res) => {
 
-
   if (!req.cookies.state) {
     res.status(422).send('No Cookie');
     return;
@@ -538,6 +537,8 @@ router.get('/authorizationServers', (req, res) => {
       'Authorization': 'SSWS ' + apiKey
     }
   };
+
+  console.log(options);
 
   request(options, function(error, response, body) {
     if (error) {
@@ -1399,15 +1400,11 @@ router.get('/authorization-code/callback', (req, res) => {
 
     const issuer = req.cookies.state.baseUrl + '/oauth2/' + req.cookies.state.selectedAuthServerId;
 
-    console.log(`selectedOauthClientId: ${req.cookies.state.selectedOAuthClientId}`);
-    console.log(req.cookies.state.selectedAuthServer);
-    console.log(`instantiating access token verifier`);
     const oktaAccessTokenVerifier = new OktaJwtVerifier({
       issuer: issuer,
       clientId: req.cookies.state.selectedOAuthClientId
     });
 
-    console.log(`instantiating id token verifier`);
     const oktaIdTokenVerifier = new OktaJwtVerifier({
       issuer: issuer,
       clientId: req.cookies.state.selectedOAuthClientId
@@ -1431,6 +1428,8 @@ router.get('/authorization-code/callback', (req, res) => {
 
 
     if (json.access_token) {
+      console.log(`access_token follows...`);
+      console.log(json.access_token);
       oktaAccessTokenVerifier.verifyAccessToken(json.access_token)
         .then(jwt => {
           // the token is valid
