@@ -1070,6 +1070,39 @@ router.delete('/state', (req, res) => {
   res.status(200).send();
 });
 
+
+router.get('/silentauth', (req, res) => {
+
+  const baseUrl = req.cookies.state.baseUrl;
+  //const endpoint = `${baseUrl}/oauth2/v1/clients?limit=100`;
+  const endpoint = ` https://btgapi.okta.com/oauth2/aus11dko07fCEDKnV2p7/v1/authorize?client_id=0oa11dnd8y99yf2Te2p7&response_type=code&response_mode=okta_post_message&scope=openid fileshare.role.user&redirect_uri=http://localhost:3000/demo/authorization-code/callback&state=youdidntgivemeastatevalue&nonce=1542152791551`;
+
+  const options = {
+    uri: endpoint,
+    method: 'GET',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'Cache-Control': 'no-cache',
+    }
+  };
+
+  request(options, function(error, response, body) {
+    if (error) {
+      console.error(error);
+    }
+    if (response) {
+      if (response.statusCode === 200) {
+        res.json(response);
+      } else {
+        console.error(response.statusCode);
+        res.json(response);
+      }
+    }
+  });
+
+});
+
 /**
  *
  */

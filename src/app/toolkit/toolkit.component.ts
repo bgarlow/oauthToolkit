@@ -883,6 +883,16 @@ export class ToolkitComponent implements OnInit {
         });
    }
 
+   silentAuthentication() {
+    this.toolkit.silentAuthentication()
+      .subscribe(
+        response => {
+          console.log(`silentAuthentication response follows...`);
+          console.log(response);
+        }
+      )
+   }
+
    authn() {
      this.updateOauthCookies();
      this.saveState();

@@ -579,6 +579,10 @@ export class ToolkitService {
     window.location.href = this.authorizeUrl;
   }
 
+  silentAuthentication() {
+    return this.http.get('/demo/silentauth');
+  }
+
   /**
    *
    * @returns {Observable<any>}
