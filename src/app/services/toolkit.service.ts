@@ -15,6 +15,7 @@ export class ToolkitService {
   nonce;
   scopesClaim;
   menuClaims;
+  menuClaims;
   unsafeApiKey;
   codeVerifier;
   codeChallenge;
