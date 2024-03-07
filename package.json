@@ -50,8 +50,8 @@
   },
   "devDependencies": {
     "@angular-devkit/core": "^7.0.3",
-    "@angular/cli": "^17.2.3",
-    "@angular/compiler-cli": "^17.0.0",
+    "@angular/cli": "^7.0.1",
+    "@angular/compiler-cli": "^7.0.1",
     "@angular/language-service": "^7.0.1",
     "@types/node": "~10.12.1",
     "ajv": "^6.5.4",
