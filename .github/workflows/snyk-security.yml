@@ -20,7 +20,7 @@ jobs:
         with:
           args: |
              --sarif-file-output=snyk.sarif
-            # --severity-threshold=high
+             --severity-threshold=high
       - name: Upload result to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v2
         with:
