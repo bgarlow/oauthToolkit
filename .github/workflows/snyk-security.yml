@@ -1,0 +1,23 @@
+name: Run Snyk test on push to repo
+on: push
+jobs:
+  # Run snyk test on application files
+  security:
+    runs-on: ubuntu-latest
+    permissions:
+      # required for all workflows
+      security-events: write
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@master
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true # To make sure that SARIF upload gets called
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: |
+             --sarif-file-output=snyk.sarif
+            # --severity-threshold=high
