@@ -1256,8 +1256,8 @@ router.post('/authn', (req, res) => {
  *
  */
 router.get('/authn/callback', (req, res) => {
-
   if (!req.query.code) {
+    console.log('error in callback router 1 ' + req.query);
     console.log(`/toolkit#error=Authorization Code Missing`);
   }
 
@@ -1320,7 +1320,12 @@ router.get('/authn/callback', (req, res) => {
  */
 router.get('/authorization-code/callback', (req, res) => {
 
-  const secret = new Buffer(`${req.cookies.state.selectedOAuthClientId}:${req.cookies.state.unsafeSelectedClientSecret}`, 'utf8').toString('base64');
+  console.log('\nin callback now: \n');
+  console.log(req.query);
+  console.log(req.body);
+
+  const secret = new Buffer.from(`${req.cookies.state.selectedOAuthClientId}:${req.cookies.state.unsafeSelectedClientSecret}`, 'utf8').toString('base64');
+  //const secret = new Buffer(`${req.cookies.state.selectedOAuthClientId}:${req.cookies.state.unsafeSelectedClientSecret}`, 'utf8').toString('base64');
 
   let nonce;
   let state;
@@ -1350,6 +1355,7 @@ router.get('/authorization-code/callback', (req, res) => {
   // If we don't have an authorization code, we can't request tokens
 
   if (!req.query.code) {
+    console.log('No code2: \n' + JSON.stringify(req.query, null, 4));
     res.redirect(`/toolkit#error=Authorization Code Missing`);
     return;
   }
