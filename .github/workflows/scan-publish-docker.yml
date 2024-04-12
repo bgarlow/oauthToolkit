@@ -12,19 +12,6 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v4
 
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        # DEMO: We should fail this deploy due to the critical vuln, but we'll let it go for demo purposes. Monitor will catch it.
-        continue-on-error: true 
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: |
-             --severity-threshold=medium
-             --fail-on=upgradable
-          command: |
-              container test
-              monitor
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -45,3 +32,17 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        # DEMO: We should fail this deploy due to the critical vuln, but we'll let it go for demo purposes. Monitor will catch it.
+        continue-on-error: true 
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: |
+              --severity-threshold=medium
+              --fail-on=upgradable
+          command: |
+              container test bgarlow/oatk --file=./Dockerfile
+              container monitor bgarlow/oatk --file=./Dockerfile
