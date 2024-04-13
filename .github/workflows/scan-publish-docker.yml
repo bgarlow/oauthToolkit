@@ -22,7 +22,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: bgarlow/oatk
+          images: bgarlow/oauth-toolkit
 
       - name: Build and push Docker image
         uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
@@ -35,7 +35,7 @@ jobs:
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/node@master
-        # DEMO: We should fail this deploy due to the critical vuln, but we'll let it go for demo purposes. Monitor will catch it.
+        # DEMO: We should allow the fail-on=upgradable flag fail this deploy due to the critical vuln, but we'll let it go for demo purposes. 
         continue-on-error: true 
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
@@ -44,5 +44,5 @@ jobs:
               --severity-threshold=medium
               --fail-on=upgradable
           command: |
-              container test bgarlow/oatk --file=./Dockerfile
-              container monitor bgarlow/oatk --file=./Dockerfile
+              container test bgarlow/oauth-toolkit --file=./Dockerfile
+              container monitor bgarlow/oauth --file=./Dockerfile
